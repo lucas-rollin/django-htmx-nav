@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "django-htmx-nav"
+version = "0.1.0"
+description = "Helpers for server-driven HTMX navigation in Django, with the URL as the source of truth."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Lucas Rollin Ferreira" }]
+dependencies = [
+    "Django>=6.0"
+]
+
+[project.optional-dependencies]
+htmx = [
+    "django-htmx>=1.17",
+]
+test = [
+    "pytest>=8.0",
+    "pytest-django>=4.8",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+htmx_nav = ["py.typed"]
