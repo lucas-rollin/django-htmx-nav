@@ -42,7 +42,7 @@ documented instead, as two worked patterns:
 `htmx_nav` is **not** a Django app, nothing to add to `INSTALLED_APPS`.
 
 ```bash
-pip install "django-htmx-nav @ git+https://github.com/lucas-rollin/django-htmx-nav.git@v0.1.0"
+pip install django-htmx-nav
 ```
 
 ## Template partials setup
@@ -139,21 +139,6 @@ ShellViewMixin = make_shell_view_mixin(render_shell)
 
 class ProjectDetailView(ShellViewMixin, DetailView):
     template_name = "app/project_detail.html"
-```
-
-### Enforcing nav parity in tests
-
-```python
-from htmx_nav.testing import assert_shell_parity
-
-def test_project_detail_nav_parity(client, project):
-    assert_shell_parity(
-        client, f"/projects/{project.pk}/",
-        checks={
-            "active_sidebar_item": lambda ctx: [i["label"] for i in ctx["nav"]["sidebar"] if i["active"]],
-            "breadcrumbs": lambda ctx: [c["label"] for c in ctx["nav"]["breadcrumbs"]],
-        },
-    )
 ```
 
 ## `htmx_nav.helpers` reference
