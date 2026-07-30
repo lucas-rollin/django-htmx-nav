@@ -1,8 +1,4 @@
-"""
-Class-based-view support. Optional — function-based views can just call
-`render_shell(request, ...)` directly.
-"""
-from typing import Callable, Protocol, Sequence, Any
+from typing import Any, Callable, Protocol, Sequence
 from django.http import HttpRequest
 
 
@@ -13,33 +9,21 @@ class _DjangoViewProtocol(Protocol):
     shell_extra_oob: Sequence[Any]
 
 
-def make_shell_view_mixin(render_shell: Callable):
-    """
-    Factory returning a mixin that routes a CBV's `render_to_response`
-    through `render_shell` (as produced by
-    `htmx_nav.responses.make_shell_renderer`), so views don't each
-    hand-wire it.
+def make_shell_view_mixin(render_shell: Callable) -> type:
+    """Creates a mixin that integrates shell rendering into Django Class-Based Views.
 
-    Usage:
+    Args:
+        render_shell: The shell rendering function to use.
 
-        # yourapp/views.py
-        from htmx_nav.views import make_shell_view_mixin
-        from .render import render_shell
+    Returns:
+        A mixin class for Django generic views.
 
+    Example:
+        ```python
         ShellViewMixin = make_shell_view_mixin(render_shell)
-
-        class DemandDetailView(ShellViewMixin, DetailView):
-            template_name = "ombudsman/demand_detail.html"
-            shell_extra_oob = ()  # optional, see below
-
-    Works with any Django generic view whose `render_to_response(context,
-    **response_kwargs)` is the final step (TemplateView, DetailView,
-    ListView, FormView, ...). `response_kwargs` (status, content_type,
-    etc.) are passed straight through to `render_shell`/`render_htmx`.
-
-    A view can set `shell_extra_oob` (a sequence of `Oob`) to append
-    additional out-of-band fragments beyond the fixed shell, e.g. a
-    toast or a per-view sidebar badge update.
+        class MyView(ShellViewMixin, DetailView):
+            template_name = "item_detail.html"
+        ```
     """
     class ShellViewMixin:
         shell_extra_oob: tuple = ()

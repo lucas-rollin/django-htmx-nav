@@ -1,21 +1,17 @@
-# Pattern: a hand-rolled registry
+# Pattern: Centralized Navigation Registry
 
-Good fit once a project has enough views that "what breadcrumbs/tabs does
-this view have" needs one obvious place to look, and/or you want to
-assert nav state in tests without rendering templates.
+This pattern uses a hand-rolled registry to centralize navigation structure and state definitions, suitable for projects with numerous views requiring consistent navigation management.
 
-**This code is meant to be copied into your project (e.g. `yourapp/nav.py`)
-and adapted — `htmx_nav` does not ship a `Registry`/`LinkItem`/`NavState`
-class.** An earlier version of this package did ship exactly that as a
-framework; it turned out to be more machinery than most projects need,
-and the wrong machinery for projects with a different shape (a navbar
-instead of a sidebar, no breadcrumbs, etc.). The version below is
-intentionally plain — dataclasses and dicts, ~40 lines — so you can bend
-it to your project instead of the other way around.
+## Overview
 
-## `yourapp/nav.py`
+The registry pattern maintains navigation data in a single location, providing a clear source of truth for what navigation elements belong to each view. The implementation is intentionally minimal and adaptable to project-specific requirements.
+
+## Implementation
+
+### Navigation Registry
 
 ```python
+# yourapp/nav.py
 from dataclasses import dataclass, field
 from typing import Callable, Optional, Sequence, Union
 
@@ -40,19 +36,17 @@ class Link:
 @dataclass(frozen=True)
 class Crumb:
     label: DynamicStr
-    view_name: Optional[str] = None  # None = current page, not a link
+    view_name: Optional[str] = None  # None indicates current page (non-linked)
 
 
 @dataclass(frozen=True)
 class NavState:
-    """What a given view_name means for nav purposes."""
+    """Defines navigation state for a given view."""
     active_link: str = ""
     breadcrumbs: Sequence[Crumb] = field(default_factory=tuple)
 
 
-# --- your project's actual data — this is the part that's genuinely
-# project-specific, and the part worth keeping in one obvious place ---
-
+# Project-specific navigation data
 SIDEBAR = [
     Link("Dashboard", "app:dashboard", ICON_DASHBOARD),
     Link("Projects", "app:project_list", ICON_PROJECTS),
@@ -99,15 +93,7 @@ def build_nav_context(request: HttpRequest) -> dict:
     return cache_on_request(request, "_yourapp_nav", _build)
 ```
 
-Note `Crumb(lambda r: r.project.name)` for the project-detail breadcrumb —
-this assumes something upstream (a decorator, a mixin, `get_object`)
-stashed the resolved object on `request` before nav context gets built.
-That's a project-specific wiring detail worth deciding deliberately rather
-than copying blind — the alternative is computing breadcrumbs inside the
-view itself (see "Skipping the registry entirely" below) once a view's
-breadcrumbs need data that's expensive to fetch twice.
-
-## Wiring it up
+### Configuration
 
 ```python
 # yourapp/render.py
@@ -120,20 +106,21 @@ render_shell = make_shell_renderer(
 )
 ```
 
+### View Integration
+
 ```python
 # yourapp/views.py
 from .render import render_shell
 
 def project_detail(request, pk):
     project = get_object_or_404(Project, pk=pk)
-    request.project = project  # if using the lambda-crumb wiring above
+    request.project = project  # Required for lambda-based crumb resolution
     return render_shell(request, "yourapp/project_detail.html", {"project": project})
 ```
 
-## Testing it
+## Testing
 
-Because `build_nav_context` returns plain dicts, you can assert against
-it directly, on top of the cross-cutting check from `htmx_nav.testing`:
+The registry returns plain dictionaries, enabling direct assertions without template rendering:
 
 ```python
 from htmx_nav.testing import assert_shell_parity
@@ -148,21 +135,18 @@ def test_project_detail_nav_parity(client, project):
     )
 ```
 
-## Extending it
+## Extension Points
 
-Add fields to `Link`/`NavState` as your project actually needs them,
-`visible_if: Callable[[HttpRequest], bool]` for conditional visibility,
-`extra: dict` for arbitrary per-item metadata, a second `NAVBAR` list plus
-a second entry in the returned context dict for a navbar alongside the
-sidebar, and so on. There's no base class to satisfy and no required
-shape beyond "produces a dict `render_shell`'s `context_builder` can
-return" — grow it in whatever direction your actual UI needs, not in the
-direction a generic framework guessed you might need.
+The registry can be extended to accommodate additional requirements:
 
-## Skipping the registry entirely
+- Add fields to `Link`/`NavState` classes (e.g., `visible_if: Callable`, `extra: dict`)
+- Support multiple navigation structures (e.g., navbar alongside sidebar)
+- Implement conditional visibility based on request state
+- Add arbitrary metadata to navigation items
 
-For a handful of views, even this might be more structure than you need
-— compute breadcrumbs inline in the view instead:
+## Alternative: Inline Breadcrumb Definition
+
+For projects with few views, breadcrumbs can be defined inline within views:
 
 ```python
 from htmx_nav.helpers import reverse_maybe
@@ -179,6 +163,26 @@ def project_detail(request, pk):
     })
 ```
 
-This is the same idea as the registry, just not centralized, reach for
-the registry once "which views need updating when I rename a breadcrumb"
-becomes a real question, not before.
+## Characteristics
+
+**Advantages:**
+- Centralized navigation definition provides a single source of truth
+- Navigation state can be tested without template rendering
+- Easier to audit and maintain as the number of views grows
+- Clear mapping between views and their navigation elements
+
+**Limitations:**
+- Additional code structure required compared to template-based approach
+- Navigation data and presentation are separated
+- May be overkill for projects with very few navigation elements
+
+## When to Use
+
+Consider this pattern when:
+
+- The project has numerous views requiring consistent navigation
+- You need to audit or validate navigation structure programmatically
+- Breadcrumb relationships need to be centrally managed
+- Navigation logic requires complex conditional behavior
+
+For simpler navigation needs, the [context processor + template tags pattern](context_processor_and_templatetags.md) may be more appropriate.

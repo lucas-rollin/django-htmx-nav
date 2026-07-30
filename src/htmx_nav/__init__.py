@@ -1,12 +1,11 @@
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
-from .responses import Oob, render_htmx, htmx_redirect, make_shell_renderer
+from .responses import Swap, render_htmx, make_shell_renderer
 from .views import make_shell_view_mixin
 
 __all__ = [
-    "Oob",
+    "Swap",
     "render_htmx",
-    "htmx_redirect",
     "make_shell_renderer",
     "make_shell_view_mixin",
 ]

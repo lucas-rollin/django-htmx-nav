@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-htmx-nav"
-version = "0.1.0"
+version = "0.2.0"
 description = "Helpers for server-driven HTMX navigation in Django, with the URL as the source of truth."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -28,3 +28,8 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 htmx_nav = ["py.typed"]
+
+[project.urls]
+"Homepage" = "https://github.com/lucas-rollin/django-htmx-nav"
+"Documentation" = "https://lucas-rollin.github.io/django-htmx-nav/"
+"Repository" = "https://github.com/lucas-rollin/django-htmx-nav"

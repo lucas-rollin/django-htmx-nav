@@ -1,16 +1,12 @@
-# Pattern: context processor + template tags
+# Pattern: Context Processor with Template Tags
 
-Good fit when your nav is mostly declared *in templates*, you'd rather
-write `{% nav_link "app:dashboard" "Dashboard" %}` next to your HTML than
-maintain a separate Python data structure describing the same thing.
+This pattern uses Django's built-in template tag system to render navigation elements directly in templates, with context processors providing additional data when needed.
 
-This is plain Django: a context processor makes `request` (and anything
-else you want) available to every template, and a couple of template
-tags do the `reverse()`/active-state work inline. `htmx_nav` doesn't need
-to know any of this is happening, it only cares that your shell template
-renders correctly as an OOB fragment, which it already does.
+## Implementation
 
-## 1. Template tags
+### Template Tags
+
+The following template tags handle URL resolution and active state determination:
 
 ```python
 # yourapp/templatetags/nav_tags.py
@@ -38,7 +34,9 @@ def nav_crumb(context, label, view_name=None):
     return f'<a href="{url}" class="crumb">{label}</a>'
 ```
 
-## 2. The shell template, written directly in HTML
+### Shell Template
+
+Navigation elements are defined directly in HTML using the template tags:
 
 ```html
 {# yourapp/templates/yourapp/_shell.html #}
@@ -52,7 +50,7 @@ def nav_crumb(context, label, view_name=None):
 </div>
 ```
 
-Per-view breadcrumbs are just template blocks, overridden per page:
+Per-view breadcrumbs are overridden using template blocks:
 
 ```html
 {# yourapp/templates/yourapp/project_detail.html #}
@@ -67,14 +65,9 @@ Per-view breadcrumbs are just template blocks, overridden per page:
 {% endpartialdef %}
 ```
 
-## 3. Wiring it up
+### Context Processors
 
-No context processor is actually required here, `context={"request": ...}`
-is already implied by `TemplateResponse` and `{% load nav_tags %}`'s
-`takes_context=True`. If you *do* want some nav-adjacent data (current
-user's permissions, active workspace) available without passing it
-explicitly on every `render_htmx` call, that's what a context processor
-is for:
+Context processors can provide additional data to templates without explicit passing in views:
 
 ```python
 # yourapp/context_processors.py
@@ -95,32 +88,39 @@ TEMPLATES = [{
 }]
 ```
 
-Then in views:
+### View Integration
 
 ```python
 from htmx_nav.responses import make_shell_renderer
 
 render_shell = make_shell_renderer(shell_template="yourapp/_shell.html")
-# no context_builder needed — the shell template gets everything it
-# needs from context processors + {% load nav_tags %}
 
 def project_detail(request, pk):
     project = get_object_or_404(Project, pk=pk)
     return render_shell(request, "yourapp/project_detail.html", {"project": project})
 ```
 
-## Trade-offs
+## Characteristics
 
-- **Pro:** nav structure lives next to the HTML it produces, easy to see
-  what a page actually looks like, no separate data model to keep in sync.
-- **Pro:** genuinely zero extra Python data structures; if your nav is
-  small (a handful of static links), this is the least code.
-- **Con:** "what view maps to what breadcrumbs" isn't centralized anywhere
-  — harder to audit at a glance once you have dozens of views, and there's
-  no single place to enforce "every registered view has breadcrumbs."
-- **Con:** testing nav state means rendering templates (`assert_shell_parity`
-  from `htmx_nav.testing` still works here, it inspects rendered context,
-  not the templates directly), rather than asserting against plain data.
+**Advantages:**
+- Navigation structure is defined alongside the HTML it produces
+- No separate data structures required for simple navigation needs
+- Minimal code overhead for small, static navigation elements
 
-If that centralization/testability trade-off starts to bite, see
-`docs/patterns/registry_pattern.md` for the alternative.
+**Limitations:**
+- Breadcrumb relationships are not centralized, making system-wide audits more difficult
+- Navigation state testing requires rendering templates rather than asserting against plain data structures
+- Becomes harder to maintain as the number of views grows
+
+## Testing
+
+The `assert_shell_parity` helper from `htmx_nav.testing` can verify rendered navigation context:
+
+```python
+from htmx_nav.testing import assert_shell_parity
+
+def test_navigation_parity(client):
+    assert_shell_parity(client, "/some-url/")
+```
+
+Consider the [registry pattern](registry_pattern.md) for projects requiring more centralized navigation management.
