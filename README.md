@@ -1,6 +1,6 @@
 # django-htmx-nav
 
-[![Docs](https://img.shields.io/badge/docs-mkdocs--material-blue)](https://username.github.io/repo-name/)
+[![Docs](https://img.shields.io/badge/docs-mkdocs--material-blue)](https://lucas-rollin.github.io/django-htmx-nav/)
 
 Django 6 added native template partials, so a single file can define
 both the full page and the fragment HTMX swaps into:
