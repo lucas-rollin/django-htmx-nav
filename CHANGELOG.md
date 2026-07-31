@@ -1,3 +1,9 @@
+## 0.3.0 — 2026-07-30
+
+- Fixed typos in docstrings and documentation.
+- Removed `HX-Push-Url` handling from inside `render_htmx` so it's control is moved to the view.
+- Moved to sphinx documentation to avoid context switching.
+
 ## 0.2.0 — 2026-07-29
 
 - **`htmx_nav.responses`**:

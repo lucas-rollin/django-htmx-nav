@@ -1,10 +1,9 @@
-from typing import Any, Callable
-
 import pytest
 from django.test import Client
 from django.urls import path
 
 from htmx_nav.responses import make_shell_renderer
+from htmx_nav.testing import assert_shell_parity
 
 # Tell pytest to use this module's urlpatterns
 pytestmark = pytest.mark.urls(__name__)
@@ -34,36 +33,6 @@ def record_tab_view(request):
 urlpatterns = [
     path("nav-workspace/record/42/", record_tab_view),
 ]
-
-
-# -- Parity testing utilities ---------------
-
-def assert_shell_parity(
-    client: Client,
-    url: str,
-    *,
-    requests: dict[str, dict],
-    checks: dict[str, Callable[[Any], Any]],
-):
-    """
-    GETs `url` once per entry in `requests` (label -> kwargs passed to
-    `client.get`), and asserts every function in `checks` extracts the
-    same value from every response's template context.
-
-    Returns {label: response} for further assertions.
-    """
-    responses = {label: client.get(url, **kwargs) for label, kwargs in requests.items()}
-
-    for check_label, extract in checks.items():
-        values = {label: extract(resp.context) for label, resp in responses.items()}
-        baseline_label, baseline_value = next(iter(values.items()))
-        for label, value in values.items():
-            assert value == baseline_value, (
-                f"Shell parity broken for check {check_label!r} at {url!r}: "
-                f"{baseline_label!r} gave {baseline_value!r}, {label!r} gave {value!r}."
-            )
-
-    return responses
 
 
 # -- Test constants ---------------

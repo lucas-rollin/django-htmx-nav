@@ -141,17 +141,6 @@ The view stays focused on what's actually tab-specific (which partial,
 which sibling needs refreshing); the "which of the 3 pathways is this"
 branching lives once, inside `render_shell`.
 
-## Also included
-
-- **`htmx_redirect(request, url)`** — `HX-Redirect` + 204 on HTMX
-  requests, a normal redirect otherwise. A plain
-  `HttpResponseRedirect` gets swapped into the DOM as raw HTML instead
-  of navigating, which is rarely what you want.
-- **`htmx_nav.testing.assert_shell_parity`** — hits a URL under several
-  request shapes (full reload, each HTMX pathway) and asserts your nav
-  context is identical across all of them — turns "stale nav state"
-  into something you can catch in CI instead of by eyeballing.
-
 ---
 
 **⚠️ This package is young. The API (function signatures, keyword

@@ -123,43 +123,6 @@ def test_swap_with_no_context_falls_back_to_empty_dict():
     assert b"<p>no message</p>" in response.content
 
 
-# --- render_htmx: push_url ------------------------------------------------
-
-def test_push_url_defaults_to_full_path_on_htmx_requests():
-    rf = RequestFactory()
-    request = rf.get("/workspace/?tab=response", HTTP_HX_REQUEST="true")
-    response = render_htmx(request, "tests/_page.html", {"title": "hi"}, push_url=True)
-    assert response["HX-Push-Url"] == "/workspace/?tab=response"
-
-
-def test_push_url_accepts_explicit_override():
-    rf = RequestFactory()
-    request = rf.get("/workspace/", HTTP_HX_REQUEST="true")
-    response = render_htmx(request, "tests/_page.html", {"title": "hi"}, push_url="/canonical/")
-    assert response["HX-Push-Url"] == "/canonical/"
-
-
-def test_push_url_false_omits_header():
-    rf = RequestFactory()
-    request = rf.get("/workspace/", HTTP_HX_REQUEST="true")
-    response = render_htmx(request, "tests/_page.html", {"title": "hi"}, push_url=False)
-    assert "HX-Push-Url" not in response
-
-
-def test_push_url_omitted_on_non_htmx_requests():
-    rf = RequestFactory()
-    request = rf.get("/workspace/")
-    response = render_htmx(request, "tests/_page.html", {"title": "hi"})
-    assert "HX-Push-Url" not in response
-
-
-def test_vary_header_includes_hx_request():
-    rf = RequestFactory()
-    request = rf.get("/workspace/")
-    response = render_htmx(request, "tests/_page.html", {"title": "hi"})
-    assert "HX-Request" in response["Vary"]
-
-
 # --- make_shell_renderer: page_target_id routing --------------------------
 
 @patch("htmx_nav.responses.render_htmx")

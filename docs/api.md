@@ -1,21 +1,30 @@
-# API Reference / Docstrings
+# API Reference
 
 This page provides the API reference generated automatically from docstrings in `django-htmx-nav`.
 
----
+## `htmx_nav.responses`
 
-## Responses Module (`htmx_nav.responses`)
+```{eval-rst}
+.. automodule:: htmx_nav.responses
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```
 
-::: htmx_nav.responses
+## `htmx_nav.helpers`
 
----
+```{eval-rst}
+.. automodule:: htmx_nav.helpers
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```
 
-## Helpers Module (`htmx_nav.helpers`)
+## `htmx_nav.views`
 
-::: htmx_nav.helpers
-
----
-
-## Views Module (`htmx_nav.views`)
-
-::: htmx_nav.views
+```{eval-rst}
+.. automodule:: htmx_nav.views
+   :members:
+   :undoc-members:
+   :show-inheritance:
+```

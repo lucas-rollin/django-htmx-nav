@@ -19,11 +19,11 @@ def make_shell_view_mixin(render_shell: Callable) -> type:
         A mixin class for Django generic views.
 
     Example:
-        ```python
-        ShellViewMixin = make_shell_view_mixin(render_shell)
-        class MyView(ShellViewMixin, DetailView):
-            template_name = "item_detail.html"
-        ```
+        .. code-block:: python
+
+            ShellViewMixin = make_shell_view_mixin(render_shell)
+            class MyView(ShellViewMixin, DetailView):
+                template_name = "item_detail.html"
     """
     class ShellViewMixin:
         shell_extra_oob: tuple = ()

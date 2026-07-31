@@ -64,7 +64,6 @@ def render_htmx(
     *,
     partial_name: Optional[str] = "content",
     swaps: Sequence[Swap] = (),
-    push_url: Union[bool, str] = False,
 ) -> TemplateResponse:
     """
     Render a template with HTMX-aware partial and swap support.
@@ -85,10 +84,6 @@ def render_htmx(
         partial_name: Name of the django partial to render on HTMX requests.
             Defaults to "content". Set to None to disable partial rendering.
         swaps: Sequence of Swap fragments to append on HTMX requests.
-        push_url: Controls the HX-Push-Url header:
-            - False (default): Don't touch browser history (for non-navigation swaps)
-            - True: Push request.get_full_path() to browser history
-            - str: Push this explicit URL instead
 
     Returns:
         TemplateResponse configured for HTMX or regular rendering.
@@ -97,22 +92,22 @@ def render_htmx(
         TemplateDoesNotExist: If the template or partial cannot be found.
 
     Example:
-        ```python
-        # Basic usage
-        return render_htmx(request, "project/detail.html", {"project": project})
-        
-        # With swap fragments
-        return render_htmx(
-            request,
-            "project/detail.html",
-            {"project": project},
-            swaps=[
-                Swap("partials/nav.html", {"active": "projects"}, target_id="nav"),
-                Swap("partials/notifications.html", target_id="alerts"),
-            ],
-            push_url=True
-        )
-        ```
+        .. code-block:: python
+
+            # Basic usage
+            return render_htmx(request, "project/detail.html", {"project": project})
+
+            # With swap fragments
+            return render_htmx(
+                request,
+                "project/detail.html",
+                {"project": project},
+                swaps=[
+                    Swap("partials/nav.html", {"active": "projects"}, target_id="nav"),
+                    Swap("partials/notifications.html", target_id="alerts"),
+                ],
+                push_url=True,
+            )
     """
     is_htmx = _is_htmx_request(request)
     context = dict(context or {})
@@ -123,10 +118,6 @@ def render_htmx(
         content_type=content_type, status=status, using=using,
     )
     patch_vary_headers(response, ("HX-Request",))
-    if is_htmx and push_url:
-        response["HX-Push-Url"] = (
-            push_url if isinstance(push_url, str) else request.get_full_path()
-        )
     if is_htmx and swaps:
         def append_swap(resp):
             for swap in swaps:
@@ -186,21 +177,21 @@ def make_shell_renderer(
         A `render_shell` function.
 
     Example:
-        ```python
-        # Define a shell renderer
-        render_page = make_shell_renderer(
-            "partials/nav.html",
-            context_builder=lambda r: {"user": r.user},
-            page_target_id="main-content",
-        )
+        .. code-block:: python
 
-        # Use it inside a Django view to render full or partial responses
-        response = render_page(
-            request, 
-            "project/detail.html", 
-            {"project": project}
-        )
-        ```
+            # Define a shell renderer
+            render_page = make_shell_renderer(
+                "partials/nav.html",
+                context_builder=lambda r: {"user": r.user},
+                page_target_id="main-content",
+            )
+
+            # Use it inside a Django view to render full or partial responses
+            response = render_page(
+                request,
+                "project/detail.html",
+                {"project": project},
+            )
     """
     def render_shell(
         request: HttpRequest,

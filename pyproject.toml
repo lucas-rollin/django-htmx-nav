@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-htmx-nav"
-version = "0.2.0"
+version = "0.3.0"
 description = "Helpers for server-driven HTMX navigation in Django, with the URL as the source of truth."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -21,6 +21,12 @@ htmx = [
 test = [
     "pytest>=8.0",
     "pytest-django>=4.8",
+]
+docs = [
+    "sphinx>=8.0",
+    "myst-parser>=4.0",
+    "furo>=2024.0",
+    "sphinx-autodoc-typehints>=3.0",
 ]
 
 [tool.setuptools.packages.find]

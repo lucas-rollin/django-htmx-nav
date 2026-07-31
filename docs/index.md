@@ -4,6 +4,16 @@
 
 `django-htmx-nav` provides lightweight helpers for handling HTMX partial renders, out-of-band (OOB) updates, shell layout rendering, and HTMX-safe redirects in Django projects.
 
+```{toctree}
+:maxdepth: 2
+:caption: Contents
+
+quickstart
+api
+pattern/context_processor_and_templatetags
+pattern/registry_pattern
+```
+
 ---
 
 ## Overview
@@ -34,18 +44,5 @@ While partials solve single-fragment swapping, real-world web applications often
 
 - **`render_htmx`**: Renders only requested partial blocks on HTMX requests, manages `HX-Push-Url`, and appends extra OOB `Swap` fragments seamlessly.
 - **`make_shell_renderer`**: Encapsulates common page layouts (sidebar, header, breadcrumbs) into a clean renderer function so view functions remain uncluttered.
-- **`htmx_redirect`**: Sends `HX-Redirect` response headers on HTMX requests while performing normal HTTP redirects for standard page reloads.
 - **`make_shell_view_mixin`**: Class-Based View (CBV) integration for Django generic views (`DetailView`, `ListView`, `FormView`).
 - **`assert_shell_parity`**: Automated test utility to verify navigation state consistency across full loads and HTMX interactions in CI.
-
----
-
-## Documentation Guide
-
-Explore the documentation sections to get started:
-
-- [**Quickstart**](quickstart.md): Step-by-step guide to installing and integrating `django-htmx-nav` in your Django app.
-- [**API Reference / Docstrings**](api.md): Detailed parameter and return type reference for functions, classes, and helpers.
-- [**Architectural Patterns**](pattern/context_processor_and_templatetags.md):
-    - [Context Processor & Template Tags](pattern/context_processor_and_templatetags.md)
-    - [Centralized Navigation Registry](pattern/registry_pattern.md)
