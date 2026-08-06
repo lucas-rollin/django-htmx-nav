@@ -35,8 +35,11 @@ pip install django-htmx-nav
 ```python
 from htmx_nav.responses import render_htmx
 
+
 def project_list(request):
-    return render_htmx(request, "app/project_list.html", {"projects": Project.objects.all()})
+    return render_htmx(
+        request, "app/project_list.html", {"projects": Project.objects.all()}
+    )
 ```
 
 ```html
@@ -63,13 +66,18 @@ fragments alongside the main one, each targeting its own DOM id.
 ```python
 from htmx_nav.responses import Swap, render_htmx
 
+
 def project_detail(request, pk):
     project = get_object_or_404(Project, pk=pk)
     return render_htmx(
-        request, "app/project_detail.html", {"project": project},
+        request,
+        "app/project_detail.html",
+        {"project": project},
         swaps=[
             Swap("app/_sidebar.html", {"active": project.pk}, target_id="sidebar"),
-            Swap("app/_breadcrumbs.html", {"project": project}, target_id="breadcrumbs"),
+            Swap(
+                "app/_breadcrumbs.html", {"project": project}, target_id="breadcrumbs"
+            ),
         ],
     )
 ```
@@ -91,6 +99,7 @@ render_shell = make_shell_renderer(
     shell_template="app/_shell.html",  # renders sidebar + breadcrumbs together
     context_builder=lambda request: {"nav": build_nav_context(request)},
 )
+
 
 def project_detail(request, pk):
     project = get_object_or_404(Project, pk=pk)
@@ -118,15 +127,20 @@ and skip any extra OOB fragments beyond the shell; only the third needs
 render_staff = make_shell_renderer(
     "app/_shell.html",
     context_builder=lambda request: {"nav": build_nav_context(request)},
-    page_target_id="page-content",   # DOM id of the page's own container
+    page_target_id="page-content",  # DOM id of the page's own container
 )
+
 
 def project_tab(request, pk, *, tab_partial_name):
     project = get_object_or_404(Project, pk=pk)
     return render_staff(
-        request, "app/project_detail.html", {"project": project},
+        request,
+        "app/project_detail.html",
+        {"project": project},
         partial_name=tab_partial_name,
-        extra_swaps=[Swap("app/_tabs.html", {"active": tab_partial_name}, target_id="tabs")],
+        extra_swaps=[
+            Swap("app/_tabs.html", {"active": tab_partial_name}, target_id="tabs")
+        ],
     )
 ```
 

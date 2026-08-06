@@ -1,13 +1,13 @@
 __version__ = "0.2.0"
 
-from .responses import Swap, render_htmx, make_shell_renderer
+from .responses import Swap, make_shell_renderer, render_htmx
 from .testing import assert_shell_parity
 from .views import make_shell_view_mixin
 
 __all__ = [
     "Swap",
-    "render_htmx",
+    "assert_shell_parity",
     "make_shell_renderer",
     "make_shell_view_mixin",
-    "assert_shell_parity",
+    "render_htmx",
 ]

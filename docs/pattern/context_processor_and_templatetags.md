@@ -30,7 +30,11 @@ def nav_crumb(context, label, view_name=None):
     request = context["request"]
     if not view_name:
         return f'<span class="crumb crumb--current">{label}</span>'
-    url = reverse_maybe(view_name, request.resolver_match.kwargs if request.resolver_match else {}, strict=False)
+    url = reverse_maybe(
+        view_name,
+        request.resolver_match.kwargs if request.resolver_match else {},
+        strict=False,
+    )
     return f'<a href="{url}" class="crumb">{label}</a>'
 ```
 
@@ -95,6 +99,7 @@ from htmx_nav.responses import make_shell_renderer
 
 render_shell = make_shell_renderer(shell_template="yourapp/_shell.html")
 
+
 def project_detail(request, pk):
     project = get_object_or_404(Project, pk=pk)
     return render_shell(request, "yourapp/project_detail.html", {"project": project})
@@ -118,6 +123,7 @@ The `assert_shell_parity` helper from `htmx_nav.testing` can verify rendered nav
 
 ```python
 from htmx_nav.testing import assert_shell_parity
+
 
 def test_navigation_parity(client):
     assert_shell_parity(client, "/some-url/")

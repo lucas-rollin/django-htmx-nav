@@ -1,5 +1,4 @@
 import pytest
-from django.http import HttpResponse
 from django.template.response import TemplateResponse
 from django.test import Client
 from django.urls import path
@@ -13,9 +12,12 @@ pytestmark = pytest.mark.urls(__name__)
 # These deliberately avoid make_shell_renderer/real templates so failures here
 # can only come from assert_shell_parity itself, not from shell-rendering logic.
 
+
 def consistent_view(request):
     """Always returns the same context, regardless of headers."""
-    return TemplateResponse(request, "tests/_minimal.html", {"value": 42, "label": "same"})
+    return TemplateResponse(
+        request, "tests/_minimal.html", {"value": 42, "label": "same"}
+    )
 
 
 def diverging_view(request):
@@ -32,10 +34,12 @@ urlpatterns = [
 
 # -- Tests ---------------
 
+
 def test_passes_when_all_responses_agree():
     client = Client()
     responses = assert_shell_parity(
-        client, "/consistent/",
+        client,
+        "/consistent/",
         requests={"a": {}, "b": {"HTTP_HX_TARGET": "whatever"}},
         checks={"value": lambda ctx: ctx["value"], "label": lambda ctx: ctx["label"]},
     )
@@ -47,7 +51,8 @@ def test_raises_when_a_check_diverges():
     client = Client()
     with pytest.raises(AssertionError, match="Shell parity broken"):
         assert_shell_parity(
-            client, "/diverging/",
+            client,
+            "/diverging/",
             requests={
                 "no_target": {},
                 "short_target": {"HTTP_HX_TARGET": "x"},
@@ -60,7 +65,8 @@ def test_error_message_names_the_failing_check_and_labels():
     client = Client()
     with pytest.raises(AssertionError) as exc_info:
         assert_shell_parity(
-            client, "/diverging/",
+            client,
+            "/diverging/",
             requests={
                 "no_target": {},
                 "short_target": {"HTTP_HX_TARGET": "x"},
@@ -87,11 +93,13 @@ def test_evaluates_all_checks_even_after_one_fails():
         def _check(ctx):
             seen_checks.append(name)
             return ctx["value"]
+
         return _check
 
     with pytest.raises(AssertionError):
         assert_shell_parity(
-            client, "/diverging/",
+            client,
+            "/diverging/",
             requests={"a": {}, "b": {"HTTP_HX_TARGET": "xx"}},
             checks={
                 "first": tracking_check("first"),
@@ -105,7 +113,8 @@ def test_evaluates_all_checks_even_after_one_fails():
 def test_returns_responses_for_further_assertions():
     client = Client()
     responses = assert_shell_parity(
-        client, "/consistent/",
+        client,
+        "/consistent/",
         requests={"only": {}},
         checks={"value": lambda ctx: ctx["value"]},
     )
@@ -117,7 +126,8 @@ def test_single_request_label_always_passes_checks():
     """With only one label, there's nothing to compare against — trivially passes."""
     client = Client()
     assert_shell_parity(
-        client, "/diverging/",
+        client,
+        "/diverging/",
         requests={"solo": {"HTTP_HX_TARGET": "anything"}},
         checks={"value": lambda ctx: ctx["value"]},
     )
@@ -126,7 +136,8 @@ def test_single_request_label_always_passes_checks():
 def test_no_checks_still_makes_all_requests():
     client = Client()
     responses = assert_shell_parity(
-        client, "/consistent/",
+        client,
+        "/consistent/",
         requests={"a": {}, "b": {}},
         checks={},
     )

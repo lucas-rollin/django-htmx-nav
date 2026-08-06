@@ -25,6 +25,7 @@ Use `render_htmx` in your view functions instead of standard Django `render`.
 from htmx_nav.responses import render_htmx
 from .models import Project
 
+
 def project_list(request):
     projects = Project.objects.all()
     return render_htmx(request, "app/project_list.html", {"projects": projects})
@@ -61,6 +62,7 @@ When navigating between pages, components outside the main content area (such as
 ```python
 from htmx_nav.responses import render_htmx, Swap
 
+
 def project_detail(request, pk):
     project = get_object_or_404(Project, pk=pk)
     return render_htmx(
@@ -69,7 +71,9 @@ def project_detail(request, pk):
         {"project": project},
         swaps=[
             Swap("app/_sidebar.html", {"active_pk": project.pk}, target_id="sidebar"),
-            Swap("app/_breadcrumbs.html", {"project": project}, target_id="breadcrumbs"),
+            Swap(
+                "app/_breadcrumbs.html", {"project": project}, target_id="breadcrumbs"
+            ),
         ],
     )
 ```
@@ -96,6 +100,7 @@ Now views can simply call `render_shell`:
 # views.py
 from .renderers import render_shell
 
+
 def project_detail(request, pk):
     project = get_object_or_404(Project, pk=pk)
     return render_shell(request, "app/project_detail.html", {"project": project})
@@ -114,6 +119,7 @@ from .renderers import render_shell
 
 ShellViewMixin = make_shell_view_mixin(render_shell)
 
+
 class ProjectDetailView(ShellViewMixin, DetailView):
     model = Project
     template_name = "app/project_detail.html"
@@ -127,6 +133,7 @@ Use `assert_shell_parity` from `htmx_nav.testing` to verify that full page loads
 
 ```python
 from htmx_nav.testing import assert_shell_parity
+
 
 def test_project_detail_navigation(client, project):
     assert_shell_parity(client, f"/projects/{project.pk}/")

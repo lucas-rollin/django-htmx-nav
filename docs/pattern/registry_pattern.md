@@ -42,6 +42,7 @@ class Crumb:
 @dataclass(frozen=True)
 class NavState:
     """Defines navigation state for a given view."""
+
     active_link: str = ""
     breadcrumbs: Sequence[Crumb] = field(default_factory=tuple)
 
@@ -53,14 +54,19 @@ SIDEBAR = [
 ]
 
 NAV_STATES: dict[str, NavState] = {
-    "app:dashboard": NavState(active_link="app:dashboard", breadcrumbs=[Crumb("Dashboard")]),
+    "app:dashboard": NavState(
+        active_link="app:dashboard", breadcrumbs=[Crumb("Dashboard")]
+    ),
     "app:project_list": NavState(
         active_link="app:project_list",
         breadcrumbs=[Crumb("Projects")],
     ),
     "app:project_detail": NavState(
         active_link="app:project_list",
-        breadcrumbs=[Crumb("Projects", "app:project_list"), Crumb(lambda r: r.project.name)],
+        breadcrumbs=[
+            Crumb("Projects", "app:project_list"),
+            Crumb(lambda r: r.project.name),
+        ],
     ),
 }
 
@@ -83,8 +89,11 @@ def build_nav_context(request: HttpRequest) -> dict:
         breadcrumbs = [
             {
                 "label": _label(crumb.label, request),
-                "url": reverse_maybe(crumb.view_name, match.kwargs if match else {}, strict=False)
-                if crumb.view_name else None,
+                "url": reverse_maybe(
+                    crumb.view_name, match.kwargs if match else {}, strict=False
+                )
+                if crumb.view_name
+                else None,
             }
             for crumb in state.breadcrumbs
         ]
@@ -112,6 +121,7 @@ render_shell = make_shell_renderer(
 # yourapp/views.py
 from .render import render_shell
 
+
 def project_detail(request, pk):
     project = get_object_or_404(Project, pk=pk)
     request.project = project  # Required for lambda-based crumb resolution
@@ -125,11 +135,15 @@ The registry returns plain dictionaries, enabling direct assertions without temp
 ```python
 from htmx_nav.testing import assert_shell_parity
 
+
 def test_project_detail_nav_parity(client, project):
     assert_shell_parity(
-        client, f"/projects/{project.pk}/",
+        client,
+        f"/projects/{project.pk}/",
         checks={
-            "active_sidebar_item": lambda ctx: [i["label"] for i in ctx["nav"]["sidebar"] if i["active"]],
+            "active_sidebar_item": lambda ctx: [
+                i["label"] for i in ctx["nav"]["sidebar"] if i["active"]
+            ],
             "breadcrumbs": lambda ctx: [c["label"] for c in ctx["nav"]["breadcrumbs"]],
         },
     )
@@ -151,16 +165,21 @@ For projects with few views, breadcrumbs can be defined inline within views:
 ```python
 from htmx_nav.helpers import reverse_maybe
 
+
 def project_detail(request, pk):
     project = get_object_or_404(Project, pk=pk)
     breadcrumbs = [
         {"label": "Projects", "url": reverse_maybe("app:project_list")},
         {"label": project.name, "url": None},
     ]
-    return render_shell(request, "yourapp/project_detail.html", {
-        "project": project,
-        "breadcrumbs": breadcrumbs,
-    })
+    return render_shell(
+        request,
+        "yourapp/project_detail.html",
+        {
+            "project": project,
+            "breadcrumbs": breadcrumbs,
+        },
+    )
 ```
 
 ## Characteristics

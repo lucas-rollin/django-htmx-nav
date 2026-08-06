@@ -2,7 +2,8 @@
 Testing utilities for projects that use htmx_nav.
 """
 
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from django.test import Client
 from django.test.html import parse_html
@@ -40,7 +41,7 @@ def assert_shell_parity(
         ```python
         from django.test import Client
         from htmx_nav.testing import assert_shell_parity
-        
+
         client = Client()
         requests = {
             "full_reload": {},
@@ -88,12 +89,15 @@ def _extract_fragment(html: bytes | str, element_id: str) -> str:
     soup = BeautifulSoup(html, "html.parser")
     element = soup.find(id=element_id)
     if element is None:
-        raise AssertionError(f"Could not find any element with id={element_id!r} in the response HTML.")
+        raise AssertionError(
+            f"Could not find any element with id={element_id!r} in the response HTML."
+        )
     return str(element)
 
 
-
-def _assert_html_equal(a_html: str | bytes, b_html: str | bytes, *, label_a: str, label_b: str) -> None:
+def _assert_html_equal(
+    a_html: str | bytes, b_html: str | bytes, *, label_a: str, label_b: str
+) -> None:
     if isinstance(a_html, bytes):
         a_html = a_html.decode("utf-8")
     if isinstance(b_html, bytes):
@@ -161,26 +165,35 @@ def assert_shell_composition(
     page_shell = client.get(url, **page_shell_kwargs)
     tab_shell = client.get(url, **tab_shell_kwargs)
 
-    for label, resp in [("full_reload", full), ("page_shell", page_shell), ("tab_shell", tab_shell)]:
-        assert resp.status_code == 200, f"{label} request to {url!r} returned {resp.status_code}"
+    for label, resp in [
+        ("full_reload", full),
+        ("page_shell", page_shell),
+        ("tab_shell", tab_shell),
+    ]:
+        assert resp.status_code == 200, (
+            f"{label} request to {url!r} returned {resp.status_code}"
+        )
 
     full_page_fragment = _extract_fragment(full.content, page_container_id)
     _assert_html_equal(
-        full_page_fragment, page_shell.content,
+        full_page_fragment,
+        page_shell.content,
         label_a=f"full reload's #{page_container_id}",
         label_b="page_shell response body",
     )
 
     page_shell_tab_fragment = _extract_fragment(page_shell.content, tab_container_id)
     _assert_html_equal(
-        page_shell_tab_fragment, tab_shell.content,
+        page_shell_tab_fragment,
+        tab_shell.content,
         label_a=f"page_shell's #{tab_container_id}",
         label_b="tab_shell response body",
     )
 
     full_tab_fragment = _extract_fragment(full.content, tab_container_id)
     _assert_html_equal(
-        full_tab_fragment, tab_shell.content,
+        full_tab_fragment,
+        tab_shell.content,
         label_a=f"full reload's #{tab_container_id}",
         label_b="tab_shell response body",
     )

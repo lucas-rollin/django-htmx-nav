@@ -71,7 +71,8 @@ TAB_SHELL_KWARGS = {"HTTP_HX_REQUEST": "true", "HTTP_HX_TARGET": "tab-content"}
 def test_passes_when_composition_is_consistent():
     client = Client()
     responses = assert_shell_composition(
-        client, "/consistent/",
+        client,
+        "/consistent/",
         page_shell_kwargs=PAGE_SHELL_KWARGS,
         tab_shell_kwargs=TAB_SHELL_KWARGS,
     )
@@ -83,7 +84,8 @@ def test_catches_missing_swap_wrapper():
     client = Client()
     with pytest.raises(AssertionError, match="HTML mismatch"):
         assert_shell_composition(
-            client, "/missing-wrapper/",
+            client,
+            "/missing-wrapper/",
             page_shell_kwargs=PAGE_SHELL_KWARGS,
             tab_shell_kwargs=TAB_SHELL_KWARGS,
         )
@@ -93,7 +95,8 @@ def test_catches_diverging_tab_content():
     client = Client()
     with pytest.raises(AssertionError, match="HTML mismatch"):
         assert_shell_composition(
-            client, "/diverging-content/",
+            client,
+            "/diverging-content/",
             page_shell_kwargs=PAGE_SHELL_KWARGS,
             tab_shell_kwargs=TAB_SHELL_KWARGS,
         )
@@ -103,7 +106,8 @@ def test_error_message_identifies_which_fragments_mismatched():
     client = Client()
     with pytest.raises(AssertionError) as exc_info:
         assert_shell_composition(
-            client, "/missing-wrapper/",
+            client,
+            "/missing-wrapper/",
             page_shell_kwargs=PAGE_SHELL_KWARGS,
             tab_shell_kwargs=TAB_SHELL_KWARGS,
         )
@@ -116,7 +120,8 @@ def test_raises_clear_error_when_container_id_not_found():
     client = Client()
     with pytest.raises(AssertionError, match="Could not find any element with id"):
         assert_shell_composition(
-            client, "/consistent/",
+            client,
+            "/consistent/",
             page_shell_kwargs=PAGE_SHELL_KWARGS,
             tab_shell_kwargs=TAB_SHELL_KWARGS,
             tab_container_id="does-not-exist",
@@ -135,12 +140,14 @@ def test_custom_container_ids():
         return HttpResponse(f"<html><body>{page_html}</body></html>")
 
     from django.urls import path as _path
+
     global urlpatterns
     urlpatterns = urlpatterns + [_path("custom/", custom_view)]
 
     client = Client()
     assert_shell_composition(
-        client, "/custom/",
+        client,
+        "/custom/",
         page_shell_kwargs={"HTTP_HX_REQUEST": "true", "HTTP_HX_TARGET": "my-page"},
         tab_shell_kwargs={"HTTP_HX_REQUEST": "true", "HTTP_HX_TARGET": "my-tab"},
         page_container_id="my-page",

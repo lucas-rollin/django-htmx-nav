@@ -1,4 +1,5 @@
-from typing import Callable, Optional, TypeVar
+from collections.abc import Callable
+from typing import TypeVar
 
 from django.http import HttpRequest
 from django.urls import NoReverseMatch, reverse
@@ -9,11 +10,11 @@ _MISSING = object()
 
 
 def reverse_maybe(
-    view_name: Optional[str],
-    kwargs: Optional[dict] = None,
+    view_name: str | None,
+    kwargs: dict | None = None,
     *,
     strict: bool = True,
-) -> Optional[str]:
+) -> str | None:
     """Reverses a URL with an optional fallback for unmatched keyword arguments.
 
     Args:
@@ -38,9 +39,7 @@ def reverse_maybe(
         return reverse(view_name)
 
 
-def cache_on_request(
-    request: HttpRequest, key: str, builder: Callable[[], T]
-) -> T:
+def cache_on_request(request: HttpRequest, key: str, builder: Callable[[], T]) -> T:
     """Caches and returns a computed value on the Django request object.
 
     Args:

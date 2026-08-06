@@ -1,5 +1,6 @@
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, Optional, Sequence, Union, Protocol
+from typing import Any, Protocol
 
 from django.http import HttpRequest
 from django.template.loader import render_to_string
@@ -11,8 +12,8 @@ from django.utils.cache import patch_vary_headers
 class Swap:
     """
     A fragment rendered alongside the main content in HTMX responses.
-    
-    Used for out-of-band (OOB) swaps when `target_id` is provided, or as 
+
+    Used for out-of-band (OOB) swaps when `target_id` is provided, or as
     an hx-partial from HTMX v4 when using the `hx-partial` attribute.
 
     Attributes:
@@ -20,16 +21,15 @@ class Swap:
         context: Optional dictionary of template context.
         target_id: Optional DOM ID to auto-wrap the fragment with an OOB wrapper.
     """
+
     template_name: str
-    context: Optional[dict[str, Any]] = None
-    target_id: Optional[str] = None
+    context: dict[str, Any] | None = None
+    target_id: str | None = None
 
 
 def _resolve_partial(
-        template_name: str, 
-        partial_name: Optional[str], 
-        is_htmx: bool
-    ) -> str:
+    template_name: str, partial_name: str | None, is_htmx: bool
+) -> str:
     """
     Resolve template name with optional Django partial syntax for HTMX requests.
 
@@ -57,13 +57,13 @@ def _is_htmx_request(request: HttpRequest) -> bool:
 def render_htmx(
     request: HttpRequest,
     template_name: str,
-    context: Optional[dict] = None,
-    content_type: Optional[str] = None,
-    status: Optional[int] = None,
-    using: Optional[str] = None,
+    context: dict[str, Any] | None = None,
+    content_type: str | None = None,
+    status: int | None = None,
+    using: str | None = None,
     *,
-    partial_name: Optional[str] = "content",
-    swaps: Sequence[Swap] = (),
+    partial_name: str | None = "content",
+    swaps: list[Swap] | None = None,
 ) -> TemplateResponse:
     """
     Render a template with HTMX-aware partial and swap support.
@@ -79,8 +79,6 @@ def render_htmx(
         content_type: Optional content type for the response.
         status: Optional HTTP status code.
         using: Optional template engine name to use.
-
-    Keyword Args:
         partial_name: Name of the django partial to render on HTMX requests.
             Defaults to "content". Set to None to disable partial rendering.
         swaps: Sequence of Swap fragments to append on HTMX requests.
@@ -114,18 +112,20 @@ def render_htmx(
     context.setdefault("active_partial", partial_name)
     resolved_template = _resolve_partial(template_name, partial_name, is_htmx)
     response = TemplateResponse(
-        request, resolved_template, context,
-        content_type=content_type, status=status, using=using,
+        request,
+        resolved_template,
+        context,
+        content_type=content_type,
+        status=status,
+        using=using,
     )
     patch_vary_headers(response, ("HX-Request",))
     if is_htmx and swaps:
+
         def append_swap(resp):
             for swap in swaps:
                 html = render_to_string(
-                    swap.template_name, 
-                    swap.context or {}, 
-                    request=request, 
-                    using=using
+                    swap.template_name, swap.context or {}, request=request, using=using
                 )
 
                 if swap.target_id:
@@ -133,11 +133,12 @@ def render_htmx(
 
                 resp.content += html.encode(resp.charset)
             return resp
+
         response.add_post_render_callback(append_swap)
     return response
 
 
-def _htmx_target_is(target: Optional[str], dom_id: str) -> bool:
+def _htmx_target_is(target: str | None, dom_id: str) -> bool:
     """Match an HX-Target value against a bare DOM id."""
     if not target:
         return False
@@ -149,9 +150,9 @@ class ShellRenderer(Protocol):
         self,
         request: HttpRequest,
         template_name: str,
-        context: Optional[dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
         *,
-        extra_swaps: Sequence[Swap] = (),
+        extra_swaps: list[Swap] | None = None,
         partial_name: str = "content",
         **kwargs: Any,
     ) -> TemplateResponse: ...
@@ -159,11 +160,11 @@ class ShellRenderer(Protocol):
 
 def make_shell_renderer(
     shell_template: str,
-    context_builder: Optional[Callable[[HttpRequest], dict[str, Any]]] = None,
+    context_builder: Callable[[HttpRequest], dict[str, Any]] | None = None,
     *,
-    page_target_id: Optional[str] = None,
+    page_target_id: str | None = None,
     page_partial_name: str = "content",
-)-> ShellRenderer:
+) -> ShellRenderer:
     """
     Factory for creating a `render_shell` function with fixed shell swaps.
 
@@ -193,12 +194,13 @@ def make_shell_renderer(
                 {"project": project},
             )
     """
+
     def render_shell(
         request: HttpRequest,
         template_name: str,
-        context: Optional[dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
         *,
-        extra_swaps: Sequence[Swap] = (),
+        extra_swaps: list[Swap] | None = None,
         partial_name: str = "content",
         **kwargs,
     ) -> TemplateResponse:
@@ -214,9 +216,12 @@ def make_shell_renderer(
                 partial_name = page_partial_name
 
         return render_htmx(
-            request, template_name, context,
+            request,
+            template_name,
+            context,
             partial_name=partial_name,
-            swaps=(shell_swaps, *extra_swaps),
+            swaps=[shell_swaps, *(extra_swaps or ())],
             **kwargs,
         )
+
     return render_shell

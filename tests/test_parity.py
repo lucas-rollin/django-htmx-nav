@@ -25,7 +25,9 @@ render_shell = make_shell_renderer(
 
 def record_tab_view(request):
     return render_shell(
-        request, "tests/_page_nav.html", {"title": "Record #42"},
+        request,
+        "tests/_page_nav.html",
+        {"title": "Record #42"},
         partial_name="tab_content",
     )
 
@@ -44,17 +46,21 @@ RECORD_TAB_REQUESTS = {
 }
 
 SHELL_CHECKS = {
-    "sidebar_labels": lambda ctx: [i["label"] for i in ctx["nav"]["sidebar"] if i["active"]],
+    "sidebar_labels": lambda ctx: [
+        i["label"] for i in ctx["nav"]["sidebar"] if i["active"]
+    ],
     "breadcrumbs": lambda ctx: [c["label"] for c in ctx["nav"]["breadcrumbs"]],
 }
 
 
 # -- Tests ---------------
 
+
 def test_record_tab_shell_is_consistent_across_all_3_paths():
     client = Client()
     responses = assert_shell_parity(
-        client, "/nav-workspace/record/42/",
+        client,
+        "/nav-workspace/record/42/",
         requests=RECORD_TAB_REQUESTS,
         checks=SHELL_CHECKS,
     )
@@ -67,7 +73,8 @@ def test_assert_shell_parity_fails_when_state_actually_diverges():
     seen = iter([1, 2, 3])
     with pytest.raises(AssertionError, match="Shell parity broken"):
         assert_shell_parity(
-            client, "/nav-workspace/record/42/",
+            client,
+            "/nav-workspace/record/42/",
             requests=RECORD_TAB_REQUESTS,
             checks={"artificially_diverging_check": lambda ctx: next(seen)},
         )

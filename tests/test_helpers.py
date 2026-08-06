@@ -1,7 +1,7 @@
+import pytest
 from django.http import HttpRequest, HttpResponse
 from django.test import RequestFactory
 from django.urls import NoReverseMatch, path
-import pytest
 
 from htmx_nav.helpers import cache_on_request, reverse_maybe
 from htmx_nav.responses import make_shell_renderer
@@ -23,6 +23,7 @@ BREADCRUMBS = {
 
 # -- Helper functions ---------------
 
+
 def build_nav_context(request: HttpRequest) -> dict:
     def _build():
         match = request.resolver_match
@@ -30,11 +31,20 @@ def build_nav_context(request: HttpRequest) -> dict:
         kwargs = match.kwargs if match else {}
 
         sidebar = [
-            {**link, "url": reverse_maybe(link["view_name"]), "active": link["view_name"] == view_name}
+            {
+                **link,
+                "url": reverse_maybe(link["view_name"]),
+                "active": link["view_name"] == view_name,
+            }
             for link in SIDEBAR_LINKS
         ]
         breadcrumbs = [
-            {"label": label, "url": reverse_maybe(crumb_view, kwargs, strict=False) if crumb_view else None}
+            {
+                "label": label,
+                "url": reverse_maybe(crumb_view, kwargs, strict=False)
+                if crumb_view
+                else None,
+            }
             for label, crumb_view in BREADCRUMBS.get(view_name, [])
         ]
         return {"sidebar": sidebar, "breadcrumbs": breadcrumbs}
@@ -49,6 +59,7 @@ render_shell = make_shell_renderer(
 
 
 # -- Test Views ---------------
+
 
 def workspace_view(request: HttpRequest, pk=None):
     """View for testing nav-workspace and nav-detail URLs."""
@@ -66,6 +77,7 @@ urlpatterns = [
 
 
 # -- Tests for helpers ---------------
+
 
 def test_reverse_maybe_returns_none_for_falsy_view_name():
     assert reverse_maybe(None) is None

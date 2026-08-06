@@ -1,12 +1,18 @@
-from typing import Any, Callable, Protocol, Sequence
+from collections.abc import Callable
+from typing import Any, Protocol
+
 from django.http import HttpRequest
+
+from .responses import Swap
 
 
 class _DjangoViewProtocol(Protocol):
     request: HttpRequest
     template_name: str | None = None
+
     def get_template_names(self) -> list[str]: ...
-    shell_extra_oob: Sequence[Any]
+
+    shell_extra_oob: list[Swap]
 
 
 def make_shell_view_mixin(render_shell: Callable) -> type:
@@ -25,13 +31,19 @@ def make_shell_view_mixin(render_shell: Callable) -> type:
             class MyView(ShellViewMixin, DetailView):
                 template_name = "item_detail.html"
     """
-    class ShellViewMixin:
-        shell_extra_oob: tuple = ()
 
-        def render_to_response(self: _DjangoViewProtocol, context: dict[str, Any], **response_kwargs: Any):
+    class ShellViewMixin:
+        def __init__(self):
+            self.shell_extra_oob: list[Swap] = []
+
+        def render_to_response(
+            self: _DjangoViewProtocol, context: dict[str, Any], **response_kwargs: Any
+        ):
             return render_shell(
                 self.request,
-                self.get_template_names()[0] if hasattr(self, "get_template_names") else self.template_name,
+                self.get_template_names()[0]
+                if hasattr(self, "get_template_names")
+                else self.template_name,
                 context,
                 extra_oob=self.shell_extra_oob,
                 **response_kwargs,
