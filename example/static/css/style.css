@@ -1,5 +1,15 @@
 [x-cloak] { display: none !important }
 
+@keyframes flash-color {
+    0% { background-color: #fef08a; }
+    100% { background-color: transparent; }
+}
+
+.oob-flash {
+    animation: flash-color 1.5s ease-out;
+}
+
+
 .stale-navigation {
     /* the URL knows best */
     display: none;

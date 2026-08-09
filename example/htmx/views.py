@@ -12,7 +12,14 @@ from django.views.decorators.http import require_http_methods
 from django.views.generic import ListView
 from mockdata.models import Employee, Organization, Project, Ticket
 
-from htmx_nav import Swap, make_shell_renderer, make_shell_view_mixin, render_htmx
+from htmx_nav import (
+    Swap,
+    make_shell_renderer,
+    make_shell_view_mixin,
+    not_targeting,
+    targeting,
+    render_htmx,
+)
 
 TICKET_PAGE_SIZE = 6
 
@@ -53,7 +60,7 @@ def _breadcrumb_swap(*crumbs: tuple[str, str | None]) -> Swap:
 def overview(request: HttpRequest) -> HttpResponse:
     """Displays the primary helpdesk dashboard and high-level summary metrics."""
     return render_htmx(
-        request, "pages/overview.html", swaps=[_sidebar_swap(active_page="overview")]
+        request, "pages/overview.html", swaps=_sidebar_swap(active_page="overview")
     )
 
 
@@ -71,7 +78,7 @@ def staff_list(request: HttpRequest) -> HttpResponse:
         request,
         "pages/staff_list.html",
         {"employees": employees},
-        swaps=[_sidebar_swap(active_page="staff_list")],
+        swaps=_sidebar_swap(active_page="staff_list"),
     )
 
 
@@ -81,13 +88,8 @@ def org_list(request: HttpRequest) -> HttpResponse:
         request,
         "pages/org_list.html",
         {"orgs": Organization.objects.all()},
-        swaps=[_sidebar_swap(active_page="org_list")],
+        swaps=_sidebar_swap(active_page="org_list"),
     )
-
-
-# ---------------------------------------------------------------------------
-# ORG / PROJECT DRILL-DOWN — plain full-page navigation
-# ---------------------------------------------------------------------------
 
 
 def org_detail(request: HttpRequest, org_id: str) -> HttpResponse:
@@ -104,11 +106,46 @@ def org_detail(request: HttpRequest, org_id: str) -> HttpResponse:
         swaps=[
             _sidebar_swap(active_org_id=org_id),
             _breadcrumb_swap(
-                ("Organizations", reverse("mpa:org_list")),
+                ("Organizations", reverse("htmx:org_list")),
                 (org.name, None),
             ),
         ],
     )
+
+# ===========================================================================
+# ORG / PROJECT DRILL-DOWN
+# ===========================================================================
+
+
+def _project_tab_swap(active_tab: str):
+    """
+    Build the project tabs Swap to update state in intra page navigation.
+
+    We only want to include this if the Swap targets the "tab-content"
+    because a that level the layout expects the tabs to be rendered normally,
+    as a non Swap fragment.
+    """
+    return Swap(
+        "components/_project_tabs.html",
+        {"active_tab": active_tab},
+        target_id="project-tabs",
+        include_if=targeting("tab-content"),
+        # another possibility:
+        # include_if=not_targeting("main-content")
+    )
+
+
+# Build the partial spec.
+PROJECT_TAB_PARTIAL = {
+    "#tab-cotent": targeting("tab-content"),
+    "#content": True,
+}
+"""
+It reads:
+- If the HX-Target is "tab-content" render the "#tab-content" partial.
+- Else if it's an HTMX request render the "#content" partial
+- Else, it's not an HTMX request, render the full page.
+"""
 
 
 def project_overview(
@@ -120,19 +157,20 @@ def project_overview(
     context = {
         "org": org,
         "project": project,
-        "active_tab": "overview",
     }
     return render_htmx(
         request,
         "pages/project.html",
         context,
+        partial=PROJECT_TAB_PARTIAL,
         swaps=[
             _sidebar_swap(active_org_id=org_id, active_project_id=project_id),
             _breadcrumb_swap(
-                ("Organizations", reverse("mpa:org_list")),
-                (org.name, reverse("mpa:org_detail", args=[org_id])),
+                ("Organizations", reverse("htmx:org_list")),
+                (org.name, reverse("htmx:org_detail", args=[org_id])),
                 (project.name, None),
             ),
+            _project_tab_swap(active_tab="overview"),
         ],
     )
 
@@ -146,24 +184,25 @@ def project_team(request: HttpRequest, org_id: str, project_id: str) -> HttpResp
     context = {
         "org": org,
         "project": project,
-        "active_tab": "team",
         "team": team_members,
     }
     return render_htmx(
         request,
         "pages/project.html",
         context,
+        partial=PROJECT_TAB_PARTIAL,
         swaps=[
             _sidebar_swap(active_org_id=org_id, active_project_id=project_id),
             _breadcrumb_swap(
-                ("Organizations", reverse("mpa:org_list")),
-                (org.name, reverse("mpa:org_detail", args=[org_id])),
+                ("Organizations", reverse("htmx:org_list")),
+                (org.name, reverse("htmx:org_detail", args=[org_id])),
                 (
                     project.name,
-                    reverse("mpa:project_overview", args=[org_id, project_id]),
+                    reverse("htmx:project_overview", args=[org_id, project_id]),
                 ),
                 ("Team", None),
             ),
+            _project_tab_swap(active_tab="team"),
         ],
     )
 
@@ -180,163 +219,83 @@ def project_settings(
     context = {
         "org": org,
         "project": project,
-        "active_tab": "settings",
         "active_subtab": subtab,
     }
     return render_htmx(
         request,
         "pages/project.html",
         context,
+        partial=PROJECT_TAB_PARTIAL,
         swaps=[
             _sidebar_swap(active_org_id=org_id, active_project_id=project_id),
             _breadcrumb_swap(
-                ("Organizations", reverse("mpa:org_list")),
-                (org.name, reverse("mpa:org_detail", args=[org_id])),
+                ("Organizations", reverse("htmx:org_list")),
+                (org.name, reverse("htmx:org_detail", args=[org_id])),
                 (
                     project.name,
-                    reverse("mpa:project_overview", args=[org_id, project_id]),
+                    reverse("htmx:project_overview", args=[org_id, project_id]),
                 ),
                 ("Settings", None),
             ),
+            _project_tab_swap(active_tab="settings"),
         ],
     )
 
 
 # ---------------------------------------------------------------------------
-# TICKET DETAIL + its "tabs" as full pages
+# KANBAN BOARD — full-page form posts, no partial card updates
 # ---------------------------------------------------------------------------
 
 
-def ticket_detail(request: HttpRequest, ticket_id: str) -> HttpResponse:
-    """Displays core metadata, status, and assignee for a single ticket."""
-    ticket = Ticket.objects.select_related("project__organization", "assignee").get(
-        id=ticket_id
-    )
+@require_http_methods(["POST"])
+def ticket_move_status(request: HttpRequest, ticket_id: str) -> HttpResponse:
+    """Updates a ticket's status state and redirects to the Kanban board."""
+    ticket = Ticket.objects.get(id=ticket_id)
+    new_status = request.POST.get("new_status")
+    if new_status in ("open", "in_progress", "resolved", "closed"):
+        ticket.status = new_status
+        ticket.save(update_fields=["status"])
     project = ticket.project
-    org = project.organization
+    return redirect(
+        "htmx:kanban_board", org_id=project.organization.id, project_id=project.id
+    )
 
-    assignee_name = ticket.assignee.name if ticket.assignee else "Unassigned"
+
+def kanban_board(request: HttpRequest, org_id: str, project_id: str) -> HttpResponse:
+    """Displays project tickets grouped into visual status columns on a Kanban board."""
+    org = Organization.objects.get(id=org_id)
+    project = Project.objects.get(id=project_id)
+
+    columns = {
+        status: Ticket.objects.filter(
+            project_id=project_id, status=status
+        ).select_related("assignee")
+        for status in ("open", "in_progress", "resolved", "closed")
+    }
 
     context = {
-        "ticket": ticket,
-        "assignee_name": assignee_name,
-        "active_tab": "details",
+        "org": org,
+        "project": project,
+        "columns": columns,
+        "active_tab": "board",
     }
     return render_htmx(
         request,
-        "pages/ticket_detail.html",
+        "pages/project.html",
         context,
+        partial=PROJECT_TAB_PARTIAL,
         swaps=[
-            _sidebar_swap(active_org_id=org.id, active_project_id=project.id),
+            _sidebar_swap(active_org_id=org_id, active_project_id=project_id),
             _breadcrumb_swap(
-                ("Organizations", reverse("mpa:org_list")),
-                (org.name, reverse("mpa:org_detail", args=[org.id])),
+                ("Organizations", reverse("htmx:org_list")),
+                (org.name, reverse("htmx:org_detail", args=[org_id])),
                 (
                     project.name,
-                    reverse("mpa:project_overview", args=[org.id, project.id]),
+                    reverse("htmx:project_overview", args=[org_id, project_id]),
                 ),
-                (f"#{ticket.id[:8]}", None),
+                ("Board", None),
             ),
-        ],
-    )
-
-
-def ticket_comments(request: HttpRequest, ticket_id: str) -> HttpResponse:
-    """Displays the discussion thread and comments for a ticket."""
-    ticket = Ticket.objects.select_related("project__organization").get(id=ticket_id)
-    project = ticket.project
-    org = project.organization
-
-    context = {
-        "ticket": ticket,
-        "active_tab": "comments",
-        "comments": ticket.comments,
-    }
-    return render_htmx(
-        request,
-        "pages/ticket_comments.html",
-        context,
-        swaps=[
-            _sidebar_swap(active_org_id=org.id, active_project_id=project.id),
-            _breadcrumb_swap(
-                ("Organizations", reverse("mpa:org_list")),
-                (org.name, reverse("mpa:org_detail", args=[org.id])),
-                (
-                    project.name,
-                    reverse("mpa:project_overview", args=[org.id, project.id]),
-                ),
-                (f"#{ticket.id[:8]}", reverse("mpa:ticket_detail", args=[ticket.id])),
-                ("Comments", None),
-            ),
-        ],
-    )
-
-
-def ticket_activity(request: HttpRequest, ticket_id: str) -> HttpResponse:
-    """Displays the chronological audit trail and status history of a ticket."""
-    ticket = Ticket.objects.select_related("project__organization", "assignee").get(
-        id=ticket_id
-    )
-    project = ticket.project
-    org = project.organization
-
-    assignee_name = ticket.assignee.name if ticket.assignee else "Unassigned"
-
-    context = {
-        "ticket": ticket,
-        "active_tab": "activity",
-        "activity": [
-            f"Ticket created with priority {ticket.priority}",
-            f"Assigned to {assignee_name}",
-            f"Status set to {ticket.status}",
-        ],
-    }
-    return render_htmx(
-        request,
-        "pages/ticket_activity.html",
-        context,
-        swaps=[
-            _sidebar_swap(active_org_id=org.id, active_project_id=project.id),
-            _breadcrumb_swap(
-                ("Organizations", reverse("mpa:org_list")),
-                (org.name, reverse("mpa:org_detail", args=[org.id])),
-                (
-                    project.name,
-                    reverse("mpa:project_overview", args=[org.id, project.id]),
-                ),
-                (f"#{ticket.id[:8]}", reverse("mpa:ticket_detail", args=[ticket.id])),
-                ("Activity", None),
-            ),
-        ],
-    )
-
-
-def ticket_attachments(request: HttpRequest, ticket_id: str) -> HttpResponse:
-    """Displays uploaded files and media attached to a ticket."""
-    ticket = Ticket.objects.select_related("project__organization").get(id=ticket_id)
-    project = ticket.project
-    org = project.organization
-
-    context = {
-        "ticket": ticket,
-        "active_tab": "attachments",
-    }
-    return render_htmx(
-        request,
-        "pages/ticket_attachments.html",
-        context,
-        swaps=[
-            _sidebar_swap(active_org_id=org.id, active_project_id=project.id),
-            _breadcrumb_swap(
-                ("Organizations", reverse("mpa:org_list")),
-                (org.name, reverse("mpa:org_detail", args=[org.id])),
-                (
-                    project.name,
-                    reverse("mpa:project_overview", args=[org.id, project.id]),
-                ),
-                (f"#{ticket.id[:8]}", reverse("mpa:ticket_detail", args=[ticket.id])),
-                ("Attachments", None),
-            ),
+            _project_tab_swap(active_tab="board")
         ],
     )
 
@@ -345,8 +304,7 @@ def ticket_attachments(request: HttpRequest, ticket_id: str) -> HttpResponse:
 # TICKET LIST — pagination + filtering, as a CBV
 # ---------------------------------------------------------------------------
 
-render_shell = make_shell_renderer("components/_nav_shell.html")
-ShellViewMixin = make_shell_view_mixin(render_shell)
+ShellViewMixin = make_shell_view_mixin()
 
 
 class TicketListView(ShellViewMixin, ListView):
@@ -380,22 +338,25 @@ class TicketListView(ShellViewMixin, ListView):
 
         return tickets.order_by("-created_at")
 
-    # Add the swaps here
+    # Add swaps here
     def get_extra_swaps(self):
         return [
             _sidebar_swap(active_org_id=self.org.id, active_project_id=self.project.id),
             _breadcrumb_swap(
-                ("Organizations", reverse("mpa:org_list")),
-                (self.org.name, reverse("mpa:org_detail", args=[self.org.id])),
+                ("Organizations", reverse("htmx:org_list")),
+                (self.org.name, reverse("htmx:org_detail", args=[self.org.id])),
                 (
                     self.project.name,
                     reverse(
-                        "mpa:project_overview", args=[self.org.id, self.project.id]
+                        "htmx:project_overview", args=[self.org.id, self.project.id]
                     ),
                 ),
                 ("Tickets", None),
             ),
         ]
+
+    def get_partial(self):
+        return PROJECT_TAB_PARTIAL
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -407,6 +368,167 @@ class TicketListView(ShellViewMixin, ListView):
         context["active_tab"] = "tickets"
         context["employee_names"] = {e.id: e.name for e in Employee.objects.all()}
         return context
+
+
+# ===========================================================================
+# TICKET DETAIL + its "tabs" as full pages
+# ===========================================================================
+
+
+def _ticket_tab_swap(active_tab: str):
+    """
+    Build the ticket tabs Swap to update state in intra page navigation.
+    """
+    return Swap(
+        "components/_ticket_tabs.html",
+        {"active_tab": active_tab},
+        target_id="project-tabs",
+        include_if=targeting("tab-content"),
+    )
+
+
+TICKET_TAB_PARTIAL = {
+    "#tab-cotent": targeting("tab-content"),
+    "#content": True,
+}
+
+
+def ticket_detail(request: HttpRequest, ticket_id: str) -> HttpResponse:
+    """Displays core metadata, status, and assignee for a single ticket."""
+    ticket = Ticket.objects.select_related("project__organization", "assignee").get(
+        id=ticket_id
+    )
+    project = ticket.project
+    org = project.organization
+
+    assignee_name = ticket.assignee.name if ticket.assignee else "Unassigned"
+
+    context = {
+        "ticket": ticket,
+        "assignee_name": assignee_name,
+    }
+    return render_htmx(
+        request,
+        "pages/ticket.html",
+        context,
+        partial=TICKET_TAB_PARTIAL,
+        swaps=[
+            _sidebar_swap(active_org_id=org.id, active_project_id=project.id),
+            _breadcrumb_swap(
+                ("Organizations", reverse("htmx:org_list")),
+                (org.name, reverse("htmx:org_detail", args=[org.id])),
+                (
+                    project.name,
+                    reverse("htmx:project_overview", args=[org.id, project.id]),
+                ),
+                (f"#{ticket.id[:8]}", None),
+            ),
+            _ticket_tab_swap(active_tab="details")
+        ],
+    )
+
+
+def ticket_comments(request: HttpRequest, ticket_id: str) -> HttpResponse:
+    """Displays the discussion thread and comments for a ticket."""
+    ticket = Ticket.objects.select_related("project__organization").get(id=ticket_id)
+    project = ticket.project
+    org = project.organization
+
+    context = {
+        "ticket": ticket,
+        "comments": ticket.comments,
+    }
+    return render_htmx(
+        request,
+        "pages/ticket.html",
+        context,
+        partial=TICKET_TAB_PARTIAL,
+        swaps=[
+            _sidebar_swap(active_org_id=org.id, active_project_id=project.id),
+            _breadcrumb_swap(
+                ("Organizations", reverse("htmx:org_list")),
+                (org.name, reverse("htmx:org_detail", args=[org.id])),
+                (
+                    project.name,
+                    reverse("htmx:project_overview", args=[org.id, project.id]),
+                ),
+                (f"#{ticket.id[:8]}", reverse("htmx:ticket_detail", args=[ticket.id])),
+                ("Comments", None),
+            ),
+            _ticket_tab_swap(active_tab="comments")
+        ],
+    )
+
+
+def ticket_activity(request: HttpRequest, ticket_id: str) -> HttpResponse:
+    """Displays the chronological audit trail and status history of a ticket."""
+    ticket = Ticket.objects.select_related("project__organization", "assignee").get(
+        id=ticket_id
+    )
+    project = ticket.project
+    org = project.organization
+
+    assignee_name = ticket.assignee.name if ticket.assignee else "Unassigned"
+
+    context = {
+        "ticket": ticket,
+        "activity": [
+            f"Ticket created with priority {ticket.priority}",
+            f"Assigned to {assignee_name}",
+            f"Status set to {ticket.status}",
+        ],
+    }
+    return render_htmx(
+        request,
+        "pages/ticket.html",
+        context,
+        partial=TICKET_TAB_PARTIAL,
+        swaps=[
+            _sidebar_swap(active_org_id=org.id, active_project_id=project.id),
+            _breadcrumb_swap(
+                ("Organizations", reverse("htmx:org_list")),
+                (org.name, reverse("htmx:org_detail", args=[org.id])),
+                (
+                    project.name,
+                    reverse("htmx:project_overview", args=[org.id, project.id]),
+                ),
+                (f"#{ticket.id[:8]}", reverse("htmx:ticket_detail", args=[ticket.id])),
+                ("Activity", None),
+            ),
+            _ticket_tab_swap(active_tab="activity")
+        ],
+    )
+
+
+def ticket_attachments(request: HttpRequest, ticket_id: str) -> HttpResponse:
+    """Displays uploaded files and media attached to a ticket."""
+    ticket = Ticket.objects.select_related("project__organization").get(id=ticket_id)
+    project = ticket.project
+    org = project.organization
+
+    context = {
+        "ticket": ticket,
+    }
+    return render_htmx(
+        request,
+        "pages/ticket.html",
+        context,
+        partial=TICKET_TAB_PARTIAL,
+        swaps=[
+            _sidebar_swap(active_org_id=org.id, active_project_id=project.id),
+            _breadcrumb_swap(
+                ("Organizations", reverse("htmx:org_list")),
+                (org.name, reverse("htmx:org_detail", args=[org.id])),
+                (
+                    project.name,
+                    reverse("htmx:project_overview", args=[org.id, project.id]),
+                ),
+                (f"#{ticket.id[:8]}", reverse("htmx:ticket_detail", args=[ticket.id])),
+                ("Attachments", None),
+            ),
+            _ticket_tab_swap(active_tab="attachments")
+        ],
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -444,13 +566,13 @@ def ticket_wizard_step(
             # Demo-only, just simulate ticket creation.
             fake_new_ticket = Ticket.objects.first()
             return redirect(
-                "mpa:ticket_detail",
+                "htmx:ticket_detail",
                 ticket_id=fake_new_ticket.id if fake_new_ticket else None,
             )
 
         next_step = WIZARD_STEPS[current_index + 1]
         return redirect(
-            "mpa:ticket_wizard_step",
+            "htmx:ticket_wizard_step",
             org_id=org_id,
             project_id=project_id,
             step=next_step,
@@ -475,69 +597,13 @@ def ticket_wizard_step(
         swaps=[
             _sidebar_swap(active_org_id=org_id, active_project_id=project_id),
             _breadcrumb_swap(
-                ("Organizations", reverse("mpa:org_list")),
-                (org.name, reverse("mpa:org_detail", args=[org_id])),
+                ("Organizations", reverse("htmx:org_list")),
+                (org.name, reverse("htmx:org_detail", args=[org_id])),
                 (
                     project.name,
-                    reverse("mpa:project_overview", args=[org_id, project_id]),
+                    reverse("htmx:project_overview", args=[org_id, project_id]),
                 ),
                 ("New Ticket", None),
-            ),
-        ],
-    )
-
-
-# ---------------------------------------------------------------------------
-# KANBAN BOARD — full-page form posts, no partial card updates
-# ---------------------------------------------------------------------------
-
-
-@require_http_methods(["POST"])
-def ticket_move_status(request: HttpRequest, ticket_id: str) -> HttpResponse:
-    """Updates a ticket's status state and redirects to the Kanban board."""
-    ticket = Ticket.objects.get(id=ticket_id)
-    new_status = request.POST.get("new_status")
-    if new_status in ("open", "in_progress", "resolved", "closed"):
-        ticket.status = new_status
-        ticket.save(update_fields=["status"])
-    project = ticket.project
-    return redirect(
-        "mpa:kanban_board", org_id=project.organization.id, project_id=project.id
-    )
-
-
-def kanban_board(request: HttpRequest, org_id: str, project_id: str) -> HttpResponse:
-    """Displays project tickets grouped into visual status columns on a Kanban board."""
-    org = Organization.objects.get(id=org_id)
-    project = Project.objects.get(id=project_id)
-
-    columns = {
-        status: Ticket.objects.filter(
-            project_id=project_id, status=status
-        ).select_related("assignee")
-        for status in ("open", "in_progress", "resolved", "closed")
-    }
-
-    context = {
-        "org": org,
-        "project": project,
-        "columns": columns,
-        "active_tab": "board",
-    }
-    return render_htmx(
-        request,
-        "pages/project.html",
-        context,
-        swaps=[
-            _sidebar_swap(active_org_id=org_id, active_project_id=project_id),
-            _breadcrumb_swap(
-                ("Organizations", reverse("mpa:org_list")),
-                (org.name, reverse("mpa:org_detail", args=[org_id])),
-                (
-                    project.name,
-                    reverse("mpa:project_overview", args=[org_id, project_id]),
-                ),
-                ("Board", None),
             ),
         ],
     )

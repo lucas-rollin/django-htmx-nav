@@ -1,4 +1,6 @@
-<div role="tablist" class="tabs tabs-lift mb-6">
+<div 
+   role="tablist" class="tabs tabs-lift mb-6"
+   {% if is_htmx_demo %}hx-target="tab-content"{% endif %}>
   <a role="tab"
      class="tab {% if active_tab == 'overview' %}tab-active font-semibold{% endif %}"
      href="{% url 'mpa:project_overview' org.id project.id %}">Overview</a>

@@ -14,7 +14,7 @@
         {% endif %}
       </div>
       <p class="text-base-content/60 mb-6">Part of {{ org.name }}</p>
-      {% include "components/_project_tabs.html" %}
+      <div id="project-tabs">{% include "components/_project_tabs.html" %}</div>
       {# ------------------------------ #}
       {# --- Define the tab content --- #}
       {# ------------------------------ #}
@@ -270,17 +270,19 @@
       {# -------------------------------#}
       {# --- Invoke the tab content --- #}
       {# ------------------------------ #}
-      {% if active_tab == "overview" %}
-        {% partial overview %}
-      {% elif active_tab == "tickets" %}
-        {% partial tickets %}
-      {% elif active_tab == "board" %}
-        {% partial board %}
-      {% elif active_tab == "team" %}
-        {% partial team %}
-      {% elif active_tab == "settings" %}
-        {% partial settings %}
-      {% endif %}
+      <div id="tab-content">
+        {% if active_tab == "overview" %}
+          {% partial overview %}
+        {% elif active_tab == "tickets" %}
+          {% partial tickets %}
+        {% elif active_tab == "board" %}
+          {% partial board %}
+        {% elif active_tab == "team" %}
+          {% partial team %}
+        {% elif active_tab == "settings" %}
+          {% partial settings %}
+        {% endif %}
+      </div>
     </div>
   {% endpartialdef %}
 {% endblock %}

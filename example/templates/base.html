@@ -21,11 +21,15 @@
     <script defer src="{% static 'js/theme.js' %}"></script>
     {% if is_htmx_demo %}
       <script src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.0-beta6/dist/htmx.min.js"></script>
-      <script>htmx.config.implicitInheritance = true;</script>
+      <script>
+        document.addEventListener('htmx:before:swap', function(evt) {
+          console.log('About to swap:', evt.detail.ctx.response);
+        });
+      </script>
     {% endif %}
   </head>
   <body data-demo-mode="{{ demo_mode }}"
-        {% if is_htmx_demo %}hx-boost="true" hx-target="#main-content"{% endif %}>
+        {% if is_htmx_demo %}hx-boost:inherited="true" hx-target:inherited="#main-content"{% endif %}>
     <div class="drawer lg:drawer-open">
       <input id="my-drawer" type="checkbox" class="drawer-toggle" />
       <div class="drawer-content min-h-dvh flex flex-col justify-between">
@@ -113,7 +117,7 @@
         </main>
         <footer class="footer footer-horizontal bg-neutral text-neutral-content items-center p-4">
           <aside>
-            <p>Copyright © 2026 - All right reserved</p>
+            <p>Copyright © 2026 - Lucas Rollin Ferreira</p>
           </aside>
           <nav class="grid-flow-col gap-4 place-self-center justify-self-end">
             <a href="https://github.com">
