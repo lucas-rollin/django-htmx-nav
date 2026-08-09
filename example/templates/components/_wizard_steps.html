@@ -1,0 +1,6 @@
+<ul class="steps w-full mb-8">
+  {% for s in steps %}
+    <li class="step {% if forloop.counter0 <= step_index %}step-primary{% endif %}"
+        data-content="{{ forloop.counter }}">{{ s|title }}</li>
+  {% endfor %}
+</ul>

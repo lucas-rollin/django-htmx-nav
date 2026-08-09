@@ -1,0 +1,15 @@
+<div class="breadcrumbs text-sm min-h-8">
+  <ul>
+    {% for crumb in breadcrumbs %}
+      <li>
+        {% if crumb.url %}
+          <a href="{{ crumb.url }}" class="link link-hover">{{ crumb.label }}</a>
+        {% else %}
+          <span class="font-medium">{{ crumb.label }}</span>
+        {% endif %}
+      </li>
+    {% empty %}
+      <li><span>Helpdesk</span></li>
+    {% endfor %}
+  </ul>
+</div>

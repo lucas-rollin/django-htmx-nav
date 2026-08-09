@@ -1,25 +1,32 @@
-from collections.abc import Callable
 from typing import Any, Protocol
 
 from django.http import HttpRequest
+from django.template.response import TemplateResponse
 
-from .responses import Swap
+from .responses import ShellRenderer, Swap
 
 
-class _DjangoViewProtocol(Protocol):
+class _ShellViewProtocol(Protocol):
+    """Typing aid describing what `ShellViewMixin` expects from the view
+    it's mixed into (normally a `TemplateResponseMixin` subclass)."""
+
     request: HttpRequest
-    template_name: str | None = None
 
     def get_template_names(self) -> list[str]: ...
 
-    shell_extra_oob: list[Swap]
 
+def make_shell_view_mixin(render_shell: ShellRenderer) -> type:
+    """
+    Create a mixin that routes a Class-Based View's response through a
+    shell renderer produced by `make_shell_renderer`.
 
-def make_shell_view_mixin(render_shell: Callable) -> type:
-    """Creates a mixin that integrates shell rendering into Django Class-Based Views.
+    Combine with any `TemplateResponseMixin`-based generic view (`TemplateView`,
+    `DetailView`, `ListView`, `FormView`, ...). Put the mixin first in the MRO
+    so its `render_to_response` takes precedence over the base view's.
 
     Args:
-        render_shell: The shell rendering function to use.
+        render_shell: A shell rendering function, typically from
+            `make_shell_renderer`.
 
     Returns:
         A mixin class for Django generic views.
@@ -27,25 +34,53 @@ def make_shell_view_mixin(render_shell: Callable) -> type:
     Example:
         .. code-block:: python
 
+            render_shell = make_shell_renderer("partials/nav.html")
             ShellViewMixin = make_shell_view_mixin(render_shell)
-            class MyView(ShellViewMixin, DetailView):
-                template_name = "item_detail.html"
+
+            class ProjectDetailView(ShellViewMixin, DetailView):
+                model = Project
+                template_name = "project/detail.html"
+                title = "Project detail"
+
+                def get_extra_swaps(self):
+                    return Swap(
+                        "partials/breadcrumbs.html",
+                        {"project": self.object},
+                        target_id="breadcrumbs",
+                    )
     """
 
     class ShellViewMixin:
-        def __init__(self):
-            self.shell_extra_oob: list[Swap] = []
+        title: str | None = None
+
+        def get_extra_swaps(self) -> Swap | list[Swap] | None:
+            """Return additional Swap fragment(s) for this response. Override
+            to contribute view-specific swaps, e.g. ones referencing
+            `self.object`. Defaults to none."""
+            return None
+
+        def get_title(self) -> str | None:
+            """Return the page title for this response. Defaults to the
+            `title` class attribute. Return None to fall back to whatever
+            `title` (if any) the context itself already supplies."""
+            return self.title
+
+        def get_shell_template_name(self: _ShellViewProtocol) -> str:
+            """Return the base template rendered through the shell. Defaults
+            to the first entry from `get_template_names()`."""
+            return self.get_template_names()[0]
 
         def render_to_response(
-            self: _DjangoViewProtocol, context: dict[str, Any], **response_kwargs: Any
-        ):
+            self: _ShellViewProtocol,
+            context: dict[str, Any],
+            **response_kwargs: Any,
+        ) -> TemplateResponse:
+            response_kwargs.setdefault("extra_swaps", self.get_extra_swaps())
+            response_kwargs.setdefault("title", self.get_title())
             return render_shell(
                 self.request,
-                self.get_template_names()[0]
-                if hasattr(self, "get_template_names")
-                else self.template_name,
+                self.get_shell_template_name(),
                 context,
-                extra_oob=self.shell_extra_oob,
                 **response_kwargs,
             )
 

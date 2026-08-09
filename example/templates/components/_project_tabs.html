@@ -1,0 +1,17 @@
+<div role="tablist" class="tabs tabs-lift mb-6">
+  <a role="tab"
+     class="tab {% if active_tab == 'overview' %}tab-active font-semibold{% endif %}"
+     href="{% url 'mpa:project_overview' org.id project.id %}">Overview</a>
+  <a role="tab"
+     class="tab {% if active_tab == 'tickets' %}tab-active font-semibold{% endif %}"
+     href="{% url 'mpa:ticket_list' org.id project.id %}">Tickets</a>
+  <a role="tab"
+     class="tab {% if active_tab == 'board' %}tab-active font-semibold{% endif %}"
+     href="{% url 'mpa:kanban_board' org.id project.id %}">Board</a>
+  <a role="tab"
+     class="tab {% if active_tab == 'team' %}tab-active font-semibold{% endif %}"
+     href="{% url 'mpa:project_team' org.id project.id %}">Team</a>
+  <a role="tab"
+     class="tab {% if active_tab == 'settings' %}tab-active font-semibold{% endif %}"
+     href="{% url 'mpa:project_settings' org.id project.id %}">Settings</a>
+</div>

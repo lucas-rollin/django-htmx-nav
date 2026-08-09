@@ -19,7 +19,6 @@ render_shell = make_shell_renderer(
             "breadcrumbs": [{"label": "Workspace"}, {"label": "Record 42"}],
         }
     },
-    page_target_id="page-content",
 )
 
 

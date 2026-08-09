@@ -18,8 +18,8 @@ both the full page and the fragment HTMX swaps into:
 That's most of what you need for server-driven, SPA-like UX with MPA
 simplicity, the URL stays the source of truth, and a full load vs. an
 HTMX swap render the same fragment. What's still missing is the
-boilerplate around it: detecting HTMX, picking the partial, setting
-`HX-Push-Url` and doing HTMX-safe redirects. And, once your page has more
+boilerplate around it: detecting HTMX, picking the partial and 
+doing HTMX-safe redirects. And, once your page has more
 than one region (a sidebar, breadcrumbs), keeping those regions from
 drifting out of sync depending on how the page was reached.
 
@@ -52,8 +52,7 @@ def project_list(request):
 ```
 
 Full page load → renders the whole template. HTMX request → renders
-only the `content` partial, sets `HX-Push-Url` to the current URL (so
-the swap is bookmarkable and reload-safe), and sets `Vary: HX-Request`
+only the `content` partial and sets `Vary: HX-Request`
 so caches never serve one variant to the other kind of request.
 
 ## But you likely need to update your sidebar too
@@ -110,8 +109,8 @@ Every HTMX response from `render_shell` includes the shell as an
 out-of-band swap, built from the same `build_nav_context` a full page
 load would use, so the sidebar can never show one thing on first load
 and another after an HTMX swap. `render_shell` accepts the same
-keyword arguments as `render_htmx` (`extra_swaps`, `partial_name`,
-`push_url`, ...), so it's a drop-in.
+keyword arguments as `render_htmx` (`extra_swaps`, `partial_name` ...),
+so it's a drop-in.
 
 ## Advanced: three-pathway views (e.g. intrapage navigtion with tabs)
 

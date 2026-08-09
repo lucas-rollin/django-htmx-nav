@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}{{ org.name }} · Helpdesk{% endblock %}
+{% block content %}
+  {% partialdef content inline %}
+    <div class="p-6 max-w-6xl mx-auto">
+      <div class="flex items-center justify-between mb-1">
+        <h1 class="text-2xl font-bold">{{ org.name }}</h1>
+        <span class="badge badge-ghost">{{ org.plan }} plan</span>
+      </div>
+      <p class="text-base-content/60 mb-6">{{ projects|length }} project{{ projects|length|pluralize }}</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for project in projects %}
+          <a href="{% url 'mpa:project_overview' org.id project.id %}"
+             class="card bg-base-100 border border-base-300 hover:border-primary transition-colors">
+            <div class="card-body">
+              <div class="flex items-center justify-between">
+                <h2 class="card-title text-base">{{ project.name }}</h2>
+                {% if project.status == "active" %}
+                  <span class="badge badge-success badge-sm">Active</span>
+                {% elif project.status == "on_hold" %}
+                  <span class="badge badge-warning badge-sm">On hold</span>
+                {% else %}
+                  <span class="badge badge-neutral badge-sm">Archived</span>
+                {% endif %}
+              </div>
+              <div class="card-actions justify-end mt-2">
+                <span class="link link-primary text-sm">Open project &rarr;</span>
+              </div>
+            </div>
+          </a>
+        {% empty %}
+          <p class="text-base-content/60">No projects in this organization.</p>
+        {% endfor %}
+      </div>
+    </div>
+  {% endpartialdef %}
+{% endblock %}

@@ -38,26 +38,25 @@ def assert_shell_parity(
         corresponding Django response object for further assertions.
 
     Example:
-        ```python
-        from django.test import Client
-        from htmx_nav.testing import assert_shell_parity
+        .. code-block:: python
+            from django.test import Client
+            from htmx_nav.testing import assert_shell_parity
 
-        client = Client()
-        requests = {
-            "full_reload": {},
-            "page_shell": {"HTTP_HX_REQUEST": "true", "HTTP_HX_TARGET": "page-content"},
-            "tab_shell": {"HTTP_HX_REQUEST": "true", "HTTP_HX_TARGET": "tab-content"},
-        }
-        checks = {
-            "sidebar_labels": lambda ctx: [i["label"] for i in ctx["nav"]["sidebar"] if i["active"]],
-            "breadcrumbs": lambda ctx: [c["label"] for c in ctx["nav"]["breadcrumbs"]],
-        }
-        responses = assert_shell_parity(
-            client, "/nav-workspace/record/42/",
-            requests=requests,
-            checks=checks,
-        )
-        ```
+            client = Client()
+            requests = {
+                "full_reload": {},
+                "page_shell": {"HTTP_HX_REQUEST": "true", "HTTP_HX_TARGET": "page-content"},
+                "tab_shell": {"HTTP_HX_REQUEST": "true", "HTTP_HX_TARGET": "tab-content"},
+            }
+            checks = {
+                "sidebar_labels": lambda ctx: [i["label"] for i in ctx["nav"]["sidebar"] if i["active"]],
+                "breadcrumbs": lambda ctx: [c["label"] for c in ctx["nav"]["breadcrumbs"]],
+            }
+            responses = assert_shell_parity(
+                client, "/nav-workspace/record/42/",
+                requests=requests,
+                checks=checks,
+            )
     """
     responses = {label: client.get(url, **kwargs) for label, kwargs in requests.items()}
 

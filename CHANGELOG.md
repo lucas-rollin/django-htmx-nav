@@ -1,8 +1,16 @@
 ## 0.3.0 — 2026-07-30
 
-- Fixed typos in docstrings and documentation.
-- Removed `HX-Push-Url` handling from inside `render_htmx` so it's control is moved to the view.
-- Moved to sphinx documentation to avoid context switching.
+- **`htmx_nav.responses`**:
+    - Added `include_if` to `Swap` along with the `skip_if_target_in` helper, enabling declarative conditional rendering of OOB swaps based on incoming HTMX targets.
+    - Added native `title` support to `render_htmx` (and `make_shell_renderer`), automatically sending the `HX-Title` header on HTMX requests and injecting a `<title>` OOB snippet when needed.
+    - **Breaking/Refactor**: Removed automatic `HX-Push-Url` handling from inside `render_htmx`, shifting full control of URL history updates back to the view layer.
+- **`htmx_nav.testing`**:
+    - Introduced a new testing module containing utilities to verify context parity and final template output across regular and HTMX requests.
+- **Documentation & Tooling**:
+    - Migrated documentation to **Sphinx** to streamline workflow.
+    - Initialized the reference example project.
+    - Added **Ruff** and **djLint** for code linting and formatting.
+    - Fixed various typos across docstrings and documentation.
 
 ## 0.2.0 — 2026-07-29
 

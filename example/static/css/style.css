@@ -1,0 +1,16 @@
+[x-cloak] { display: none !important }
+
+.stale-navigation {
+    /* the URL knows best */
+    display: none;
+}
+
+.spa {
+    /* we have SPA at home */
+    display: var(--spa, block);
+}
+
+.legacy-code {
+    /* nobody knows what this does */
+    display: var(--probably-important);
+}

@@ -1,0 +1,105 @@
+from django.test import RequestFactory
+from django.views.generic import TemplateView
+
+from htmx_nav.responses import Swap, make_shell_renderer
+from htmx_nav.views import make_shell_view_mixin
+
+render_shell = make_shell_renderer(
+    "tests/_shell.html",
+    context_builder=lambda request: {"nav": {"sidebar": [1, 2, 3]}},
+)
+ShellViewMixin = make_shell_view_mixin(render_shell)
+
+
+class DemoView(ShellViewMixin, TemplateView):
+    template_name = "tests/_page.html"
+    title = "Demo Page"
+
+
+def test_full_render_uses_template_and_title_attribute():
+    request = RequestFactory().get("/demo/")
+    response = DemoView.as_view()(request)
+    response.render()
+    assert b"FULL PAGE:" in response.content
+    assert response.context_data["title"] == "Demo Page"
+
+
+def test_htmx_render_includes_shell_swap_and_title_tag():
+    request = RequestFactory().get("/demo/", HTTP_HX_REQUEST="true")
+    response = DemoView.as_view()(request)
+    response.render()
+    assert b"FULL PAGE:" not in response.content
+    assert b"<nav>3</nav>" in response.content
+    assert b"<title>Demo Page</title>" in response.content
+
+
+def test_get_extra_swaps_default_is_none_and_contributes_nothing_extra():
+    request = RequestFactory().get("/demo/", HTTP_HX_REQUEST="true")
+    response = DemoView.as_view()(request)
+    response.render()
+    assert b"hx-swap-oob" not in response.content  # only the un-wrapped shell swap
+
+
+def test_get_extra_swaps_can_return_bare_swap_referencing_view_state():
+    class RichView(ShellViewMixin, TemplateView):
+        template_name = "tests/_page.html"
+
+        def get_extra_swaps(self):
+            # Proves this runs after self.request is set, so it can use
+            # view/request state — the old __init__-based list couldn't.
+            return Swap(
+                "tests/_notification.html",
+                {"message": self.request.path},
+                target_id="alerts",
+            )
+
+    request = RequestFactory().get("/demo-path/", HTTP_HX_REQUEST="true")
+    response = RichView.as_view()(request)
+    response.render()
+    assert b'<div id="alerts" hx-swap-oob="true">' in response.content
+    assert b"/demo-path/" in response.content
+
+
+def test_get_title_override_takes_precedence_over_class_attribute():
+    class TitledView(ShellViewMixin, TemplateView):
+        template_name = "tests/_page.html"
+        title = "Class Attribute Title"
+
+        def get_title(self):
+            return "Overridden Title"
+
+    request = RequestFactory().get("/demo/")
+    response = TitledView.as_view()(request)
+    response.render()
+    assert response.context_data["title"] == "Overridden Title"
+
+
+def test_no_title_falls_back_to_context_supplied_title():
+    class ContextTitledView(ShellViewMixin, TemplateView):
+        template_name = "tests/_page.html"
+
+        def get_context_data(self, **kwargs):
+            return {**super().get_context_data(**kwargs), "title": "From context"}
+
+    request = RequestFactory().get("/demo/")
+    response = ContextTitledView.as_view()(request)
+    response.render()
+    assert response.context_data["title"] == "From context"
+
+
+def test_shell_template_name_defaults_to_first_template_name():
+    view = DemoView()
+    assert view.get_shell_template_name() == "tests/_page.html"
+
+
+def test_shell_template_name_can_be_overridden():
+    class AltTemplateView(ShellViewMixin, TemplateView):
+        template_name = "tests/_page.html"
+
+        def get_shell_template_name(self):
+            return "tests/_page_nav.html"
+
+    request = RequestFactory().get("/demo/", HTTP_HX_REQUEST="true")
+    response = AltTemplateView.as_view()(request)
+    response.render()
+    assert b'<div class="content">' in response.content

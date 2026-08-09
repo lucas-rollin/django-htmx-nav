@@ -28,6 +28,13 @@ docs = [
     "furo>=2024.0",
     "sphinx-autodoc-typehints>=3.0",
 ]
+example = [
+    "Faker==40.36.0",
+]
+lint = [
+    "ruff==0.16.2",
+    "djlint==1.44.1",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -39,3 +46,29 @@ htmx_nav = ["py.typed"]
 "Homepage" = "https://github.com/lucas-rollin/django-htmx-nav"
 "Documentation" = "https://lucas-rollin.github.io/django-htmx-nav/"
 "Repository" = "https://github.com/lucas-rollin/django-htmx-nav"
+
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "DJ"]
+ignore = []
+
+[tool.ruff.lint.per-file-ignores]
+"**/migrations/*.py" = ["E501"]
+"**/apps.py" = ["F401"]
+
+[tool.djlint]
+profile = "django"
+
+exclude = "src"
+
+max_line_length = 120
+
+wrap_attributes = true
+
+ignore = "H021,H025"
+
+indent = 2
