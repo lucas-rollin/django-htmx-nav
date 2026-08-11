@@ -16,7 +16,7 @@ from htmx_nav import (
     Swap,
     htmx_target_is,
     make_shell_view_mixin,
-    render_htmx,
+    render_nav,
     targeting,
 )
 
@@ -54,7 +54,7 @@ def _breadcrumb_swap(*crumbs: tuple[str, str | None]) -> Swap:
 
 
 def _tab_content_partial(request: HttpRequest, partial_name: str):
-    """Return the partial for `render_htmx` to render the content.
+    """Return the partial for `render_nav` to render the content.
 
     Will for cases we only have tabs as a nested navigation component
     Given we use "tab-content" as the id for the content target.
@@ -77,16 +77,20 @@ def _tab_content_partial(request: HttpRequest, partial_name: str):
 
 def overview(request: HttpRequest) -> HttpResponse:
     """Displays the primary helpdesk dashboard and high-level summary metrics."""
-    return render_htmx(
-        request, "pages/overview.html", 
-        swaps=[_sidebar_swap(active_page="overview"), _breadcrumb_swap(("helpdesk", None))]
+    return render_nav(
+        request,
+        "pages/overview.html",
+        swaps=[
+            _sidebar_swap(active_page="overview"),
+            _breadcrumb_swap(("helpdesk", None)),
+        ],
     )
 
 
 def staff_list(request: HttpRequest) -> HttpResponse:
     """
     Displays all staff members alongside their currently active ticket counts.
-    
+
     This is an example where the django v6 native partials aren't used.
     """
     employees: list[dict] = []
@@ -97,22 +101,28 @@ def staff_list(request: HttpRequest) -> HttpResponse:
 
         employees.append({"tickets": active_tickets_count, "details": e})
 
-    return render_htmx(
+    return render_nav(
         request,
         "pages/staff_list.html",
         {"employees": employees},
-        partial="pages/_staff_list.html", # explicitly pass the standalone template partial
-        swaps=[_sidebar_swap(active_page="staff_list"), _breadcrumb_swap(("helpdesk", None))]
+        partial="pages/_staff_list.html",  # explicitly pass the standalone template partial
+        swaps=[
+            _sidebar_swap(active_page="staff_list"),
+            _breadcrumb_swap(("helpdesk", None)),
+        ],
     )
 
 
 def org_list(request: HttpRequest) -> HttpResponse:
     """Displays a list of all client organizations."""
-    return render_htmx(
+    return render_nav(
         request,
         "pages/org_list.html",
         {"orgs": Organization.objects.all()},
-        swaps=[_sidebar_swap(active_page="org_list"), _breadcrumb_swap(("helpdesk", None))],
+        swaps=[
+            _sidebar_swap(active_page="org_list"),
+            _breadcrumb_swap(("helpdesk", None)),
+        ],
     )
 
 
@@ -123,7 +133,7 @@ def org_detail(request: HttpRequest, org_id: str) -> HttpResponse:
         "org": org,
         "projects": Project.objects.filter(organization_id=org_id),
     }
-    return render_htmx(
+    return render_nav(
         request,
         "pages/org_detail.html",
         context,
@@ -173,7 +183,7 @@ def project_overview(
         "org": org,
         "project": project,
     }
-    return render_htmx(
+    return render_nav(
         request,
         "pages/project.html",
         context,
@@ -201,7 +211,7 @@ def project_team(request: HttpRequest, org_id: str, project_id: str) -> HttpResp
         "project": project,
         "team": team_members,
     }
-    return render_htmx(
+    return render_nav(
         request,
         "pages/project.html",
         context,
@@ -223,7 +233,7 @@ def project_team(request: HttpRequest, org_id: str, project_id: str) -> HttpResp
 
 
 def _project_settings_content_partial(request: HttpRequest, subtab: str):
-    """Return the partial for `render_htmx` to render the project settings content.
+    """Return the partial for `render_nav` to render the project settings content.
 
     What it does:
     - If it's Hx-Target is "tab-content" render "settings"
@@ -243,9 +253,9 @@ def _project_settings_content_partial(request: HttpRequest, subtab: str):
 # there is the the "#subtabs" element exists and that
 # happens only when Hx-Target is the "sub-content"
 _settings_subtab_swap = Swap(
-    "pages/project.html#settings_subtabs", 
+    "pages/project.html#settings_subtabs",
     target_id="subtabs",
-    include_if=targeting("subtab-content")
+    include_if=targeting("subtab-content"),
 )
 
 
@@ -264,7 +274,7 @@ def project_settings(
         "active_subtab": subtab,
     }
 
-    return render_htmx(
+    return render_nav(
         request,
         "pages/project.html",
         context,
@@ -301,7 +311,9 @@ def ticket_move_status(request: HttpRequest, ticket_id: str) -> HttpResponse:
         ticket.save(update_fields=["status"])
     project = ticket.project
     return redirect(
-        f"{NAMESPACE}:kanban_board", org_id=project.organization.id, project_id=project.id
+        f"{NAMESPACE}:kanban_board",
+        org_id=project.organization.id,
+        project_id=project.id,
     )
 
 
@@ -323,7 +335,7 @@ def kanban_board(request: HttpRequest, org_id: str, project_id: str) -> HttpResp
         "columns": columns,
         "active_tab": "board",
     }
-    return render_htmx(
+    return render_nav(
         request,
         "pages/project.html",
         context,
@@ -393,7 +405,8 @@ class TicketListView(ShellViewMixin, ListView):
                 (
                     self.project.name,
                     reverse(
-                        f"{NAMESPACE}:project_overview", args=[self.org.id, self.project.id]
+                        f"{NAMESPACE}:project_overview",
+                        args=[self.org.id, self.project.id],
                     ),
                 ),
                 ("Tickets", None),
@@ -456,7 +469,7 @@ def ticket_detail(request: HttpRequest, ticket_id: str) -> HttpResponse:
         "ticket": ticket,
         "assignee_name": assignee_name,
     }
-    return render_htmx(
+    return render_nav(
         request,
         "pages/ticket.html",
         context,
@@ -487,7 +500,7 @@ def ticket_comments(request: HttpRequest, ticket_id: str) -> HttpResponse:
         "ticket": ticket,
         "comments": ticket.comments,
     }
-    return render_htmx(
+    return render_nav(
         request,
         "pages/ticket.html",
         context,
@@ -501,7 +514,10 @@ def ticket_comments(request: HttpRequest, ticket_id: str) -> HttpResponse:
                     project.name,
                     reverse(f"{NAMESPACE}:project_overview", args=[org.id, project.id]),
                 ),
-                (f"#{ticket.id[:8]}", reverse(f"{NAMESPACE}:ticket_detail", args=[ticket.id])),
+                (
+                    f"#{ticket.id[:8]}",
+                    reverse(f"{NAMESPACE}:ticket_detail", args=[ticket.id]),
+                ),
                 ("Comments", None),
             ),
             _ticket_tab_swap(active_tab="comments"),
@@ -527,7 +543,7 @@ def ticket_activity(request: HttpRequest, ticket_id: str) -> HttpResponse:
             f"Status set to {ticket.status}",
         ],
     }
-    return render_htmx(
+    return render_nav(
         request,
         "pages/ticket.html",
         context,
@@ -541,7 +557,10 @@ def ticket_activity(request: HttpRequest, ticket_id: str) -> HttpResponse:
                     project.name,
                     reverse(f"{NAMESPACE}:project_overview", args=[org.id, project.id]),
                 ),
-                (f"#{ticket.id[:8]}", reverse(f"{NAMESPACE}:ticket_detail", args=[ticket.id])),
+                (
+                    f"#{ticket.id[:8]}",
+                    reverse(f"{NAMESPACE}:ticket_detail", args=[ticket.id]),
+                ),
                 ("Activity", None),
             ),
             _ticket_tab_swap(active_tab="activity"),
@@ -558,8 +577,8 @@ def ticket_attachments(request: HttpRequest, ticket_id: str) -> HttpResponse:
     context = {
         "ticket": ticket,
     }
-    
-    return render_htmx(
+
+    return render_nav(
         request,
         "pages/ticket.html",
         context,
@@ -573,7 +592,10 @@ def ticket_attachments(request: HttpRequest, ticket_id: str) -> HttpResponse:
                     project.name,
                     reverse(f"{NAMESPACE}:project_overview", args=[org.id, project.id]),
                 ),
-                (f"#{ticket.id[:8]}", reverse(f"{NAMESPACE}:ticket_detail", args=[ticket.id])),
+                (
+                    f"#{ticket.id[:8]}",
+                    reverse(f"{NAMESPACE}:ticket_detail", args=[ticket.id]),
+                ),
                 ("Attachments", None),
             ),
             _ticket_tab_swap(active_tab="attachments"),
@@ -588,12 +610,13 @@ def ticket_attachments(request: HttpRequest, ticket_id: str) -> HttpResponse:
 WIZARD_STEPS = ["basics", "assignment", "review"]
 WIZARD_SESSION_KEY = "new_ticket_wizard"
 
+
 def _wizard_steps_swap(step: str):
     return Swap(
         "components/_wizard_steps.html",
         {"steps": WIZARD_STEPS, "step_index": WIZARD_STEPS.index(step)},
         target_id="steps",
-        include_if=targeting("steps-content")
+        include_if=targeting("steps-content"),
     )
 
 
@@ -646,7 +669,7 @@ def ticket_wizard_step(
         "employees": all_employees,
         "employee_names": {e.id: e.name for e in all_employees},
     }
-    return render_htmx(
+    return render_nav(
         request,
         "pages/wizard.html",
         context,
@@ -661,6 +684,6 @@ def ticket_wizard_step(
                 ),
                 ("New Ticket", None),
             ),
-            _wizard_steps_swap(step)
+            _wizard_steps_swap(step),
         ],
     )

@@ -2,7 +2,7 @@ import pytest
 from django.test import Client
 from django.urls import path
 
-from htmx_nav.responses import make_shell_renderer
+from htmx_nav import make_shell_renderer
 from htmx_nav.testing import assert_shell_parity
 
 # Tell pytest to use this module's urlpatterns

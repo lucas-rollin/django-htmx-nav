@@ -3,8 +3,8 @@ from django.http import HttpRequest, HttpResponse
 from django.test import RequestFactory
 from django.urls import NoReverseMatch, path
 
+from htmx_nav import make_shell_renderer
 from htmx_nav.helpers import cache_on_request, reverse_maybe
-from htmx_nav.responses import make_shell_renderer
 
 # Tell pytest to use this module's urlpatterns
 pytestmark = pytest.mark.urls(__name__)

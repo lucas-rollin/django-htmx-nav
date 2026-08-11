@@ -1,7 +1,8 @@
 from django.test import RequestFactory
 from django.views.generic import TemplateView
 
-from htmx_nav.responses import Swap, make_shell_renderer
+from htmx_nav.shell import make_shell_renderer
+from htmx_nav.swaps import Swap
 from htmx_nav.views import make_shell_view_mixin
 
 render_shell = make_shell_renderer(
@@ -37,7 +38,7 @@ def test_get_extra_swaps_default_is_none_and_contributes_nothing_extra():
     request = RequestFactory().get("/demo/", HTTP_HX_REQUEST="true")
     response = DemoView.as_view()(request)
     response.render()
-    assert b"hx-swap-oob" not in response.content  # only the un-wrapped shell swap
+    assert b"hx-swap-oob" not in response.content
 
 
 def test_get_extra_swaps_can_return_bare_swap_referencing_view_state():
@@ -54,9 +55,7 @@ def test_get_extra_swaps_can_return_bare_swap_referencing_view_state():
     request = RequestFactory().get("/demo-path/", HTTP_HX_REQUEST="true")
     response = RichView.as_view()(request)
     response.render()
-    assert (
-        b'<div id="alerts" hx-swap-oob="innerHTML">' in response.content
-    )  # was "true"
+    assert b'<div id="alerts" hx-swap-oob="innerHTML">' in response.content
     assert b"/demo-path/" in response.content
 
 
@@ -106,7 +105,9 @@ def test_shell_template_name_can_be_overridden():
 
 
 def test_zero_config_shell_view_mixin_needs_no_render_shell():
-    class DemoView(ShellViewMixin, TemplateView):
+    Mixin = make_shell_view_mixin()
+
+    class DemoView2(Mixin, TemplateView):
         template_name = "tests/_page.html"
 
         def get_extra_swaps(self):
@@ -115,7 +116,7 @@ def test_zero_config_shell_view_mixin_needs_no_render_shell():
             )
 
     request = RequestFactory().get("/demo/", HTTP_HX_REQUEST="true")
-    response = DemoView.as_view()(request)
+    response = DemoView2.as_view()(request)
     response.render()
     assert (
         b'<div id="alerts" hx-swap-oob="innerHTML"><p>hi</p></div>' in response.content
@@ -127,7 +128,7 @@ def test_default_swaps_combine_with_view_extra_swaps():
         default_swaps=Swap("tests/_minimal.html", {"value": "shell"}, target_id="shell")
     )
 
-    class DemoView(Mixin, TemplateView):
+    class DemoView3(Mixin, TemplateView):
         template_name = "tests/_page.html"
 
         def get_extra_swaps(self):
@@ -136,7 +137,7 @@ def test_default_swaps_combine_with_view_extra_swaps():
             )
 
     request = RequestFactory().get("/demo/", HTTP_HX_REQUEST="true")
-    response = DemoView.as_view()(request)
+    response = DemoView3.as_view()(request)
     response.render()
     assert b'id="shell"' in response.content
     assert b'id="alerts"' in response.content

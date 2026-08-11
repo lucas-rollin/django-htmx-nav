@@ -132,7 +132,10 @@ def project_team(request: HttpRequest, org_id: str, project_id: str) -> HttpResp
         **_breadcrumbs(
             ("Organizations", reverse(f"{NAMESPACE}:org_list")),
             (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org_id])),
-            (project.name, reverse(f"{NAMESPACE}:project_overview", args=[org_id, project_id])),
+            (
+                project.name,
+                reverse(f"{NAMESPACE}:project_overview", args=[org_id, project_id]),
+            ),
             ("Team", None),
         ),
         "org": org,
@@ -157,7 +160,10 @@ def project_settings(
         **_breadcrumbs(
             ("Organizations", reverse(f"{NAMESPACE}:org_list")),
             (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org_id])),
-            (project.name, reverse(f"{NAMESPACE}:project_overview", args=[org_id, project_id])),
+            (
+                project.name,
+                reverse(f"{NAMESPACE}:project_overview", args=[org_id, project_id]),
+            ),
             ("Settings", None),
         ),
         "org": org,
@@ -188,7 +194,10 @@ def ticket_detail(request: HttpRequest, ticket_id: str) -> HttpResponse:
         **_breadcrumbs(
             ("Organizations", reverse(f"{NAMESPACE}:org_list")),
             (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org.id])),
-            (project.name, reverse(f"{NAMESPACE}:project_overview", args=[org.id, project.id])),
+            (
+                project.name,
+                reverse(f"{NAMESPACE}:project_overview", args=[org.id, project.id]),
+            ),
             (f"#{ticket.id[:8]}", None),
         ),
         "ticket": ticket,
@@ -209,8 +218,14 @@ def ticket_comments(request: HttpRequest, ticket_id: str) -> HttpResponse:
         **_breadcrumbs(
             ("Organizations", reverse(f"{NAMESPACE}:org_list")),
             (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org.id])),
-            (project.name, reverse(f"{NAMESPACE}:project_overview", args=[org.id, project.id])),
-            (f"#{ticket.id[:8]}", reverse(f"{NAMESPACE}:ticket_detail", args=[ticket.id])),
+            (
+                project.name,
+                reverse(f"{NAMESPACE}:project_overview", args=[org.id, project.id]),
+            ),
+            (
+                f"#{ticket.id[:8]}",
+                reverse(f"{NAMESPACE}:ticket_detail", args=[ticket.id]),
+            ),
             ("Comments", None),
         ),
         "ticket": ticket,
@@ -235,8 +250,14 @@ def ticket_activity(request: HttpRequest, ticket_id: str) -> HttpResponse:
         **_breadcrumbs(
             ("Organizations", reverse(f"{NAMESPACE}:org_list")),
             (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org.id])),
-            (project.name, reverse(f"{NAMESPACE}:project_overview", args=[org.id, project.id])),
-            (f"#{ticket.id[:8]}", reverse(f"{NAMESPACE}:ticket_detail", args=[ticket.id])),
+            (
+                project.name,
+                reverse(f"{NAMESPACE}:project_overview", args=[org.id, project.id]),
+            ),
+            (
+                f"#{ticket.id[:8]}",
+                reverse(f"{NAMESPACE}:ticket_detail", args=[ticket.id]),
+            ),
             ("Activity", None),
         ),
         "ticket": ticket,
@@ -261,8 +282,14 @@ def ticket_attachments(request: HttpRequest, ticket_id: str) -> HttpResponse:
         **_breadcrumbs(
             ("Organizations", reverse(f"{NAMESPACE}:org_list")),
             (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org.id])),
-            (project.name, reverse(f"{NAMESPACE}:project_overview", args=[org.id, project.id])),
-            (f"#{ticket.id[:8]}", reverse(f"{NAMESPACE}:ticket_detail", args=[ticket.id])),
+            (
+                project.name,
+                reverse(f"{NAMESPACE}:project_overview", args=[org.id, project.id]),
+            ),
+            (
+                f"#{ticket.id[:8]}",
+                reverse(f"{NAMESPACE}:ticket_detail", args=[ticket.id]),
+            ),
             ("Attachments", None),
         ),
         "ticket": ticket,
@@ -322,7 +349,8 @@ class TicketListView(ListView):
                 (
                     self.project.name,
                     reverse(
-                        f"{NAMESPACE}:project_overview", args=[self.org.id, self.project.id]
+                        f"{NAMESPACE}:project_overview",
+                        args=[self.org.id, self.project.id],
                     ),
                 ),
                 ("Tickets", None),
@@ -392,7 +420,10 @@ def ticket_wizard_step(
         **_breadcrumbs(
             ("Organizations", reverse(f"{NAMESPACE}:org_list")),
             (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org_id])),
-            (project.name, reverse(f"{NAMESPACE}:project_overview", args=[org_id, project_id])),
+            (
+                project.name,
+                reverse(f"{NAMESPACE}:project_overview", args=[org_id, project_id]),
+            ),
             ("New Ticket", None),
         ),
         "org": org,
@@ -422,7 +453,9 @@ def ticket_move_status(request: HttpRequest, ticket_id: str) -> HttpResponse:
         ticket.save(update_fields=["status"])
     project = ticket.project
     return redirect(
-        f"{NAMESPACE}:kanban_board", org_id=project.organization.id, project_id=project.id
+        f"{NAMESPACE}:kanban_board",
+        org_id=project.organization.id,
+        project_id=project.id,
     )
 
 
@@ -443,7 +476,10 @@ def kanban_board(request: HttpRequest, org_id: str, project_id: str) -> HttpResp
         **_breadcrumbs(
             ("Organizations", reverse(f"{NAMESPACE}:org_list")),
             (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org_id])),
-            (project.name, reverse(f"{NAMESPACE}:project_overview", args=[org_id, project_id])),
+            (
+                project.name,
+                reverse(f"{NAMESPACE}:project_overview", args=[org_id, project_id]),
+            ),
             ("Board", None),
         ),
         "org": org,
