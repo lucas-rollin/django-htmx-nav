@@ -1,73 +1,88 @@
+from __future__ import annotations
+
+from collections.abc import Callable
 from typing import Any, Protocol
 
 from django.http import HttpRequest
 from django.template.response import TemplateResponse
 
-from .responses import ShellRenderer, Swap
+from .responses import (
+    PartialSpec,
+    ShellRenderer,
+    Swaps,
+    _normalize_swaps,
+    render_htmx,
+)
 
 
 class _ShellViewProtocol(Protocol):
-    """Typing aid describing what `ShellViewMixin` expects from the view
-    it's mixed into (normally a `TemplateResponseMixin` subclass)."""
+    """Protocol defining the interface required by `ShellViewMixin`."""
 
     request: HttpRequest
 
     def get_template_names(self) -> list[str]: ...
+    def get_extra_swaps(self) -> Swaps: ...
+    def get_partial(self) -> PartialSpec: ...
+    def get_title(self) -> str | None: ...
+    def get_shell_template_name(self) -> str: ...
 
 
-def make_shell_view_mixin(render_shell: ShellRenderer) -> type:
-    """
-    Create a mixin that routes a Class-Based View's response through a
-    shell renderer produced by `make_shell_renderer`.
-
-    Combine with any `TemplateResponseMixin`-based generic view (`TemplateView`,
-    `DetailView`, `ListView`, `FormView`, ...). Put the mixin first in the MRO
-    so its `render_to_response` takes precedence over the base view's.
+def make_shell_view_mixin(
+    render: ShellRenderer | None = None,
+    *,
+    default_swaps: Swaps = None,
+    default_partial: PartialSpec = "#content",
+) -> type:
+    """Builds a Class-Based View mixin that routes responses through `render_htmx`.
 
     Args:
-        render_shell: A shell rendering function, typically from
-            `make_shell_renderer`.
+        render: Custom render callable (e.g., from `make_shell_renderer`).
+            If `None`, delegates directly to `render_htmx`.
+        default_swaps: Swaps applied across all views using this mixin.
+        default_partial: Fallback `PartialSpec` applied when `get_partial` is un-overridden.
 
     Returns:
-        A mixin class for Django generic views.
+        A mixin class providing HTMX rendering capabilities for CBVs.
 
     Example:
-        .. code-block:: python
+        ```python
+        ShellViewMixin = make_shell_view_mixin()
 
-            render_shell = make_shell_renderer("partials/nav.html")
-            ShellViewMixin = make_shell_view_mixin(render_shell)
 
-            class ProjectDetailView(ShellViewMixin, DetailView):
-                model = Project
-                template_name = "project/detail.html"
-                title = "Project detail"
+        class TicketListView(ShellViewMixin, ListView):
+            template_name = "pages/project.html"
 
-                def get_extra_swaps(self):
-                    return Swap(
-                        "partials/breadcrumbs.html",
-                        {"project": self.object},
-                        target_id="breadcrumbs",
-                    )
+            def get_extra_swaps(self):
+                return [sidebar_swap]
+
+            def get_partial(self):
+                return {
+                    "#main_content": targeting("main-content"),
+                    "#content": True,
+                }
+        ```
     """
+    defaults = _normalize_swaps(default_swaps)
+    render_fn: Callable[..., TemplateResponse] = render or render_htmx
+    swaps_kwarg = "extra_swaps" if render is not None else "swaps"
 
     class ShellViewMixin:
         title: str | None = None
 
-        def get_extra_swaps(self) -> Swap | list[Swap] | None:
-            """Return additional Swap fragment(s) for this response. Override
-            to contribute view-specific swaps, e.g. ones referencing
-            `self.object`. Defaults to none."""
+        def get_extra_swaps(self) -> Swaps:
+            """Returns additional swaps specific to this view instance."""
             return None
 
         def get_title(self) -> str | None:
-            """Return the page title for this response. Defaults to the
-            `title` class attribute. Return None to fall back to whatever
-            `title` (if any) the context itself already supplies."""
+            """Returns the page title for context and HTMX updates."""
             return self.title
 
+        def get_partial(self) -> PartialSpec:
+            """Returns the `PartialSpec` configuration for this view."""
+            return default_partial
+
         def get_shell_template_name(self: _ShellViewProtocol) -> str:
-            """Return the base template rendered through the shell. Defaults
-            to the first entry from `get_template_names()`."""
+            """Returns the template path to render."""
             return self.get_template_names()[0]
 
         def render_to_response(
@@ -75,9 +90,17 @@ def make_shell_view_mixin(render_shell: ShellRenderer) -> type:
             context: dict[str, Any],
             **response_kwargs: Any,
         ) -> TemplateResponse:
-            response_kwargs.setdefault("extra_swaps", self.get_extra_swaps())
+            """Renders the view context using the configured HTMX renderer."""
+            swaps = [
+                *defaults,
+                *_normalize_swaps(self.get_extra_swaps()),
+            ]
+
+            response_kwargs.setdefault("partial", self.get_partial())
             response_kwargs.setdefault("title", self.get_title())
-            return render_shell(
+            response_kwargs.setdefault(swaps_kwarg, swaps)
+
+            return render_fn(
                 self.request,
                 self.get_shell_template_name(),
                 context,

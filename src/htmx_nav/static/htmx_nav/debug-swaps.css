@@ -1,0 +1,15 @@
+/**
+ * Adds a debug mode to highlight partial swaps.
+ *
+ * Requires the partial to use the class "hn-swap" at the root element.
+ * Effect can be toggled by toggling the "data-hn-debug-swaps" attribute on body.
+ */
+
+[data-hn-debug-swaps] .hn-swap {
+  animation: hn-flash-pulse 900ms ease-out;
+}
+
+@keyframes hn-flash-pulse {
+  from { background-color: #fef08a; }
+  to   { background-color: transparent; }
+}

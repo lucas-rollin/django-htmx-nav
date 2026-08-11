@@ -1,4 +1,11 @@
-## 0.3.0 — 2026-07-30
+## 0.3.1 — 2026-08-11
+
+- Added `debug-swaps.css` and a toggable setting to highlight a Swap being swapped.
+- **`htmx_nav.responses`**:
+    - Added type alias `Target` to conditionally apply a Swap and `PartialSpec` to condition what partial content to render.
+    - General API improvements.
+
+## 0.3.0 — 2026-08-09
 
 - **`htmx_nav.responses`**:
     - Added `include_if` to `Swap` along with the `skip_if_target_in` helper, enabling declarative conditional rendering of OOB swaps based on incoming HTMX targets.

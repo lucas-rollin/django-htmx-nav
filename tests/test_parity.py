@@ -27,7 +27,7 @@ def record_tab_view(request):
         request,
         "tests/_page_nav.html",
         {"title": "Record #42"},
-        partial_name="tab_content",
+        partial="#tab_content",
     )
 
 

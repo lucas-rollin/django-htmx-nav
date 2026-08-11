@@ -45,8 +45,6 @@ def test_get_extra_swaps_can_return_bare_swap_referencing_view_state():
         template_name = "tests/_page.html"
 
         def get_extra_swaps(self):
-            # Proves this runs after self.request is set, so it can use
-            # view/request state — the old __init__-based list couldn't.
             return Swap(
                 "tests/_notification.html",
                 {"message": self.request.path},
@@ -56,7 +54,9 @@ def test_get_extra_swaps_can_return_bare_swap_referencing_view_state():
     request = RequestFactory().get("/demo-path/", HTTP_HX_REQUEST="true")
     response = RichView.as_view()(request)
     response.render()
-    assert b'<div id="alerts" hx-swap-oob="true">' in response.content
+    assert (
+        b'<div id="alerts" hx-swap-oob="innerHTML">' in response.content
+    )  # was "true"
     assert b"/demo-path/" in response.content
 
 
@@ -103,3 +103,40 @@ def test_shell_template_name_can_be_overridden():
     response = AltTemplateView.as_view()(request)
     response.render()
     assert b'<div class="content">' in response.content
+
+
+def test_zero_config_shell_view_mixin_needs_no_render_shell():
+    class DemoView(ShellViewMixin, TemplateView):
+        template_name = "tests/_page.html"
+
+        def get_extra_swaps(self):
+            return Swap(
+                "tests/_notification.html", {"message": "hi"}, target_id="alerts"
+            )
+
+    request = RequestFactory().get("/demo/", HTTP_HX_REQUEST="true")
+    response = DemoView.as_view()(request)
+    response.render()
+    assert (
+        b'<div id="alerts" hx-swap-oob="innerHTML"><p>hi</p></div>' in response.content
+    )
+
+
+def test_default_swaps_combine_with_view_extra_swaps():
+    Mixin = make_shell_view_mixin(
+        default_swaps=Swap("tests/_minimal.html", {"value": "shell"}, target_id="shell")
+    )
+
+    class DemoView(Mixin, TemplateView):
+        template_name = "tests/_page.html"
+
+        def get_extra_swaps(self):
+            return Swap(
+                "tests/_notification.html", {"message": "view"}, target_id="alerts"
+            )
+
+    request = RequestFactory().get("/demo/", HTTP_HX_REQUEST="true")
+    response = DemoView.as_view()(request)
+    response.render()
+    assert b'id="shell"' in response.content
+    assert b'id="alerts"' in response.content
