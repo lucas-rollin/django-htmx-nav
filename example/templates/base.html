@@ -17,19 +17,17 @@
           rel="stylesheet"
           type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <script defer src="{% static 'js/theme.js' %}"></script>
     {% if is_htmx_demo %}
-      <script src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.0-beta6/dist/htmx.min.js"></script>
-      <script>
-        document.addEventListener('htmx:before:swap', function(evt) {
-          console.log('About to swap:', evt.detail.ctx.response);
-        });
-      </script>
+      <!--<script src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.0-beta6/dist/htmx.min.js"></script>-->
+      <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js"
+              integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V"
+              crossorigin="anonymous"></script>
+      <link rel="stylesheet" href="{% static 'htmx_nav/debug-swaps.css' %}">
     {% endif %}
   </head>
   <body data-demo-mode="{{ demo_mode }}"
-        {% if is_htmx_demo %}hx-boost:inherited="true" hx-target:inherited="#main-content"{% endif %}>
+        {% if is_htmx_demo %}hx-boost="true" hx-target="#main-content" data-hn-debug-swaps{% endif %}>
     <div class="drawer lg:drawer-open">
       <input id="my-drawer" type="checkbox" class="drawer-toggle" />
       <div class="drawer-content min-h-dvh flex flex-col justify-between">
@@ -69,7 +67,12 @@
                 <span class="badge badge-error badge-lg font-semibold">MPA MODE</span>
               {% endif %}
             </div>
-            <div class="navbar-end">
+            <div class="navbar-end space-x-2">
+              {% if is_htmx_demo %}
+                <button type="button"
+                        class="btn btn-ghost"
+                        onclick="document.body.toggleAttribute('data-hn-debug-swaps')">Highlight swaps</button>
+              {% endif %}
               <label x-data="themeToggle()" class="swap swap-rotate">
                 <input type="checkbox"
                        class="theme-controller"
@@ -99,8 +102,8 @@
                   </svg>
                 </summary>
                 <ul class="menu dropdown-content bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
-                  <li><a href="#">HTMX demo</a></li>
-                  <li><a href="#">MPA demo</a></li>
+                  <li><a href="{% url 'htmx:overview' %}">HTMX demo</a></li>
+                  <li><a href="{% url 'mpa:overview' %}">MPA demo</a></li>
                   <li><a href="https://github.com/your-org/django-htmx-nav">Source code diffs</a></li>
                 </ul>
               </details>
@@ -135,7 +138,7 @@
       </div>
       <div class="drawer-side">
         <label for="my-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
-        <div id="sidebar">{% include "components/_sidebar_menu.html" %}</div>
+        <div id="sidebar" class="h-full">{% include "components/_sidebar_menu.html" %}</div>
       </div>
     </div>
   </body>

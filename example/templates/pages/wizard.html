@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% load nav_extras %}
+{% block title %}New ticket · Review{% endblock %}
+{% block content %}
+  {% partialdef content inline %}
+    <div class="p-6 max-w-2xl mx-auto">
+      <h1 class="text-2xl font-bold mb-1">New ticket</h1>
+      <p class="text-base-content/60 mb-6">{{ project.name }} · {{ org.name }}</p>
+      <div id="steps">{% include "components/_wizard_steps.html" %}</div>
+      {# ============================== #}
+      {# --- Define the tab content --- #}
+      {# ============================== #}
+        {% partialdef basics %}
+          <form method="post" class="card bg-base-100 border border-base-300">
+            {% csrf_token %}
+            <div class="card-body gap-4">
+              <fieldset class="fieldset">
+                <label class="label" for="id_title">Title</label>
+                <input id="id_title"
+                      type="text"
+                      name="title"
+                      required
+                      class="input w-full"
+                      value="{{ collected.title|default:'' }}"
+                      placeholder="Short summary of the issue">
+              </fieldset>
+              <fieldset class="fieldset">
+                <label class="label" for="id_description">Description</label>
+                <textarea id="id_description"
+                          name="description"
+                          required
+                          class="textarea w-full h-32"
+                          placeholder="What's going on?">{{ collected.description|default:'' }}</textarea>
+              </fieldset>
+              <div class="card-actions justify-end">
+                <a href="{% url request.resolver_match.namespaces|last|add:':project_overview' org.id project.id %}"
+                  class="btn btn-ghost">Cancel</a>
+                <button type="submit" class="btn btn-primary">Continue</button>
+              </div>
+            </div>
+          </form>
+        {% endpartialdef basics %}
+        {% partialdef assignment %}
+          <div class="alert alert-soft mb-4">
+            <span>“{{ collected.title }}” — saved from the previous step.</span>
+          </div>
+          <form method="post" class="card bg-base-100 border border-base-300">
+            {% csrf_token %}
+            <div class="card-body gap-4">
+              <fieldset class="fieldset">
+                <label class="label" for="id_assignee">Assignee</label>
+                <select id="id_assignee" name="assignee" required class="select w-full">
+                  <option value="" disabled {% if not collected.assignee %}selected{% endif %}>Choose someone…</option>
+                  {% for emp in employees %}
+                    <option value="{{ emp.id }}"
+                            {% if collected.assignee == emp.id %}selected{% endif %}>{{ emp.name }}</option>
+                  {% endfor %}
+                </select>
+              </fieldset>
+              <fieldset class="fieldset">
+                <label class="label" for="id_priority">Priority</label>
+                <select id="id_priority" name="priority" required class="select w-full">
+                  {% for p in "12345" %}
+                    <option value="{{ p }}" {% if collected.priority == p %}selected{% endif %}>Priority {{ p }}</option>
+                  {% endfor %}
+                </select>
+              </fieldset>
+              <div class="card-actions justify-between">
+                <a href="{% url request.resolver_match.namespaces|last|add:':ticket_wizard_step' org.id project.id 'basics' %}"
+                  class="btn btn-ghost">Back</a>
+                <button type="submit" class="btn btn-primary">Continue</button>
+              </div>
+            </div>
+          </form>
+        {% endpartialdef assignment %}
+        {% partialdef review %}
+          <div class="card bg-base-100 border border-base-300">
+          
+            <div class="card-body gap-3">
+              <div>
+                <p class="text-xs uppercase text-base-content/50">Title</p>
+                <p class="font-medium">{{ collected.title }}</p>
+              </div>
+              <div>
+                <p class="text-xs uppercase text-base-content/50">Description</p>
+                <p class="text-sm whitespace-pre-line">{{ collected.description }}</p>
+              </div>
+              <div class="flex gap-8">
+                <div>
+                  <p class="text-xs uppercase text-base-content/50">Assignee</p>
+                  {% with assignee_id=collected.assignee|default:"" %}
+                    <p class="text-sm">{{ employee_names|dict_get:assignee_id|default:"Not set" }}</p>
+                  {% endwith %}
+                </div>
+                <div>
+                  <p class="text-xs uppercase text-base-content/50">Priority</p>
+                  <p class="text-sm">{{ collected.priority }}</p>
+                </div>
+              </div>
+              <div class="alert alert-warning mt-2">
+                <span>Demo only! Submitting won't actually create a ticket; it'll redirect to an existing sample ticket instead.</span>
+              </div>
+              <form method="post" class="card-actions justify-between mt-2">
+                {% csrf_token %}
+                <a href="{% url request.resolver_match.namespaces|last|add:':ticket_wizard_step' org.id project.id 'assignment' %}"
+                  class="btn btn-ghost">Back</a>
+                <button type="submit" class="btn btn-primary">Create ticket</button>
+              </form>
+            </div>
+          
+          </div>
+        {% endpartialdef review %}
+      {# ============================== #}
+      {# --- Call the tab content   --- #}
+      {# ============================== #}
+      <div id="wizard_content">
+        {% if step == "basics" %}
+          {% partial basics %}
+        {% elif step == "assignment" %}
+          {% partial assignment %}
+        {% else %}
+          {% partial review %}
+        {% endif %}
+      </div>
+    </div>
+  {% endpartialdef %}
+{% endblock %}

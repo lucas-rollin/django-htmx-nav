@@ -14,27 +14,30 @@
         {% endif %}
       </div>
       <p class="text-base-content/60 mb-6">Part of {{ org.name }}</p>
+      {# =================================================== #}
+      {# --- Call the navigation Swap                    --- #}
+      {# =================================================== #}
       <div id="project-tabs">{% include "components/_project_tabs.html" %}</div>
-      {# ------------------------------ #}
-      {# --- Define the tab content --- #}
-      {# ------------------------------ #}
+      {# =================================================== #}
+      {# --- Define the tab content                      --- #}
+      {# =================================================== #}
       {% partialdef overview %}
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <a href="{% url 'mpa:ticket_list' org.id project.id %}"
+          <a href="{% url request.resolver_match.namespaces|last|add:':ticket_list' org.id project.id %}"
              class="card bg-base-100 border border-base-300 hover:border-primary transition-colors">
             <div class="card-body">
               <h3 class="card-title text-base">Tickets</h3>
               <p class="text-sm text-base-content/60">Browse, filter, and paginate every ticket in this project.</p>
             </div>
           </a>
-          <a href="{% url 'mpa:kanban_board' org.id project.id %}"
+          <a href="{% url request.resolver_match.namespaces|last|add:':kanban_board' org.id project.id %}"
              class="card bg-base-100 border border-base-300 hover:border-primary transition-colors">
             <div class="card-body">
               <h3 class="card-title text-base">Board</h3>
               <p class="text-sm text-base-content/60">See tickets grouped by status and move them along.</p>
             </div>
           </a>
-          <a href="{% url 'mpa:project_team' org.id project.id %}"
+          <a href="{% url request.resolver_match.namespaces|last|add:':project_team' org.id project.id %}"
              class="card bg-base-100 border border-base-300 hover:border-primary transition-colors">
             <div class="card-body">
               <h3 class="card-title text-base">Team</h3>
@@ -43,7 +46,7 @@
           </a>
         </div>
         <div class="mt-6">
-          <a href="{% url 'mpa:ticket_wizard_step' org.id project.id 'basics' %}"
+          <a href="{% url request.resolver_match.namespaces|last|add:':ticket_wizard_step' org.id project.id 'basics' %}"
              class="btn btn-primary">+ New ticket</a>
         </div>
       {% endpartialdef overview %}
@@ -72,7 +75,7 @@
           </select>
           <button type="submit" class="btn btn-primary">Filter</button>
           {% if current_query or current_status or current_priority %}
-            <a href="{% url 'mpa:ticket_list' org.id project.id %}"
+            <a href="{% url request.resolver_match.namespaces|last|add:':ticket_list' org.id project.id %}"
                class="btn btn-ghost">Clear</a>
           {% endif %}
         </form>
@@ -91,9 +94,9 @@
             <tbody>
               {% for ticket in tickets %}
                 <tr class="hover cursor-pointer"
-                    onclick="window.location='{% url 'mpa:ticket_detail' ticket.id %}'">
+                    onclick="window.location='{% url request.resolver_match.namespaces|last|add:':ticket_detail' ticket.id %}'">
                   <td>
-                    <a href="{% url 'mpa:ticket_detail' ticket.id %}"
+                    <a href="{% url request.resolver_match.namespaces|last|add:':ticket_detail' ticket.id %}"
                        class="link link-hover font-medium">{{ ticket.title }}</a>
                     <p class="text-xs text-base-content/50 font-mono">#{{ ticket.id|slice:":8" }}</p>
                   </td>
@@ -139,52 +142,6 @@
           </div>
         {% endif %}
       {% endpartialdef tickets %}
-      {% partialdef board %}
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {% for status, tickets in columns.items %}
-            <div class="bg-base-200/50 rounded-box p-3">
-              <div class="flex items-center justify-between mb-3 px-1">
-                <span class="badge {{ status|status_badge_class }}">{{ status|status_label }}</span>
-                <span class="text-xs text-base-content/50">{{ tickets|length }}</span>
-              </div>
-              <div class="space-y-2">
-                {% for ticket in tickets %}
-                  <div class="card bg-base-100 border border-base-300">
-                    <div class="card-body p-3 gap-2">
-                      <a href="{% url 'mpa:ticket_detail' ticket.id %}"
-                         class="link link-hover text-sm font-medium">{{ ticket.title }}</a>
-                      <div class="rating rating-xs pointer-events-none">
-                        {% for i in "12345" %}
-                          <input type="radio"
-                                 class="mask mask-star-2 {% if forloop.counter <= ticket.priority %}bg-warning{% else %}bg-base-300{% endif %}"
-                                 disabled
-                                 {% if forloop.counter == ticket.priority %}checked{% endif %}>
-                        {% endfor %}
-                      </div>
-                      <form method="post"
-                            action="{% url 'mpa:ticket_move_status' ticket.id %}"
-                            class="flex gap-1">
-                        {% csrf_token %}
-                        <select name="new_status" class="select select-xs flex-1">
-                          <option value="open" {% if ticket.status == "open" %}selected{% endif %}>Open</option>
-                          <option value="in_progress"
-                                  {% if ticket.status == "in_progress" %}selected{% endif %}>In progress</option>
-                          <option value="resolved"
-                                  {% if ticket.status == "resolved" %}selected{% endif %}>Resolved</option>
-                          <option value="closed" {% if ticket.status == "closed" %}selected{% endif %}>Closed</option>
-                        </select>
-                        <button type="submit" class="btn btn-xs btn-primary">Move</button>
-                      </form>
-                    </div>
-                  </div>
-                {% empty %}
-                  <p class="text-xs text-base-content/40 px-1">No tickets</p>
-                {% endfor %}
-              </div>
-            </div>
-          {% endfor %}
-        </div>
-      {% endpartialdef board %}
       {% partialdef team %}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {% for member in team %}
@@ -209,74 +166,100 @@
       {% endpartialdef team %}
       {% partialdef settings %}
         <div class="flex gap-6">
-          <ul class="menu w-48 shrink-0 bg-base-100 rounded-box border border-base-300 h-fit">
-            <li>
-              <a href="{% url 'mpa:project_settings' org.id project.id %}"
-                 class="{% if active_subtab == 'general' %}menu-active{% endif %}">General</a>
-            </li>
-            <li>
-              <a href="{% url 'mpa:project_settings_subtab' org.id project.id 'permissions' %}"
-                 class="{% if active_subtab == 'permissions' %}menu-active{% endif %}">Permissions</a>
-            </li>
-            <li>
-              <a href="{% url 'mpa:project_settings_subtab' org.id project.id 'danger' %}"
-                 class="{% if active_subtab == 'danger' %}menu-active text-error{% endif %}">Danger zone</a>
-            </li>
-          </ul>
+          {# ------------------------------------------------------------- #}
+          {# --- Call the Swap, this time defined here                 --- #}
+          {# ------------------------------------------------------------- #}
+          <div id="subtabs">
+            {% partialdef settings_subtabs inline %}
+              <ul class="menu w-48 shrink-0 bg-base-100 rounded-box border border-base-300 h-fit"
+                  {% if is_htmx_demo %}hx-target="#subtab-content"{% endif %}>
+                <li>
+                  <a href="{% url request.resolver_match.namespaces|last|add:':project_settings' org.id project.id %}"
+                     class="{% if active_subtab == 'general' %}menu-active{% endif %}">General</a>
+                </li>
+                <li>
+                  <a href="{% url request.resolver_match.namespaces|last|add:':project_settings_subtab' org.id project.id 'permissions' %}"
+                     class="{% if active_subtab == 'permissions' %}menu-active{% endif %}">Permissions</a>
+                </li>
+                <li>
+                  <a href="{% url request.resolver_match.namespaces|last|add:':project_settings_subtab' org.id project.id 'danger' %}"
+                     class="{% if active_subtab == 'danger' %}menu-active text-error{% endif %}">Danger zone</a>
+                </li>
+              </ul>
+            {% endpartialdef settings_subtabs %}
+          </div>
+          {# ------------------------------------------------------------- #}
+          {# --- Define the subtab content                             --- #}
+          {# ------------------------------------------------------------- #}
+          {% partialdef settings-general %}
+            <h2 class="card-title text-base mb-2">General</h2>
+            <fieldset class="fieldset">
+              <label class="label">Project name</label>
+              <input type="text"
+                     class="input w-full max-w-sm"
+                     value="{{ project.name }}"
+                     disabled>
+              <label class="label mt-2">Status</label>
+              <select class="select w-full max-w-sm" disabled>
+                <option {% if project.status == 'active' %}selected{% endif %}>Active</option>
+                <option {% if project.status == 'on_hold' %}selected{% endif %}>On hold</option>
+                <option {% if project.status == 'archived' %}selected{% endif %}>Archived</option>
+              </select>
+            </fieldset>
+          {% endpartialdef settings-general %}
+          {% partialdef settings-permissions %}
+            <h2 class="card-title text-base mb-2">Permissions</h2>
+            <div class="space-y-3">
+              <label class="label cursor-pointer justify-start gap-3">
+                <input type="checkbox" checked disabled class="checkbox checkbox-sm">
+                <span>Team members can create tickets</span>
+              </label>
+              <label class="label cursor-pointer justify-start gap-3">
+                <input type="checkbox" disabled class="checkbox checkbox-sm">
+                <span>Team members can delete tickets</span>
+              </label>
+              <label class="label cursor-pointer justify-start gap-3">
+                <input type="checkbox" checked disabled class="checkbox checkbox-sm">
+                <span>Customers can view ticket status</span>
+              </label>
+            </div>
+          {% endpartialdef settings-permissions %}
+          {% partialdef settings-danger %}
+            <h2 class="card-title text-base text-error mb-2">Danger zone</h2>
+            <div class="alert alert-error">
+              <span>Archiving this project hides it from active views. This is a demo — nothing is actually persisted.</span>
+            </div>
+            <button class="btn btn-error btn-outline mt-3 w-fit" disabled>Archive project</button>
+          {% endpartialdef settings-danger %}
+          {# ------------------------------------------------------------- #}
+          {# --- Call the subtab content for full settings page render --- #}
+          {# ------------------------------------------------------------- #}
           <div class="flex-1 card bg-base-100 border border-base-300">
             <div class="card-body">
-              {% if active_subtab == 'general' %}
-                <h2 class="card-title text-base mb-2">General</h2>
-                <fieldset class="fieldset">
-                  <label class="label">Project name</label>
-                  <input type="text"
-                         class="input w-full max-w-sm"
-                         value="{{ project.name }}"
-                         disabled>
-                  <label class="label mt-2">Status</label>
-                  <select class="select w-full max-w-sm" disabled>
-                    <option {% if project.status == 'active' %}selected{% endif %}>Active</option>
-                    <option {% if project.status == 'on_hold' %}selected{% endif %}>On hold</option>
-                    <option {% if project.status == 'archived' %}selected{% endif %}>Archived</option>
-                  </select>
-                </fieldset>
-              {% elif active_subtab == 'permissions' %}
-                <h2 class="card-title text-base mb-2">Permissions</h2>
-                <div class="space-y-3">
-                  <label class="label cursor-pointer justify-start gap-3">
-                    <input type="checkbox" checked disabled class="checkbox checkbox-sm">
-                    <span>Team members can create tickets</span>
-                  </label>
-                  <label class="label cursor-pointer justify-start gap-3">
-                    <input type="checkbox" disabled class="checkbox checkbox-sm">
-                    <span>Team members can delete tickets</span>
-                  </label>
-                  <label class="label cursor-pointer justify-start gap-3">
-                    <input type="checkbox" checked disabled class="checkbox checkbox-sm">
-                    <span>Customers can view ticket status</span>
-                  </label>
-                </div>
-              {% else %}
-                <h2 class="card-title text-base text-error mb-2">Danger zone</h2>
-                <div class="alert alert-error">
-                  <span>Archiving this project hides it from active views. This is a demo — nothing is actually persisted.</span>
-                </div>
-                <button class="btn btn-error btn-outline mt-3 w-fit" disabled>Archive project</button>
-              {% endif %}
+              <div id="subtab-content">
+                {% if active_subtab == 'general' %}
+                  {% partial settings-general %}
+                {% elif active_subtab == 'permissions' %}
+                  {% partial settings-permissions %}
+                {% else %}
+                  {% partial settings-danger %}
+                {% endif %}
+              </div>
             </div>
           </div>
         </div>
       {% endpartialdef settings %}
-      {# -------------------------------#}
-      {# --- Invoke the tab content --- #}
-      {# ------------------------------ #}
+      {# =================================================== #}
+      {# --- Invoke the tab content for full page render --- #}
+      {# =================================================== #}
       <div id="tab-content">
         {% if active_tab == "overview" %}
           {% partial overview %}
         {% elif active_tab == "tickets" %}
           {% partial tickets %}
         {% elif active_tab == "board" %}
-          {% partial board %}
+          {# Example where the partial is very big so you defined it elsewhere #}
+          {% include "pages/_board.html" %}
         {% elif active_tab == "team" %}
           {% partial team %}
         {% elif active_tab == "settings" %}

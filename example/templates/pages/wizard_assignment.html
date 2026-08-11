@@ -31,7 +31,7 @@
             </select>
           </fieldset>
           <div class="card-actions justify-between">
-            <a href="{% url 'mpa:ticket_wizard_step' org.id project.id 'basics' %}"
+            <a href="{% url request.resolver_match.namespaces|last|add:':ticket_wizard_step' org.id project.id 'basics' %}"
                class="btn btn-ghost">Back</a>
             <button type="submit" class="btn btn-primary">Continue</button>
           </div>

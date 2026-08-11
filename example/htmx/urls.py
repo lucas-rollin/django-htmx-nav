@@ -2,7 +2,7 @@ from django.urls import path
 
 from . import views
 
-app_name = "mpa"
+app_name = "htmx"
 
 urlpatterns = [
     path("", views.overview, name="overview"),

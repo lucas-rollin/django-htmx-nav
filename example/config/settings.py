@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "htmx_nav",
     "mockdata",
     "htmx",
     "mpa",
@@ -121,3 +122,5 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
+HTMX_NAV_DEBUG_SWAPS = True

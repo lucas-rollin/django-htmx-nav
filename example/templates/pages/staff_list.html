@@ -1,33 +1,5 @@
 {% extends "base.html" %}
 {% block title %}Staff · Helpdesk{% endblock %}
 {% block content %}
-  {% partialdef content inline %}
-    {% load nav_extras %}
-    <div class="p-6 max-w-6xl mx-auto">
-      <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold">Staff</h1>
-        <span class="badge badge-outline">{{ employees|length }} total</span>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {% for employee in employees %}
-          <div class="card bg-base-100 border border-base-300">
-            <div class="card-body flex-row items-center gap-4">
-              <div class="avatar avatar-placeholder">
-                <div class="bg-neutral text-neutral-content w-10 rounded-full">
-                  <span>{{ employee.details.name|slice:":1" }}</span>
-                </div>
-              </div>
-              <div class="min-w-0">
-                <p class="font-medium truncate">{{ employee.details.name }}</p>
-                <p class="text-xs text-base-content/60 truncate">{{ employee.details.email }}</p>
-                <span class="badge badge-ghost badge-xs mt-1">{{ employee.details.department|department_label }}</span>
-              </div>
-            </div>
-          </div>
-        {% empty %}
-          <p class="text-base-content/60">No employees.</p>
-        {% endfor %}
-      </div>
-    </div>
-  {% endpartialdef %}
+  {% include "pages/_staff_list.html" %}
 {% endblock %}

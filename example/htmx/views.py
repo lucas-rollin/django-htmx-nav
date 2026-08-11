@@ -14,13 +14,13 @@ from mockdata.models import Employee, Organization, Project, Ticket
 
 from htmx_nav import (
     Swap,
-    make_shell_renderer,
+    htmx_target_is,
     make_shell_view_mixin,
-    not_targeting,
-    targeting,
     render_htmx,
+    targeting,
 )
 
+NAMESPACE = "htmx"
 TICKET_PAGE_SIZE = 6
 
 
@@ -34,6 +34,7 @@ def _sidebar_swap(
     active_project_id: str | None = None,
     active_page: str | None = None,
 ) -> Swap:
+    """Preset Swap for the sidebar fragment."""
     orgs = Organization.objects.prefetch_related("projects").only("id", "name")
 
     context = {
@@ -52,6 +53,23 @@ def _breadcrumb_swap(*crumbs: tuple[str, str | None]) -> Swap:
     return Swap("components/_breadcrumbs.html", context, target_id="breadcrumbs")
 
 
+def _tab_content_partial(request: HttpRequest, partial_name: str):
+    """Return the partial for `render_htmx` to render the content.
+
+    Will for cases we only have tabs as a nested navigation component
+    Given we use "tab-content" as the id for the content target.
+
+    What it does:
+    - If it's Hx-Target is "tab-content" render `partial_name`
+    - Elif it's any other htmx request render "#content"
+    - Else render full page
+    """
+    if htmx_target_is(request, "tab-content"):
+        return partial_name
+    else:
+        return "#content"
+
+
 # ---------------------------------------------------------------------------
 # Pages
 # ---------------------------------------------------------------------------
@@ -60,12 +78,17 @@ def _breadcrumb_swap(*crumbs: tuple[str, str | None]) -> Swap:
 def overview(request: HttpRequest) -> HttpResponse:
     """Displays the primary helpdesk dashboard and high-level summary metrics."""
     return render_htmx(
-        request, "pages/overview.html", swaps=_sidebar_swap(active_page="overview")
+        request, "pages/overview.html", 
+        swaps=[_sidebar_swap(active_page="overview"), _breadcrumb_swap(("helpdesk", None))]
     )
 
 
 def staff_list(request: HttpRequest) -> HttpResponse:
-    """Displays all staff members alongside their currently active ticket counts."""
+    """
+    Displays all staff members alongside their currently active ticket counts.
+    
+    This is an example where the django v6 native partials aren't used.
+    """
     employees: list[dict] = []
     for e in Employee.objects.all():
         active_tickets_count = Ticket.objects.filter(
@@ -78,7 +101,8 @@ def staff_list(request: HttpRequest) -> HttpResponse:
         request,
         "pages/staff_list.html",
         {"employees": employees},
-        swaps=_sidebar_swap(active_page="staff_list"),
+        partial="pages/_staff_list.html", # explicitly pass the standalone template partial
+        swaps=[_sidebar_swap(active_page="staff_list"), _breadcrumb_swap(("helpdesk", None))]
     )
 
 
@@ -88,7 +112,7 @@ def org_list(request: HttpRequest) -> HttpResponse:
         request,
         "pages/org_list.html",
         {"orgs": Organization.objects.all()},
-        swaps=_sidebar_swap(active_page="org_list"),
+        swaps=[_sidebar_swap(active_page="org_list"), _breadcrumb_swap(("helpdesk", None))],
     )
 
 
@@ -106,11 +130,12 @@ def org_detail(request: HttpRequest, org_id: str) -> HttpResponse:
         swaps=[
             _sidebar_swap(active_org_id=org_id),
             _breadcrumb_swap(
-                ("Organizations", reverse("htmx:org_list")),
+                ("Organizations", reverse(f"{NAMESPACE}:org_list")),
                 (org.name, None),
             ),
         ],
     )
+
 
 # ===========================================================================
 # ORG / PROJECT DRILL-DOWN
@@ -119,7 +144,10 @@ def org_detail(request: HttpRequest, org_id: str) -> HttpResponse:
 
 def _project_tab_swap(active_tab: str):
     """
-    Build the project tabs Swap to update state in intra page navigation.
+    Build the tabs Swap to update state in intra page navigation.
+
+    This expects the frontend to use "active_tab" to dictate the active tab
+    and to use "tab-content" as the content id
 
     We only want to include this if the Swap targets the "tab-content"
     because a that level the layout expects the tabs to be rendered normally,
@@ -133,19 +161,6 @@ def _project_tab_swap(active_tab: str):
         # another possibility:
         # include_if=not_targeting("main-content")
     )
-
-
-# Build the partial spec.
-PROJECT_TAB_PARTIAL = {
-    "#tab-cotent": targeting("tab-content"),
-    "#content": True,
-}
-"""
-It reads:
-- If the HX-Target is "tab-content" render the "#tab-content" partial.
-- Else if it's an HTMX request render the "#content" partial
-- Else, it's not an HTMX request, render the full page.
-"""
 
 
 def project_overview(
@@ -162,12 +177,12 @@ def project_overview(
         request,
         "pages/project.html",
         context,
-        partial=PROJECT_TAB_PARTIAL,
+        partial=_tab_content_partial(request, "#overview"),
         swaps=[
             _sidebar_swap(active_org_id=org_id, active_project_id=project_id),
             _breadcrumb_swap(
-                ("Organizations", reverse("htmx:org_list")),
-                (org.name, reverse("htmx:org_detail", args=[org_id])),
+                ("Organizations", reverse(f"{NAMESPACE}:org_list")),
+                (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org_id])),
                 (project.name, None),
             ),
             _project_tab_swap(active_tab="overview"),
@@ -190,21 +205,48 @@ def project_team(request: HttpRequest, org_id: str, project_id: str) -> HttpResp
         request,
         "pages/project.html",
         context,
-        partial=PROJECT_TAB_PARTIAL,
+        partial=_tab_content_partial(request, "#team"),
         swaps=[
             _sidebar_swap(active_org_id=org_id, active_project_id=project_id),
             _breadcrumb_swap(
-                ("Organizations", reverse("htmx:org_list")),
-                (org.name, reverse("htmx:org_detail", args=[org_id])),
+                ("Organizations", reverse(f"{NAMESPACE}:org_list")),
+                (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org_id])),
                 (
                     project.name,
-                    reverse("htmx:project_overview", args=[org_id, project_id]),
+                    reverse(f"{NAMESPACE}:project_overview", args=[org_id, project_id]),
                 ),
                 ("Team", None),
             ),
             _project_tab_swap(active_tab="team"),
         ],
     )
+
+
+def _project_settings_content_partial(request: HttpRequest, subtab: str):
+    """Return the partial for `render_htmx` to render the project settings content.
+
+    What it does:
+    - If it's Hx-Target is "tab-content" render "settings"
+    - Elif it's Hx-Target is "subtab-content render `subtab`
+    - Elif it's any other htmx request render "#content"
+    - Else render the full page
+    """
+    if htmx_target_is(request, "subtab-content"):
+        return f"#settings-{subtab}"
+    elif htmx_target_is(request, "tab-content"):
+        return "#settings"
+    else:
+        return "#content"
+
+
+# Similarly, we only want the swap to be included when
+# there is the the "#subtabs" element exists and that
+# happens only when Hx-Target is the "sub-content"
+_settings_subtab_swap = Swap(
+    "pages/project.html#settings_subtabs", 
+    target_id="subtabs",
+    include_if=targeting("subtab-content")
+)
 
 
 def project_settings(
@@ -221,23 +263,25 @@ def project_settings(
         "project": project,
         "active_subtab": subtab,
     }
+
     return render_htmx(
         request,
         "pages/project.html",
         context,
-        partial=PROJECT_TAB_PARTIAL,
+        partial=_project_settings_content_partial(request, subtab),
         swaps=[
             _sidebar_swap(active_org_id=org_id, active_project_id=project_id),
             _breadcrumb_swap(
-                ("Organizations", reverse("htmx:org_list")),
-                (org.name, reverse("htmx:org_detail", args=[org_id])),
+                ("Organizations", reverse(f"{NAMESPACE}:org_list")),
+                (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org_id])),
                 (
                     project.name,
-                    reverse("htmx:project_overview", args=[org_id, project_id]),
+                    reverse(f"{NAMESPACE}:project_overview", args=[org_id, project_id]),
                 ),
                 ("Settings", None),
             ),
             _project_tab_swap(active_tab="settings"),
+            _settings_subtab_swap,
         ],
     )
 
@@ -257,7 +301,7 @@ def ticket_move_status(request: HttpRequest, ticket_id: str) -> HttpResponse:
         ticket.save(update_fields=["status"])
     project = ticket.project
     return redirect(
-        "htmx:kanban_board", org_id=project.organization.id, project_id=project.id
+        f"{NAMESPACE}:kanban_board", org_id=project.organization.id, project_id=project.id
     )
 
 
@@ -283,19 +327,20 @@ def kanban_board(request: HttpRequest, org_id: str, project_id: str) -> HttpResp
         request,
         "pages/project.html",
         context,
-        partial=PROJECT_TAB_PARTIAL,
+        # Example where the partial is very big so you defined it elsewhere
+        partial={"pages/_board.html": targeting("tab-content"), "#content": True},
         swaps=[
             _sidebar_swap(active_org_id=org_id, active_project_id=project_id),
             _breadcrumb_swap(
-                ("Organizations", reverse("htmx:org_list")),
-                (org.name, reverse("htmx:org_detail", args=[org_id])),
+                ("Organizations", reverse(f"{NAMESPACE}:org_list")),
+                (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org_id])),
                 (
                     project.name,
-                    reverse("htmx:project_overview", args=[org_id, project_id]),
+                    reverse(f"{NAMESPACE}:project_overview", args=[org_id, project_id]),
                 ),
                 ("Board", None),
             ),
-            _project_tab_swap(active_tab="board")
+            _project_tab_swap(active_tab="board"),
         ],
     )
 
@@ -343,20 +388,21 @@ class TicketListView(ShellViewMixin, ListView):
         return [
             _sidebar_swap(active_org_id=self.org.id, active_project_id=self.project.id),
             _breadcrumb_swap(
-                ("Organizations", reverse("htmx:org_list")),
-                (self.org.name, reverse("htmx:org_detail", args=[self.org.id])),
+                ("Organizations", reverse(f"{NAMESPACE}:org_list")),
+                (self.org.name, reverse(f"{NAMESPACE}:org_detail", args=[self.org.id])),
                 (
                     self.project.name,
                     reverse(
-                        "htmx:project_overview", args=[self.org.id, self.project.id]
+                        f"{NAMESPACE}:project_overview", args=[self.org.id, self.project.id]
                     ),
                 ),
                 ("Tickets", None),
             ),
+            _project_tab_swap(active_tab="tickets"),
         ]
 
     def get_partial(self):
-        return PROJECT_TAB_PARTIAL
+        return _tab_content_partial(self.request, "#tickets")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -377,20 +423,23 @@ class TicketListView(ShellViewMixin, ListView):
 
 def _ticket_tab_swap(active_tab: str):
     """
-    Build the ticket tabs Swap to update state in intra page navigation.
+    Build the tabs Swap to update state in intra page navigation.
+
+    This expects the frontend to use "active_tab" to dictate the active tab
+    and to use "tab-content" as the content id
+
+    We only want to include this if the Swap targets the "tab-content"
+    because a that level the layout expects the tabs to be rendered normally,
+    as a non Swap fragment.
     """
     return Swap(
         "components/_ticket_tabs.html",
         {"active_tab": active_tab},
-        target_id="project-tabs",
+        target_id="ticket-tabs",
         include_if=targeting("tab-content"),
+        # another possibility:
+        # include_if=not_targeting("main-content")
     )
-
-
-TICKET_TAB_PARTIAL = {
-    "#tab-cotent": targeting("tab-content"),
-    "#content": True,
-}
 
 
 def ticket_detail(request: HttpRequest, ticket_id: str) -> HttpResponse:
@@ -411,19 +460,19 @@ def ticket_detail(request: HttpRequest, ticket_id: str) -> HttpResponse:
         request,
         "pages/ticket.html",
         context,
-        partial=TICKET_TAB_PARTIAL,
+        partial=_tab_content_partial(request, "#detail"),
         swaps=[
             _sidebar_swap(active_org_id=org.id, active_project_id=project.id),
             _breadcrumb_swap(
-                ("Organizations", reverse("htmx:org_list")),
-                (org.name, reverse("htmx:org_detail", args=[org.id])),
+                ("Organizations", reverse(f"{NAMESPACE}:org_list")),
+                (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org.id])),
                 (
                     project.name,
-                    reverse("htmx:project_overview", args=[org.id, project.id]),
+                    reverse(f"{NAMESPACE}:project_overview", args=[org.id, project.id]),
                 ),
                 (f"#{ticket.id[:8]}", None),
             ),
-            _ticket_tab_swap(active_tab="details")
+            _ticket_tab_swap(active_tab="detail"),
         ],
     )
 
@@ -442,20 +491,20 @@ def ticket_comments(request: HttpRequest, ticket_id: str) -> HttpResponse:
         request,
         "pages/ticket.html",
         context,
-        partial=TICKET_TAB_PARTIAL,
+        partial=_tab_content_partial(request, "#comments"),
         swaps=[
             _sidebar_swap(active_org_id=org.id, active_project_id=project.id),
             _breadcrumb_swap(
-                ("Organizations", reverse("htmx:org_list")),
-                (org.name, reverse("htmx:org_detail", args=[org.id])),
+                ("Organizations", reverse(f"{NAMESPACE}:org_list")),
+                (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org.id])),
                 (
                     project.name,
-                    reverse("htmx:project_overview", args=[org.id, project.id]),
+                    reverse(f"{NAMESPACE}:project_overview", args=[org.id, project.id]),
                 ),
-                (f"#{ticket.id[:8]}", reverse("htmx:ticket_detail", args=[ticket.id])),
+                (f"#{ticket.id[:8]}", reverse(f"{NAMESPACE}:ticket_detail", args=[ticket.id])),
                 ("Comments", None),
             ),
-            _ticket_tab_swap(active_tab="comments")
+            _ticket_tab_swap(active_tab="comments"),
         ],
     )
 
@@ -482,20 +531,20 @@ def ticket_activity(request: HttpRequest, ticket_id: str) -> HttpResponse:
         request,
         "pages/ticket.html",
         context,
-        partial=TICKET_TAB_PARTIAL,
+        partial=_tab_content_partial(request, "#activity"),
         swaps=[
             _sidebar_swap(active_org_id=org.id, active_project_id=project.id),
             _breadcrumb_swap(
-                ("Organizations", reverse("htmx:org_list")),
-                (org.name, reverse("htmx:org_detail", args=[org.id])),
+                ("Organizations", reverse(f"{NAMESPACE}:org_list")),
+                (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org.id])),
                 (
                     project.name,
-                    reverse("htmx:project_overview", args=[org.id, project.id]),
+                    reverse(f"{NAMESPACE}:project_overview", args=[org.id, project.id]),
                 ),
-                (f"#{ticket.id[:8]}", reverse("htmx:ticket_detail", args=[ticket.id])),
+                (f"#{ticket.id[:8]}", reverse(f"{NAMESPACE}:ticket_detail", args=[ticket.id])),
                 ("Activity", None),
             ),
-            _ticket_tab_swap(active_tab="activity")
+            _ticket_tab_swap(active_tab="activity"),
         ],
     )
 
@@ -509,24 +558,25 @@ def ticket_attachments(request: HttpRequest, ticket_id: str) -> HttpResponse:
     context = {
         "ticket": ticket,
     }
+    
     return render_htmx(
         request,
         "pages/ticket.html",
         context,
-        partial=TICKET_TAB_PARTIAL,
+        partial=_tab_content_partial(request, "#attachments"),
         swaps=[
             _sidebar_swap(active_org_id=org.id, active_project_id=project.id),
             _breadcrumb_swap(
-                ("Organizations", reverse("htmx:org_list")),
-                (org.name, reverse("htmx:org_detail", args=[org.id])),
+                ("Organizations", reverse(f"{NAMESPACE}:org_list")),
+                (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org.id])),
                 (
                     project.name,
-                    reverse("htmx:project_overview", args=[org.id, project.id]),
+                    reverse(f"{NAMESPACE}:project_overview", args=[org.id, project.id]),
                 ),
-                (f"#{ticket.id[:8]}", reverse("htmx:ticket_detail", args=[ticket.id])),
+                (f"#{ticket.id[:8]}", reverse(f"{NAMESPACE}:ticket_detail", args=[ticket.id])),
                 ("Attachments", None),
             ),
-            _ticket_tab_swap(active_tab="attachments")
+            _ticket_tab_swap(active_tab="attachments"),
         ],
     )
 
@@ -537,6 +587,14 @@ def ticket_attachments(request: HttpRequest, ticket_id: str) -> HttpResponse:
 
 WIZARD_STEPS = ["basics", "assignment", "review"]
 WIZARD_SESSION_KEY = "new_ticket_wizard"
+
+def _wizard_steps_swap(step: str):
+    return Swap(
+        "components/_wizard_steps.html",
+        {"steps": WIZARD_STEPS, "step_index": WIZARD_STEPS.index(step)},
+        target_id="steps",
+        include_if=targeting("steps-content")
+    )
 
 
 def _wizard_data(request, org_id, project_id):
@@ -566,13 +624,13 @@ def ticket_wizard_step(
             # Demo-only, just simulate ticket creation.
             fake_new_ticket = Ticket.objects.first()
             return redirect(
-                "htmx:ticket_detail",
+                f"{NAMESPACE}:ticket_detail",
                 ticket_id=fake_new_ticket.id if fake_new_ticket else None,
             )
 
         next_step = WIZARD_STEPS[current_index + 1]
         return redirect(
-            "htmx:ticket_wizard_step",
+            f"{NAMESPACE}:ticket_wizard_step",
             org_id=org_id,
             project_id=project_id,
             step=next_step,
@@ -584,26 +642,25 @@ def ticket_wizard_step(
         "org": org,
         "project": project,
         "step": step,
-        "steps": WIZARD_STEPS,
-        "step_index": WIZARD_STEPS.index(step),
         "collected": collected,
         "employees": all_employees,
         "employee_names": {e.id: e.name for e in all_employees},
     }
     return render_htmx(
         request,
-        f"pages/wizard_{step}.html",
+        "pages/wizard.html",
         context,
         swaps=[
             _sidebar_swap(active_org_id=org_id, active_project_id=project_id),
             _breadcrumb_swap(
-                ("Organizations", reverse("htmx:org_list")),
-                (org.name, reverse("htmx:org_detail", args=[org_id])),
+                ("Organizations", reverse(f"{NAMESPACE}:org_list")),
+                (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org_id])),
                 (
                     project.name,
-                    reverse("htmx:project_overview", args=[org_id, project_id]),
+                    reverse(f"{NAMESPACE}:project_overview", args=[org_id, project_id]),
                 ),
                 ("New Ticket", None),
             ),
+            _wizard_steps_swap(step)
         ],
     )

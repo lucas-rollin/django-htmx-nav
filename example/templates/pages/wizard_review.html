@@ -6,7 +6,7 @@
     <div class="p-6 max-w-2xl mx-auto">
       <h1 class="text-2xl font-bold mb-1">New ticket</h1>
       <p class="text-base-content/60 mb-6">{{ project.name }} · {{ org.name }}</p>
-      {% include "components/_wizard_steps.html" %}
+      <div id="steps">{% include "components/_wizard_steps.html" %}</div>
       <div class="card bg-base-100 border border-base-300">
         <div class="card-body gap-3">
           <div>
@@ -34,7 +34,7 @@
           </div>
           <form method="post" class="card-actions justify-between mt-2">
             {% csrf_token %}
-            <a href="{% url 'mpa:ticket_wizard_step' org.id project.id 'assignment' %}"
+            <a href="{% url request.resolver_match.namespaces|last|add:':ticket_wizard_step' org.id project.id 'assignment' %}"
                class="btn btn-ghost">Back</a>
             <button type="submit" class="btn btn-primary">Create ticket</button>
           </form>

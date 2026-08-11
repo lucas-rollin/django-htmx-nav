@@ -1,8 +1,8 @@
 {% load nav_extras %}
-<ul class="menu bg-base-200 min-h-full w-64 p-4">
+<ul class="hn-swap menu bg-base-200 min-h-full w-64 p-4">
   <li class="menu-title">Pages</li>
   <li>
-    <a href="{% url 'mpa:overview' %}"
+    <a href="{% url request.resolver_match.namespaces|last|add:':overview' %}"
        class="{% if active_page == 'overview' %}menu-active{% endif %}">
       <svg xmlns="http://www.w3.org/2000/svg"
            width="20"
@@ -21,7 +21,7 @@
     </a>
   </li>
   <li>
-    <a href="{% url 'mpa:staff_list' %}"
+    <a href="{% url request.resolver_match.namespaces|last|add:':staff_list' %}"
        class="{% if active_page == 'staff_list' %}menu-active{% endif %}">
       <svg xmlns="http://www.w3.org/2000/svg"
            width="20"
@@ -43,7 +43,7 @@
     </a>
   </li>
   <li>
-    <a href="{% url 'mpa:org_list' %}"
+    <a href="{% url request.resolver_match.namespaces|last|add:':org_list' %}"
        class="{% if active_page == 'org_list' %}menu-active{% endif %}">
       <svg xmlns="http://www.w3.org/2000/svg"
            width="20"
@@ -96,7 +96,7 @@
         <ul>
           {% for project in org.projects.all %}
             <li>
-              <a href="{% url 'mpa:project_overview' org.id project.id %}"
+              <a href="{% url request.resolver_match.namespaces|last|add:':project_overview' org.id project.id %}"
                  class="{% if project.id == active_project_id %}menu-active{% endif %}">
                 <svg xmlns="http://www.w3.org/2000/svg"
                      width="24"

@@ -10,7 +10,7 @@
       <p class="text-base-content/60 mb-6">{{ projects|length }} project{{ projects|length|pluralize }}</p>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {% for project in projects %}
-          <a href="{% url 'mpa:project_overview' org.id project.id %}"
+          <a href="{% url request.resolver_match.namespaces|last|add:':project_overview' org.id project.id %}"
              class="card bg-base-100 border border-base-300 hover:border-primary transition-colors">
             <div class="card-body">
               <div class="flex items-center justify-between">

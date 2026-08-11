@@ -10,9 +10,9 @@
       </div>
       <p class="text-base-content/50 font-mono text-sm mb-6">#{{ ticket.id|slice:":8" }}</p>
       <div id="ticket-tabs">{% include "components/_ticket_tabs.html" %}</div>
-      {# ------------------------------ #}
+      {# ============================== #}
       {# --- Define the tab content --- #}
-      {# ------------------------------ #}
+      {# ============================== #}
       {% partialdef detail %}
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="md:col-span-2 card bg-base-100 border border-base-300">
@@ -32,9 +32,9 @@
                 <div class="rating rating-xs pointer-events-none">
                   {% for i in "12345" %}
                     <input type="radio"
-                          class="mask mask-star-2 {% if forloop.counter <= ticket.priority %}bg-warning{% else %}bg-base-300{% endif %}"
-                          disabled
-                          {% if forloop.counter == ticket.priority %}checked{% endif %}>
+                           class="mask mask-star-2 {% if forloop.counter <= ticket.priority %}bg-warning{% else %}bg-base-300{% endif %}"
+                           disabled
+                           {% if forloop.counter == ticket.priority %}checked{% endif %}>
                   {% endfor %}
                 </div>
               </div>
@@ -54,9 +54,9 @@
               <div class="timeline-start text-xs text-base-content/50">step {{ forloop.counter }}</div>
               <div class="timeline-middle">
                 <svg xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    class="h-4 w-4 text-primary">
+                     viewBox="0 0 24 24"
+                     fill="currentColor"
+                     class="h-4 w-4 text-primary">
                   <circle cx="12" cy="12" r="6" />
                 </svg>
               </div>
@@ -68,18 +68,18 @@
           {% endfor %}
         </ul>
       {% endpartialdef activity %}
-      {% partialdef attachment %}
+      {% partialdef attachments %}
         <div class="hero bg-base-100 border border-base-300 rounded-box py-12">
           <div class="hero-content text-center">
             <div>
               <svg xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  stroke-linejoin="round"
-                  stroke-linecap="round"
-                  stroke-width="2"
-                  fill="none"
-                  stroke="currentColor"
-                  class="mx-auto mb-3 size-10 text-base-content/40">
+                   viewBox="0 0 24 24"
+                   stroke-linejoin="round"
+                   stroke-linecap="round"
+                   stroke-width="2"
+                   fill="none"
+                   stroke="currentColor"
+                   class="mx-auto mb-3 size-10 text-base-content/40">
                 <path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.49-8.49" />
               </svg>
               <h3 class="font-medium">No attachments yet</h3>
@@ -87,7 +87,7 @@
             </div>
           </div>
         </div>
-      {% endpartialdef attachment %}
+      {% endpartialdef attachments %}
       {% partialdef comments %}
         <div class="space-y-3">
           {% for comment in comments %}
@@ -100,22 +100,22 @@
         </div>
         <form class="mt-6 flex gap-2">
           <input type="text"
-                class="input input-bordered flex-1"
-                placeholder="Add a comment… (demo only, not saved)"
-                disabled>
+                 class="input input-bordered flex-1"
+                 placeholder="Add a comment… (demo only, not saved)"
+                 disabled>
           <button type="submit" class="btn btn-primary" disabled>Post</button>
         </form>
       {% endpartialdef comments %}
-      {# -------------------------------#}
-      {# --- Invoke the tab content --- #}
-      {# ------------------------------ #}
+      {# ============================== #}
+      {# --- Call the tab content   --- #}
+      {# ============================== #}
       <div id="tab-content">
         {% if active_tab == "detail" %}
           {% partial detail %}
         {% elif active_tab == "activity" %}
           {% partial activity %}
-        {% elif active_tab == "attachment" %}
-          {% partial attachment %}
+        {% elif active_tab == "attachments" %}
+          {% partial attachments %}
         {% elif active_tab == "comments" %}
           {% partial comments %}
         {% endif %}

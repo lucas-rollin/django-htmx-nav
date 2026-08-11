@@ -12,6 +12,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.generic import ListView
 from mockdata.models import Employee, Organization, Project, Ticket
 
+NAMESPACE = "mpa"
 TICKET_PAGE_SIZE = 6
 
 
@@ -91,7 +92,7 @@ def org_detail(request: HttpRequest, org_id: str) -> HttpResponse:
     context = {
         **_sidebar_context(active_org_id=org_id),
         **_breadcrumbs(
-            ("Organizations", reverse("mpa:org_list")),
+            ("Organizations", reverse(f"{NAMESPACE}:org_list")),
             (org.name, None),
         ),
         "org": org,
@@ -109,8 +110,8 @@ def project_overview(
     context = {
         **_sidebar_context(active_org_id=org_id, active_project_id=project_id),
         **_breadcrumbs(
-            ("Organizations", reverse("mpa:org_list")),
-            (org.name, reverse("mpa:org_detail", args=[org_id])),
+            ("Organizations", reverse(f"{NAMESPACE}:org_list")),
+            (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org_id])),
             (project.name, None),
         ),
         "org": org,
@@ -129,9 +130,9 @@ def project_team(request: HttpRequest, org_id: str, project_id: str) -> HttpResp
     context = {
         **_sidebar_context(active_org_id=org_id, active_project_id=project_id),
         **_breadcrumbs(
-            ("Organizations", reverse("mpa:org_list")),
-            (org.name, reverse("mpa:org_detail", args=[org_id])),
-            (project.name, reverse("mpa:project_overview", args=[org_id, project_id])),
+            ("Organizations", reverse(f"{NAMESPACE}:org_list")),
+            (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org_id])),
+            (project.name, reverse(f"{NAMESPACE}:project_overview", args=[org_id, project_id])),
             ("Team", None),
         ),
         "org": org,
@@ -154,9 +155,9 @@ def project_settings(
     context = {
         **_sidebar_context(active_org_id=org_id, active_project_id=project_id),
         **_breadcrumbs(
-            ("Organizations", reverse("mpa:org_list")),
-            (org.name, reverse("mpa:org_detail", args=[org_id])),
-            (project.name, reverse("mpa:project_overview", args=[org_id, project_id])),
+            ("Organizations", reverse(f"{NAMESPACE}:org_list")),
+            (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org_id])),
+            (project.name, reverse(f"{NAMESPACE}:project_overview", args=[org_id, project_id])),
             ("Settings", None),
         ),
         "org": org,
@@ -185,16 +186,16 @@ def ticket_detail(request: HttpRequest, ticket_id: str) -> HttpResponse:
     context = {
         **_sidebar_context(active_org_id=org.id, active_project_id=project.id),
         **_breadcrumbs(
-            ("Organizations", reverse("mpa:org_list")),
-            (org.name, reverse("mpa:org_detail", args=[org.id])),
-            (project.name, reverse("mpa:project_overview", args=[org.id, project.id])),
+            ("Organizations", reverse(f"{NAMESPACE}:org_list")),
+            (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org.id])),
+            (project.name, reverse(f"{NAMESPACE}:project_overview", args=[org.id, project.id])),
             (f"#{ticket.id[:8]}", None),
         ),
         "ticket": ticket,
         "assignee_name": assignee_name,
         "active_tab": "details",
     }
-    return render(request, "pages/ticket_detail.html", context)
+    return render(request, "pages/ticket.html", context)
 
 
 def ticket_comments(request: HttpRequest, ticket_id: str) -> HttpResponse:
@@ -206,17 +207,17 @@ def ticket_comments(request: HttpRequest, ticket_id: str) -> HttpResponse:
     context = {
         **_sidebar_context(active_org_id=org.id, active_project_id=project.id),
         **_breadcrumbs(
-            ("Organizations", reverse("mpa:org_list")),
-            (org.name, reverse("mpa:org_detail", args=[org.id])),
-            (project.name, reverse("mpa:project_overview", args=[org.id, project.id])),
-            (f"#{ticket.id[:8]}", reverse("mpa:ticket_detail", args=[ticket.id])),
+            ("Organizations", reverse(f"{NAMESPACE}:org_list")),
+            (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org.id])),
+            (project.name, reverse(f"{NAMESPACE}:project_overview", args=[org.id, project.id])),
+            (f"#{ticket.id[:8]}", reverse(f"{NAMESPACE}:ticket_detail", args=[ticket.id])),
             ("Comments", None),
         ),
         "ticket": ticket,
         "active_tab": "comments",
         "comments": ticket.comments,
     }
-    return render(request, "pages/ticket_comments.html", context)
+    return render(request, "pages/ticket.html", context)
 
 
 def ticket_activity(request: HttpRequest, ticket_id: str) -> HttpResponse:
@@ -232,10 +233,10 @@ def ticket_activity(request: HttpRequest, ticket_id: str) -> HttpResponse:
     context = {
         **_sidebar_context(active_org_id=org.id, active_project_id=project.id),
         **_breadcrumbs(
-            ("Organizations", reverse("mpa:org_list")),
-            (org.name, reverse("mpa:org_detail", args=[org.id])),
-            (project.name, reverse("mpa:project_overview", args=[org.id, project.id])),
-            (f"#{ticket.id[:8]}", reverse("mpa:ticket_detail", args=[ticket.id])),
+            ("Organizations", reverse(f"{NAMESPACE}:org_list")),
+            (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org.id])),
+            (project.name, reverse(f"{NAMESPACE}:project_overview", args=[org.id, project.id])),
+            (f"#{ticket.id[:8]}", reverse(f"{NAMESPACE}:ticket_detail", args=[ticket.id])),
             ("Activity", None),
         ),
         "ticket": ticket,
@@ -246,7 +247,7 @@ def ticket_activity(request: HttpRequest, ticket_id: str) -> HttpResponse:
             f"Status set to {ticket.status}",
         ],
     }
-    return render(request, "pages/ticket_activity.html", context)
+    return render(request, "pages/ticket.html", context)
 
 
 def ticket_attachments(request: HttpRequest, ticket_id: str) -> HttpResponse:
@@ -258,16 +259,16 @@ def ticket_attachments(request: HttpRequest, ticket_id: str) -> HttpResponse:
     context = {
         **_sidebar_context(active_org_id=org.id, active_project_id=project.id),
         **_breadcrumbs(
-            ("Organizations", reverse("mpa:org_list")),
-            (org.name, reverse("mpa:org_detail", args=[org.id])),
-            (project.name, reverse("mpa:project_overview", args=[org.id, project.id])),
-            (f"#{ticket.id[:8]}", reverse("mpa:ticket_detail", args=[ticket.id])),
+            ("Organizations", reverse(f"{NAMESPACE}:org_list")),
+            (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org.id])),
+            (project.name, reverse(f"{NAMESPACE}:project_overview", args=[org.id, project.id])),
+            (f"#{ticket.id[:8]}", reverse(f"{NAMESPACE}:ticket_detail", args=[ticket.id])),
             ("Attachments", None),
         ),
         "ticket": ticket,
         "active_tab": "attachments",
     }
-    return render(request, "pages/ticket_attachments.html", context)
+    return render(request, "pages/ticket.html", context)
 
 
 # ---------------------------------------------------------------------------
@@ -316,12 +317,12 @@ class TicketListView(ListView):
         )
         context.update(
             _breadcrumbs(
-                ("Organizations", reverse("mpa:org_list")),
-                (self.org.name, reverse("mpa:org_detail", args=[self.org.id])),
+                ("Organizations", reverse(f"{NAMESPACE}:org_list")),
+                (self.org.name, reverse(f"{NAMESPACE}:org_detail", args=[self.org.id])),
                 (
                     self.project.name,
                     reverse(
-                        "mpa:project_overview", args=[self.org.id, self.project.id]
+                        f"{NAMESPACE}:project_overview", args=[self.org.id, self.project.id]
                     ),
                 ),
                 ("Tickets", None),
@@ -372,13 +373,13 @@ def ticket_wizard_step(
             # Demo-only, just simulate ticket creation.
             fake_new_ticket = Ticket.objects.first()
             return redirect(
-                "mpa:ticket_detail",
+                f"{NAMESPACE}:ticket_detail",
                 ticket_id=fake_new_ticket.id if fake_new_ticket else None,
             )
 
         next_step = WIZARD_STEPS[current_index + 1]
         return redirect(
-            "mpa:ticket_wizard_step",
+            f"{NAMESPACE}:ticket_wizard_step",
             org_id=org_id,
             project_id=project_id,
             step=next_step,
@@ -389,9 +390,9 @@ def ticket_wizard_step(
     context = {
         **_sidebar_context(active_org_id=org_id, active_project_id=project_id),
         **_breadcrumbs(
-            ("Organizations", reverse("mpa:org_list")),
-            (org.name, reverse("mpa:org_detail", args=[org_id])),
-            (project.name, reverse("mpa:project_overview", args=[org_id, project_id])),
+            ("Organizations", reverse(f"{NAMESPACE}:org_list")),
+            (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org_id])),
+            (project.name, reverse(f"{NAMESPACE}:project_overview", args=[org_id, project_id])),
             ("New Ticket", None),
         ),
         "org": org,
@@ -421,7 +422,7 @@ def ticket_move_status(request: HttpRequest, ticket_id: str) -> HttpResponse:
         ticket.save(update_fields=["status"])
     project = ticket.project
     return redirect(
-        "mpa:kanban_board", org_id=project.organization.id, project_id=project.id
+        f"{NAMESPACE}:kanban_board", org_id=project.organization.id, project_id=project.id
     )
 
 
@@ -440,9 +441,9 @@ def kanban_board(request: HttpRequest, org_id: str, project_id: str) -> HttpResp
     context = {
         **_sidebar_context(active_org_id=org_id, active_project_id=project_id),
         **_breadcrumbs(
-            ("Organizations", reverse("mpa:org_list")),
-            (org.name, reverse("mpa:org_detail", args=[org_id])),
-            (project.name, reverse("mpa:project_overview", args=[org_id, project_id])),
+            ("Organizations", reverse(f"{NAMESPACE}:org_list")),
+            (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org_id])),
+            (project.name, reverse(f"{NAMESPACE}:project_overview", args=[org_id, project_id])),
             ("Board", None),
         ),
         "org": org,
