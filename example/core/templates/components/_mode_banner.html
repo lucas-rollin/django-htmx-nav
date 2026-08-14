@@ -1,0 +1,9 @@
+{% if uses_htmx %}
+  <div class="bg-primary/5 text-center text-xs py-1 text-base-content/70">
+    Navigating via <span class="font-mono">hx-boost</span> + django-htmx-nav — watch the network tab for partial responses.
+  </div>
+{% else %}
+  <div class="bg-error/5 text-center text-xs py-1 text-base-content/70">
+    Pure multi-page app — every click is a full page load. This is the baseline.
+  </div>
+{% endif %}

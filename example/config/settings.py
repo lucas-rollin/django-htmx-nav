@@ -36,8 +36,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "htmx_nav",
-    "mockdata",
-    "htmx",
+    "core",
     "mpa",
 ]
 
@@ -61,6 +60,7 @@ TEMPLATES = [
             "context_processors": [
                 "django.template.context_processors.request",
                 "django.contrib.messages.context_processors.messages",
+                "config.context_processors.variants",
                 "config.context_processors.demo_mode",
             ],
         },

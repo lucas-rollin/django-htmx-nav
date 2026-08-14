@@ -5,12 +5,12 @@ This module provides the traditional full-page views for the helpdesk demo,
 handling navigation for dashboard overviews, projects, tickets, and staff list.
 """
 
+from core.models import Employee, Organization, Project, Ticket
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from django.views.generic import ListView
-from mockdata.models import Employee, Organization, Project, Ticket
 
 NAMESPACE = "mpa"
 TICKET_PAGE_SIZE = 6
@@ -175,6 +175,126 @@ def project_settings(
 
 
 # ---------------------------------------------------------------------------
+# KANBAN BOARD — full-page form posts, no partial card updates
+# ---------------------------------------------------------------------------
+
+
+@require_http_methods(["POST"])
+def ticket_move_status(request: HttpRequest, ticket_id: str) -> HttpResponse:
+    """Updates a ticket's status state and redirects to the Kanban board."""
+    ticket = Ticket.objects.get(id=ticket_id)
+    new_status = request.POST.get("new_status")
+    if new_status in ("open", "in_progress", "resolved", "closed"):
+        ticket.status = new_status
+        ticket.save(update_fields=["status"])
+    project = ticket.project
+    return redirect(
+        f"{NAMESPACE}:kanban_board",
+        org_id=project.organization.id,
+        project_id=project.id,
+    )
+
+
+def kanban_board(request: HttpRequest, org_id: str, project_id: str) -> HttpResponse:
+    """Displays project tickets grouped into visual status columns on a Kanban board."""
+    org = Organization.objects.get(id=org_id)
+    project = Project.objects.get(id=project_id)
+
+    columns = {
+        status: Ticket.objects.filter(
+            project_id=project_id, status=status
+        ).select_related("assignee")
+        for status in ("open", "in_progress", "resolved", "closed")
+    }
+
+    context = {
+        **_sidebar_context(active_org_id=org_id, active_project_id=project_id),
+        **_breadcrumbs(
+            ("Organizations", reverse(f"{NAMESPACE}:org_list")),
+            (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org_id])),
+            (
+                project.name,
+                reverse(f"{NAMESPACE}:project_overview", args=[org_id, project_id]),
+            ),
+            ("Board", None),
+        ),
+        "org": org,
+        "project": project,
+        "columns": columns,
+        "active_tab": "board",
+    }
+    return render(request, "pages/project.html", context)
+
+
+# ---------------------------------------------------------------------------
+# TICKET LIST — pagination + filtering, as a CBV
+# ---------------------------------------------------------------------------
+
+
+class TicketListView(ListView):
+    """Displays a paginated, searchable, and filterable table of project tickets."""
+
+    template_name = "pages/project.html"
+    context_object_name = "tickets"
+    paginate_by = TICKET_PAGE_SIZE
+
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.org = Organization.objects.get(id=kwargs["org_id"])
+        self.project = Project.objects.get(id=kwargs["project_id"])
+
+    def get_queryset(self):
+        tickets = Ticket.objects.filter(project_id=self.project.id).select_related(
+            "assignee"
+        )
+
+        status = self.request.GET.get("status")
+        if status:
+            tickets = tickets.filter(status=status)
+
+        priority = self.request.GET.get("priority")
+        if priority:
+            tickets = tickets.filter(priority=int(priority))
+
+        search = self.request.GET.get("q", "").strip()
+        if search:
+            tickets = tickets.filter(title__icontains=search)
+
+        # Sort tickets reverse chronologically by creation timestamp
+        return tickets.order_by("-created_at")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(
+            _sidebar_context(
+                active_org_id=self.org.id, active_project_id=self.project.id
+            )
+        )
+        context.update(
+            _breadcrumbs(
+                ("Organizations", reverse(f"{NAMESPACE}:org_list")),
+                (self.org.name, reverse(f"{NAMESPACE}:org_detail", args=[self.org.id])),
+                (
+                    self.project.name,
+                    reverse(
+                        f"{NAMESPACE}:project_overview",
+                        args=[self.org.id, self.project.id],
+                    ),
+                ),
+                ("Tickets", None),
+            )
+        )
+        context["org"] = self.org
+        context["project"] = self.project
+        context["current_status"] = self.request.GET.get("status", "")
+        context["current_priority"] = self.request.GET.get("priority", "")
+        context["current_query"] = self.request.GET.get("q", "")
+        context["active_tab"] = "tickets"
+        context["employee_names"] = {e.id: e.name for e in Employee.objects.all()}
+        return context
+
+
+# ---------------------------------------------------------------------------
 # TICKET DETAIL + its "tabs" as full pages
 # ---------------------------------------------------------------------------
 
@@ -299,74 +419,6 @@ def ticket_attachments(request: HttpRequest, ticket_id: str) -> HttpResponse:
 
 
 # ---------------------------------------------------------------------------
-# TICKET LIST — pagination + filtering, as a CBV
-# ---------------------------------------------------------------------------
-
-
-class TicketListView(ListView):
-    """Displays a paginated, searchable, and filterable table of project tickets."""
-
-    template_name = "pages/project.html"
-    context_object_name = "tickets"
-    paginate_by = TICKET_PAGE_SIZE
-
-    def setup(self, request, *args, **kwargs):
-        super().setup(request, *args, **kwargs)
-        self.org = Organization.objects.get(id=kwargs["org_id"])
-        self.project = Project.objects.get(id=kwargs["project_id"])
-
-    def get_queryset(self):
-        tickets = Ticket.objects.filter(project_id=self.project.id).select_related(
-            "assignee"
-        )
-
-        status = self.request.GET.get("status")
-        if status:
-            tickets = tickets.filter(status=status)
-
-        priority = self.request.GET.get("priority")
-        if priority:
-            tickets = tickets.filter(priority=int(priority))
-
-        search = self.request.GET.get("q", "").strip()
-        if search:
-            tickets = tickets.filter(title__icontains=search)
-
-        # Sort tickets reverse chronologically by creation timestamp
-        return tickets.order_by("-created_at")
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context.update(
-            _sidebar_context(
-                active_org_id=self.org.id, active_project_id=self.project.id
-            )
-        )
-        context.update(
-            _breadcrumbs(
-                ("Organizations", reverse(f"{NAMESPACE}:org_list")),
-                (self.org.name, reverse(f"{NAMESPACE}:org_detail", args=[self.org.id])),
-                (
-                    self.project.name,
-                    reverse(
-                        f"{NAMESPACE}:project_overview",
-                        args=[self.org.id, self.project.id],
-                    ),
-                ),
-                ("Tickets", None),
-            )
-        )
-        context["org"] = self.org
-        context["project"] = self.project
-        context["current_status"] = self.request.GET.get("status", "")
-        context["current_priority"] = self.request.GET.get("priority", "")
-        context["current_query"] = self.request.GET.get("q", "")
-        context["active_tab"] = "tickets"
-        context["employee_names"] = {e.id: e.name for e in Employee.objects.all()}
-        return context
-
-
-# ---------------------------------------------------------------------------
 # MULTI-STEP WIZARD — real multi-page POST/redirect/GET flow
 # ---------------------------------------------------------------------------
 
@@ -434,57 +486,7 @@ def ticket_wizard_step(
         "collected": collected,
         "employees": all_employees,
         "employee_names": {e.id: e.name for e in all_employees},
+        # Pass title as context since it varies and a single template was used
+        "title": f"New ticket · {step}",
     }
     return render(request, f"pages/wizard_{step}.html", context)
-
-
-# ---------------------------------------------------------------------------
-# KANBAN BOARD — full-page form posts, no partial card updates
-# ---------------------------------------------------------------------------
-
-
-@require_http_methods(["POST"])
-def ticket_move_status(request: HttpRequest, ticket_id: str) -> HttpResponse:
-    """Updates a ticket's status state and redirects to the Kanban board."""
-    ticket = Ticket.objects.get(id=ticket_id)
-    new_status = request.POST.get("new_status")
-    if new_status in ("open", "in_progress", "resolved", "closed"):
-        ticket.status = new_status
-        ticket.save(update_fields=["status"])
-    project = ticket.project
-    return redirect(
-        f"{NAMESPACE}:kanban_board",
-        org_id=project.organization.id,
-        project_id=project.id,
-    )
-
-
-def kanban_board(request: HttpRequest, org_id: str, project_id: str) -> HttpResponse:
-    """Displays project tickets grouped into visual status columns on a Kanban board."""
-    org = Organization.objects.get(id=org_id)
-    project = Project.objects.get(id=project_id)
-
-    columns = {
-        status: Ticket.objects.filter(
-            project_id=project_id, status=status
-        ).select_related("assignee")
-        for status in ("open", "in_progress", "resolved", "closed")
-    }
-
-    context = {
-        **_sidebar_context(active_org_id=org_id, active_project_id=project_id),
-        **_breadcrumbs(
-            ("Organizations", reverse(f"{NAMESPACE}:org_list")),
-            (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org_id])),
-            (
-                project.name,
-                reverse(f"{NAMESPACE}:project_overview", args=[org_id, project_id]),
-            ),
-            ("Board", None),
-        ),
-        "org": org,
-        "project": project,
-        "columns": columns,
-        "active_tab": "board",
-    }
-    return render(request, "pages/project.html", context)

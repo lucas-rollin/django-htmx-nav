@@ -15,11 +15,26 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+from importlib import import_module
+
+from core.navigation.registry import VARIANTS
+from core.url_utils import generate_variant_urls
 from django.urls import include, path
 from django.views.generic import RedirectView
 
+
+def _variant_mounts():
+    for variant in VARIANTS.values():
+        views = import_module(variant.views_module)
+        yield path(
+            variant.url_prefix,
+            include(
+                (generate_variant_urls(views), variant.app_name), namespace=variant.namespace
+            ),
+        )
+
+
 urlpatterns = [
-    path("", RedirectView.as_view(url="/htmx/", permanent=True)),
-    path("mpa/", include(("mpa.urls", "mpa"), namespace="mpa")),
-    path("htmx/", include(("htmx.urls", "htmx"), namespace="htmx")),
+    path("", RedirectView.as_view(url="/mpa/", permanent=True)),
+    *_variant_mounts(),
 ]

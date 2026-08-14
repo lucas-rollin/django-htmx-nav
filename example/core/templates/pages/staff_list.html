@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% if not uses_htmx %}{% block title %}Staff · Helpdesk{% endblock %}{% endif %}
+{% block content %}
+  {% include "pages/_staff_list.html" %}
+{% endblock %}
