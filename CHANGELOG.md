@@ -1,25 +1,28 @@
-## 0.3.1 — 2026-08-11
+## 0.3.0 — 2026-08-15
 
-- Restructured project for maintainability.
+### Added
 - **`htmx_nav.swaps`**:
-    - Added `delete` and `text` class methods to `Swap` for convenience.
-    - Added `debug-swaps.css` and a toggable setting to highlight a Swap being swapped.
-- **`htmx_nav.target`**:
-    - Added type alias `Target` to conditionally apply a Swap and `PartialSpec` to condition what partial content to render.
-
-## 0.3.0 — 2026-08-09
-
-- **`htmx_nav.responses`**:
-    - Added `include_if` to `Swap` along with the `skip_if_target_in` helper, enabling declarative conditional rendering of OOB swaps based on incoming HTMX targets.
-    - Added native `title` support to `render_htmx` (and `make_shell_renderer`), automatically sending the `HX-Title` header on HTMX requests and injecting a `<title>` OOB snippet when needed.
-    - **Breaking/Refactor**: Removed automatic `HX-Push-Url` handling from inside `render_htmx`, shifting full control of URL history updates back to the view layer.
+    - `Swap`: Added `include_if` parameter and `skip_if_target_in` helper for declarative, conditional OOB swap rendering based on incoming HTMX targets.
+    - `Swap`: Added `delete` and `text` class methods for convenience.
+    - Added `debug-swaps.css` and a toggleable setting to visually highlight swap elements during execution.
+- **`htmx_nav.shortcuts`**:
+    - Added native `title` support to `render_htmx` (and `make_shell_renderer`), automatically setting the `HX-Title` header on HTMX requests and injecting a `<title>` OOB snippet when appropriate.
 - **`htmx_nav.testing`**:
-    - Introduced a new testing module containing utilities to verify context parity and final template output across regular and HTMX requests.
-- **Documentation & Tooling**:
-    - Migrated documentation to **Sphinx** to streamline workflow.
-    - Initialized the reference example project.
-    - Added **Ruff** and **djLint** for code linting and formatting.
-    - Fixed various typos across docstrings and documentation.
+    - Introduced testing utilities to verify context parity and rendered template output across standard and HTMX requests.
+- **Docs & Tooling**:
+    - Initialized reference example project.
+    - Added **Ruff** and **djLint** for linting and formatting.
+
+### Changed
+- **`htmx_nav.responses`**:
+    - Split module into smaller files to improve maintainability.
+- **Docs & Tooling**:
+    - Migrated documentation build from MkDocs to **Sphinx**.
+    - Fixed typos across docstrings and project documentation.
+
+### Removed
+- **`htmx_nav.shortcuts`**:
+    - **[BREAKING]** Removed automatic `HX-Push-Url` handling from `render_htmx`, shifting URL history control back to the view layer.
 
 ## 0.2.0 — 2026-07-29
 

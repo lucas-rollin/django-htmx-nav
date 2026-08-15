@@ -33,14 +33,50 @@ def render_with_swaps(
     swaps: Swaps = None,
     title: str | None = None,
 ) -> TemplateResponse:
-    """Renders a template as given and appends swap fragments on HTMX requests.
+    """Renders a template and appends swap fragments on HTMX requests.
 
-    Does no partial/block resolution and no active-navigation-region logic.
-    Use this directly for HTMX responses that don't participate in this
-    package's navigation system (e.g., a form POST that also refreshes a
-    notification badge elsewhere via OOB).
+    This is the foundational HTMX-aware renderer. Unlike `render_nav`, it does
+    no partial resolution or navigation state management. Use it for HTMX
+    responses that need out-of-band swaps without navigation involvement.
 
-    `render_nav` is the navigation-flavored version built on top of this.
+    Args:
+        request: The HTTP request object.
+        template_name: Path to the main template.
+        context: Optional template context.
+        content_type: Optional response content type.
+        status: Optional HTTP status code.
+        using: Optional template engine.
+        swaps: A single Swap, list, or None. Additional HTML fragments to
+            append as out-of-band swaps.
+        title: Optional page title. Overrides title context variable and
+            injects a `<title>` element for HTMX requests.
+
+    Returns:
+        A TemplateResponse with swaps appended as post-render callbacks
+        if the request is HTMX.
+
+    Notes:
+        - Adds "HX-Request" to Vary headers for proper caching.
+        - Context from swaps is merged with main context (swap context wins).
+        - Title injection is HTML-escaped.
+
+    Example:
+        .. code-block:: python
+
+            def form_submit(request):
+                form = MyForm(request.POST)
+                if form.is_valid():
+                    obj = form.save()
+                    return render_with_swaps(
+                        request,
+                        "form/success.html",
+                        {"form": form},
+                        swaps=[
+                            Swap("components/badge.html", context={"count": get_count()}),
+                            Swap("components/notification.html", target_id="flash-messages"),
+                        ],
+                        title="Success!",
+                    )
     """
     is_htmx = _is_htmx_request(request)
     swap_list = _normalize_swaps(swaps)
@@ -100,13 +136,34 @@ def render_nav(
 ) -> TemplateResponse:
     """Renders a Django template with HTMX partial resolution and OOB swaps.
 
-    Navigation-flavored `render_with_swaps`: resolves which template-partials
-    block or standalone template to render, and exposes `active_partial` in
-    context for nav/tab highlighting.
+    Args:
+        request: The HTTP request object.
+        template_name: Path to the full template containing partial blocks.
+        context: Optional template context.
+        content_type: Optional response content type.
+        status: Optional HTTP status code.
+        using: Optional template engine.
+        partial: Specifies which partial to render for HTMX requests.
+            Can be a block name (`"#content"`), standalone path, callable, or
+            dict mapping names to targets. Defaults to "#content".
+        swaps: Additional out-of-band swaps to include.
+        title: Optional page title. Overrides title context variable.
+
+    Returns:
+        A TemplateResponse with partial resolution and OOB swaps.
 
     Example:
         .. code-block:: python
 
+            # Basic partial selection
+            return render_nav(
+                request,
+                "project/detail.html",
+                {"project": project},
+                partial="#tab_content",
+            )
+
+            # Multiple partial targets with swaps
             return render_nav(
                 request,
                 "project/detail.html",
@@ -114,9 +171,12 @@ def render_nav(
                 partial={
                     "#tab_content": targeting("tab-content"),
                     "#main_content": targeting("main-content"),
-                    "#content": True,
+                    "#content": True,  # fallback
                 },
-                swaps=[Swap("partials/sidebar.html", target_id="sidebar")],
+                swaps=[
+                    Swap("partials/sidebar.html", target_id="sidebar"),
+                    Swap("partials/notification.html", target_id="flash"),
+                ],
                 title=project.name,
             )
     """

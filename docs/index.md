@@ -11,9 +11,8 @@
 quickstart
 testing
 example_project
+nav_context_patterns
 api
-pattern/context_processor_and_templatetags
-pattern/registry_pattern
 ```
 
 ---

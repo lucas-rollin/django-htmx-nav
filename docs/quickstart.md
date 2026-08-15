@@ -142,6 +142,4 @@ For testing navigation context parity, HTML composition, and using visual swap d
 
 - Check out the [API Reference / Docstrings](api.md) for full function signatures.
 - Learn about [Testing & Visual Debugging](testing.md).
-- Explore architectural patterns:
-  - [Context Processor & Template Tags](pattern/context_processor_and_templatetags.md)
-  - [Centralized Navigation Registry](pattern/registry_pattern.md)
+- Explore [Architectural Navigation Patterns](nav_context_patterns.md)
