@@ -7,6 +7,7 @@ a clean, full-page fallback baseline for non-HTMX requests.
 """
 
 from core.models import Employee, Organization, Project, Ticket
+from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -15,6 +16,7 @@ from django.views.generic import ListView
 
 from htmx_nav import (
     Swap,
+    has_messages,
     make_shell_view_mixin,
     render_nav,
     render_with_swaps,
@@ -261,8 +263,7 @@ def project_settings(
 def ticket_move_status(request: HttpRequest, ticket_id: str) -> HttpResponse:
     """Update a ticket's status and redirect back to the Kanban board.
 
-    Standard POST-redirect-GET handler. Works seamlessly with both HTMX form
-    submissions and standard browser form posts.
+    Uses `render_with_swaps` to not navigate and do pinpoint swaps.
     """
     ticket = Ticket.objects.get(id=ticket_id)
     old_status = ticket.status
@@ -441,6 +442,7 @@ def ticket_detail(request: HttpRequest, ticket_id: str) -> HttpResponse:
                 ),
                 (f"#{ticket.id[:8]}", None),
             ),
+            Swap("components/_messages.html", include_if=has_messages),
         ],
         title=f"#{ticket.id[:8]} · {ticket.title}",
     )
@@ -602,6 +604,9 @@ def ticket_wizard_step(
             request.session.pop(session_key, None)
             # Demo-only: simulated creation landing view
             fake_new_ticket = Ticket.objects.first()
+            messages.add_message(
+                request, messages.SUCCESS, "Ticket submitted! (Not really ;~;)"
+            )
             return redirect(
                 f"{NAMESPACE}:ticket_detail",
                 ticket_id=fake_new_ticket.id if fake_new_ticket else None,

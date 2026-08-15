@@ -28,6 +28,7 @@ class ShellRenderer(Protocol):
         partial: PartialSpec = "#content",
         **kwargs: Any,
     ) -> TemplateResponse: ...
+
     """
     Renders a template with an automatically injected shell navigation swap.
 

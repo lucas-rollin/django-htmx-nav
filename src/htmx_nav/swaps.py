@@ -191,8 +191,6 @@ class Swap:
 Swaps: TypeAlias = Swap | list[Swap] | tuple[Swap, ...] | None
 
 
-
-
 def _normalize_swaps(swaps: Swaps) -> list[Swap]:
     """Normalizes `Swaps` input into a flat list of `Swap` instances.
 

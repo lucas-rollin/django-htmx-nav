@@ -136,9 +136,7 @@ def project_tab(request, pk):
             "#main_content": targeting("main-content"),
             "#content": True,
         },
-        extra_swaps=[
-            Swap("app/_tabs.html", {"active": "overview"}, target_id="tabs")
-        ],
+        extra_swaps=[Swap("app/_tabs.html", {"active": "overview"}, target_id="tabs")],
     )
 ```
 

@@ -1,3 +1,9 @@
+## 0.3.1 — 2026-08-15
+
+### Added
+- **`htmx_nav.targeting`**:
+    - `has_messages`: Predicate for `Swap.include_if` that returns True if there are pending Django messages.
+
 ## 0.3.0 — 2026-08-15
 
 ### Added

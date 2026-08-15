@@ -6,6 +6,7 @@ it, low-level HX-Target matching, and Target evaluation.
 from collections.abc import Callable
 from typing import TypeAlias
 
+from django.contrib.messages import get_messages
 from django.http import HttpRequest
 
 Target: TypeAlias = str | Callable[[HttpRequest], bool] | bool
@@ -124,3 +125,22 @@ def _eval_target(spec: Target, request: HttpRequest) -> bool:
     if callable(spec):
         return bool(spec(request))
     raise TypeError(f"Invalid Target value: {spec!r}")
+
+
+def has_messages(request: HttpRequest) -> bool:
+    """Predicate that returns True if there are pending Django messages for the request.
+
+    Checks the message storage backend. Like Django's own message checks,
+    calling this marks pending messages as read for this response.
+
+    Example:
+        .. code-block:: python
+
+            Swap(
+                "partials/messages.html",
+                target_id="messages",
+                include_if=has_messages
+            )
+    """
+    messages = get_messages(request)
+    return bool(messages)

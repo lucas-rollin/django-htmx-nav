@@ -21,6 +21,7 @@ sidebar or breadcrumb region out-of-band:
 ```python
 from htmx_nav import Swap, render_nav
 
+
 def project_detail(request, pk):
     project = get_object_or_404(Project, pk=pk)
     return render_nav(
@@ -29,7 +30,9 @@ def project_detail(request, pk):
         {"project": project},
         swaps=[
             Swap("app/_sidebar.html", {"active": project.pk}, target_id="sidebar"),
-            Swap("app/_breadcrumbs.html", {"project": project}, target_id="breadcrumbs"),
+            Swap(
+                "app/_breadcrumbs.html", {"project": project}, target_id="breadcrumbs"
+            ),
         ],
     )
 ```
@@ -104,6 +107,7 @@ class Crumb:
 @dataclass(frozen=True)
 class NavState:
     """Navigation state for a given view."""
+
     active_link: str = ""
     breadcrumbs: Sequence[Crumb] = field(default_factory=tuple)
 
@@ -260,9 +264,7 @@ register = template.Library()
 @register.simple_tag(takes_context=True)
 def nav_link(context, view_name, label, css_class="nav-link"):
     request = context["request"]
-    is_active = (
-        request.resolver_match and request.resolver_match.view_name == view_name
-    )
+    is_active = request.resolver_match and request.resolver_match.view_name == view_name
     url = reverse_maybe(view_name)
     active_class = f" {css_class}--active" if is_active else ""
     return f'<a href="{url}" class="{css_class}{active_class}">{label}</a>'

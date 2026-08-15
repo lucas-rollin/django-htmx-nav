@@ -6,6 +6,7 @@ handling navigation for dashboard overviews, projects, tickets, and staff list.
 """
 
 from core.models import Employee, Organization, Project, Ticket
+from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -452,6 +453,9 @@ def ticket_wizard_step(
             request.session.pop(session_key, None)
             # Demo-only, just simulate ticket creation.
             fake_new_ticket = Ticket.objects.first()
+            messages.add_message(
+                request, messages.SUCCESS, "Ticket submitted! (Not really ;~;)"
+            )
             return redirect(
                 f"{NAMESPACE}:ticket_detail",
                 ticket_id=fake_new_ticket.id if fake_new_ticket else None,
@@ -489,4 +493,4 @@ def ticket_wizard_step(
         # Pass title as context since it varies and a single template was used
         "title": f"New ticket · {step}",
     }
-    return render(request, f"pages/wizard_{step}.html", context)
+    return render(request, "pages/wizard.html", context)

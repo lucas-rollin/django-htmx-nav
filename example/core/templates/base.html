@@ -122,7 +122,7 @@
           {% include "components/_mode_banner.html" %}
           <div id="breadcrumbs" class="flex justify-center">{% include "components/_breadcrumbs.html" %}</div>
         </header>
-        <div id="messages" hx-swap-oob="innerHTML">{% include "components/_messages.html" %}</div>
+        <div id="messages">{% include "components/_messages.html" %}</div>
         <main class="flex-1 h-full">
           <div id="main-content" class="h-full">
             {% block content %}{% endblock %}

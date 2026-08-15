@@ -54,16 +54,16 @@
           {% for event in activity %}
             <li>
               {% if not forloop.first %}<hr />{% endif %}
-              <div class="timeline-start text-xs text-base-content/50">step {{ forloop.counter }}</div>
+              <div class="timeline-start text-md text-base-content/50">step {{ forloop.counter }}</div>
               <div class="timeline-middle">
                 <svg xmlns="http://www.w3.org/2000/svg"
                      viewBox="0 0 24 24"
                      fill="currentColor"
-                     class="h-4 w-4 text-primary">
+                     class="h-5 w-5 text-primary">
                   <circle cx="12" cy="12" r="6" />
                 </svg>
               </div>
-              <div class="timeline-end timeline-box">{{ event }}</div>
+              <div class="timeline-end timeline-box text-md">{{ event }}</div>
               {% if not forloop.last %}<hr />{% endif %}
             </li>
           {% empty %}

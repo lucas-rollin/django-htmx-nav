@@ -2,7 +2,7 @@ from .partials import PartialSpec
 from .shell import ShellRenderer, make_shell_renderer
 from .shortcuts import render_nav, render_with_swaps
 from .swaps import Swap, Swaps
-from .targeting import Target, htmx_target_is, not_targeting, targeting
+from .targeting import Target, has_messages, htmx_target_is, not_targeting, targeting
 from .views import make_shell_view_mixin
 
 __all__ = [
@@ -14,6 +14,7 @@ __all__ = [
     "htmx_target_is",
     "targeting",
     "not_targeting",
+    "has_messages",
     "render_nav",
     "render_with_swaps",
     "make_shell_renderer",

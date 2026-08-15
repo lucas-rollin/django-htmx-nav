@@ -1,9 +1,15 @@
 import pytest
+from django.contrib import messages
+from django.contrib.messages.middleware import MessageMiddleware
+from django.contrib.messages.storage.fallback import FallbackStorage
+from django.shortcuts import render
 from django.test import RequestFactory
 
+from htmx_nav.swaps import Swap
 from htmx_nav.targeting import (
     _eval_target,
     _is_htmx_request,
+    has_messages,
     htmx_target_is,
     not_targeting,
     targeting,
@@ -110,3 +116,79 @@ def test_eval_target_callable_invoked_with_request():
 def test_eval_target_invalid_type_raises_type_error():
     with pytest.raises(TypeError):
         _eval_target(123, RequestFactory().get("/"))  # type: ignore
+
+
+# =============================================================================
+# has_messages
+# =============================================================================
+
+
+@pytest.fixture
+def msg_request():
+    """Factory fixture returning a request initialized with message storage."""
+
+    def _factory(*message_texts: str):
+        request = RequestFactory().get("/")
+        request.session = {}
+        request._messages = FallbackStorage(request)
+        for text in message_texts:
+            messages.add_message(request, messages.INFO, text)
+        return request
+
+    return _factory
+
+
+@pytest.mark.parametrize(
+    ("msg_list", "expected"),
+    [
+        ([], False),
+        (["Saved."], True),
+        (["First.", "Second."], True),
+    ],
+)
+def test_has_messages_predicate(msg_request, msg_list, expected):
+    request = msg_request(*msg_list)
+    assert has_messages(request) is expected
+
+
+def test_has_messages_does_not_consume_messages(msg_request):
+    """Evaluating `has_messages` must remain idempotent and keep messages unread."""
+    request = msg_request("Ticket #42 updated.")
+
+    # Idempotency check
+    assert has_messages(request) is True
+    assert has_messages(request) is True
+
+    # Ensure messages are still available during standard template rendering
+    rendered = render(request, "tests/_messages.html").content.decode()
+    assert "Ticket #42 updated." in rendered
+
+
+def test_has_messages_swap_integration(msg_request):
+    swap = Swap("tests/_messages.html", target_id="messages", include_if=has_messages)
+
+    # Empty messages state
+    empty_req = msg_request()
+    assert swap.applies_to(empty_req) is False
+
+    # Populated messages state
+    populated_req = msg_request("Draft saved.")
+    assert swap.applies_to(populated_req) is True
+
+    html = swap.render(populated_req)
+    assert "Draft saved." in html
+    assert 'id="messages"' in html
+
+
+def test_has_messages_with_real_middleware():
+    """Ensures `has_messages` works when storage is attached via Django middleware."""
+    request = RequestFactory().get("/")
+    request.session = {}
+
+    middleware = MessageMiddleware(lambda req: None)
+    middleware.process_request(request)
+
+    assert has_messages(request) is False
+
+    messages.add_message(request, messages.SUCCESS, "Profile updated.")
+    assert has_messages(request) is True
