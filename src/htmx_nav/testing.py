@@ -39,6 +39,7 @@ def assert_shell_parity(
 
     Example:
         .. code-block:: python
+
             from django.test import Client
             from htmx_nav.testing import assert_shell_parity
 

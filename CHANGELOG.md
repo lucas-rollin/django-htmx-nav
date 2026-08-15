@@ -1,9 +1,11 @@
 ## 0.3.1 — 2026-08-11
 
-- Added `debug-swaps.css` and a toggable setting to highlight a Swap being swapped.
-- **`htmx_nav.responses`**:
+- Restructured project for maintainability.
+- **`htmx_nav.swaps`**:
+    - Added `delete` and `text` class methods to `Swap` for convenience.
+    - Added `debug-swaps.css` and a toggable setting to highlight a Swap being swapped.
+- **`htmx_nav.target`**:
     - Added type alias `Target` to conditionally apply a Swap and `PartialSpec` to condition what partial content to render.
-    - General API improvements.
 
 ## 0.3.0 — 2026-08-09
 

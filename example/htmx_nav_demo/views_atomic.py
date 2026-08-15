@@ -18,6 +18,7 @@ from htmx_nav import (
     htmx_target_is,
     make_shell_view_mixin,
     render_nav,
+    render_with_swaps,
     targeting,
 )
 
@@ -334,16 +335,26 @@ def ticket_move_status(request: HttpRequest, ticket_id: str) -> HttpResponse:
     submissions and standard browser form posts.
     """
     ticket = Ticket.objects.get(id=ticket_id)
+    old_status = ticket.status
     new_status = request.POST.get("new_status")
     if new_status in ("open", "in_progress", "resolved", "closed"):
         ticket.status = new_status
         ticket.save(update_fields=["status"])
-    project = ticket.project
-    return redirect(
-        f"{NAMESPACE}:kanban_board",
-        org_id=project.organization.id,
-        project_id=project.id,
+
+    swaps = [Swap.delete(f"ticket-{ticket.id}")]
+    if new_status != old_status:
+        for status in (old_status, new_status):
+            count = Ticket.objects.filter(
+                project_id=ticket.project.id, status=status
+            ).count()
+            swaps.append(Swap.text(f"column-count-{status}", str(count)))
+
+    response = render_with_swaps(
+        request, "pages/_board.html#ticket-card", {"ticket": ticket}, swaps=swaps
     )
+    response["HX-Retarget"] = f"#column-{ticket.status}"
+    response["HX-Push-Url"] = "false"
+    return response
 
 
 def kanban_board(request: HttpRequest, org_id: str, project_id: str) -> HttpResponse:
@@ -507,7 +518,7 @@ def ticket_detail(request: HttpRequest, ticket_id: str) -> HttpResponse:
         request,
         "pages/ticket.html",
         context,
-        partial=_tab_content_partial(request, "#detail"),
+        partial=_tab_content_partial(request, "#details"),
         swaps=[
             _sidebar_swap(active_org_id=org.id, active_project_id=project.id),
             _breadcrumb_swap(
@@ -519,7 +530,7 @@ def ticket_detail(request: HttpRequest, ticket_id: str) -> HttpResponse:
                 ),
                 (f"#{ticket.id[:8]}", None),
             ),
-            _ticket_tab_swap(active_tab="detail"),
+            _ticket_tab_swap(active_tab="details"),
         ],
         title=f"#{ticket.id[:8]} · {ticket.title}",
     )

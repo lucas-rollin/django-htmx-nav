@@ -1,3 +1,4 @@
+import pytest
 from django.test import RequestFactory, override_settings
 
 from htmx_nav.swaps import Swap, _normalize_swaps
@@ -153,3 +154,109 @@ def test_normalize_swaps_does_not_iterate_a_bare_string_into_characters():
     # Regression: a bare string is Sequence-like; must not be exploded
     # into a list of single-character "swaps".
     assert _normalize_swaps("alerts") == ["alerts"]  # type: ignore
+
+
+# =============================================================================
+# Swap.delete
+# =============================================================================
+
+
+def test_delete_produces_bare_oob_delete_markup():
+    request = RequestFactory().get("/", HTTP_HX_REQUEST="true")
+    swap = Swap.delete("target-to-delete")
+    html = swap.render(request)
+    assert html == '<div id="target-to-delete" hx-swap-oob="delete"></div>'
+
+
+def test_delete_sets_swap_style_and_wrap():
+    swap = Swap.delete("box")
+    assert swap.swap_style == "delete"
+    assert swap.wrap == "oob"
+    assert swap.template_name is None
+
+
+def test_delete_ignores_configured_default_wrap_setting():
+    with override_settings(HTMX_NAV_DEFAULT_SWAP_WRAP="hx-partial"):
+        swap = Swap.delete("box")
+    assert swap.wrap == "oob"
+
+
+def test_delete_respects_include_if():
+    request = htmx_request(RequestFactory(), target="main-content")
+    swap = Swap.delete("box", include_if=not_targeting("main-content"))
+    assert swap.applies_to(request) is False
+
+
+def test_delete_omits_debug_marker_even_when_enabled():
+    with override_settings(HTMX_NAV_DEBUG_SWAPS=True):
+        request = RequestFactory().get("/", HTTP_HX_REQUEST="true")
+        swap = Swap.delete("box")
+        html = swap.render(request)
+    assert html == '<div id="box" hx-swap-oob="delete"></div>'
+    assert "<script>" not in html
+
+
+def test_delete_without_target_id_raises():
+    with pytest.raises(ValueError, match="requires target_id"):
+        Swap(swap_style="delete")
+
+
+def test_non_delete_swap_without_template_name_raises():
+    with pytest.raises(
+        ValueError,
+        match="template_name or content is required unless swap_style='delete'",
+    ):
+        Swap(target_id="box")
+
+
+# =============================================================================
+# Swap.text
+# =============================================================================
+
+
+def test_text_produces_oob_wrapped_content():
+    request = RequestFactory().get("/", HTTP_HX_REQUEST="true")
+    swap = Swap.text("count", "3")
+    html = swap.render(request)
+    assert html == '<div id="count" hx-swap-oob="innerHTML">3</div>'
+
+
+def test_text_escapes_plain_strings():
+    request = RequestFactory().get("/", HTTP_HX_REQUEST="true")
+    swap = Swap.text("label", "<b>3</b>")
+    html = swap.render(request)
+    assert html == '<div id="label" hx-swap-oob="innerHTML">&lt;b&gt;3&lt;/b&gt;</div>'
+
+
+def test_text_respects_mark_safe():
+    from django.utils.safestring import mark_safe
+
+    request = RequestFactory().get("/", HTTP_HX_REQUEST="true")
+    swap = Swap.text("label", mark_safe("<b>3</b>"))
+    html = swap.render(request)
+    assert html == '<div id="label" hx-swap-oob="innerHTML"><b>3</b></div>'
+
+
+def test_text_respects_swap_style_and_wrap():
+    request = RequestFactory().get("/", HTTP_HX_REQUEST="true")
+    swap = Swap.text("count", "3", swap_style="outerHTML", wrap="hx-partial")
+    html = swap.render(request)
+    assert html == '<hx-partial hx-target="#count" hx-swap="outerHTML">3</hx-partial>'
+
+
+@override_settings(HTMX_NAV_DEBUG_SWAPS=True)
+def test_text_includes_debug_marker_when_enabled():
+    request = RequestFactory().get("/", HTTP_HX_REQUEST="true")
+    swap = Swap.text("count", "3")
+    html = swap.render(request)
+    assert 'getElementById("count")' in html
+
+
+def test_text_and_template_name_together_raises():
+    with pytest.raises(ValueError, match="only one of template_name or content"):
+        Swap(template_name="tests/_minimal.html", content="3", target_id="box")
+
+
+def test_neither_text_nor_template_name_raises():
+    with pytest.raises(ValueError, match="template_name or content is required"):
+        Swap(target_id="box")

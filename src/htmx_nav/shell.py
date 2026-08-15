@@ -42,15 +42,15 @@ def make_shell_renderer(
     """Creates a renderer that automatically injects a shell navigation swap.
 
     Example:
-    ```python
-        render_dashboard = make_shell_renderer(
-            "partials/navigation.html",
-            context_builder=lambda req: {"unread": req.user.unread_count},
-            target_id="nav-bar",
-        )
+        .. code-block:: python
 
-        return render_dashboard(request, "pages/projects.html", {"projects": projects})
-    ```
+            render_dashboard = make_shell_renderer(
+                "partials/navigation.html",
+                context_builder=lambda req: {"unread": req.user.unread_count},
+                target_id="nav-bar",
+            )
+
+            return render_dashboard(request, "pages/projects.html", {"projects": projects})
     """
     default_partial: PartialSpec = (
         dict(partial) if isinstance(partial, Mapping) else partial

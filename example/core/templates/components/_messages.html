@@ -1,19 +1,17 @@
-<div class="fixed top-4 left-1/2 z-50 w-full max-w-lg -translate-x-1/2 px-4 space-y-2 pointer-events-none">
-  {% for message in messages %}
-    <div x-data="{ show: true }"
-         x-show="show"
-         x-transition.opacity.duration.300ms
-         x-init="setTimeout(() => show = false, 4000)"
-         class="pointer-events-auto">
-      <div role="alert"
-           aria-live="assertive"
-           class="alert grid-cols-1 shadow-lg {% if message.tags == 'success' %} alert-success {% elif message.tags == 'error' %} alert-error {% elif message.tags == 'warning' %} alert-warning {% else %} alert-info {% endif %}">
+{% if messages %}
+  <div class="toast toast-top toast-center z-50 w-full max-w-lg px-4 pointer-events-none">
+    {% for message in messages %}
+      <input type="checkbox" id="toast-{{ forloop.counter }}" class="peer hidden" />
+      <div class="alert pointer-events-auto flex justify-between items-center shadow-lg peer-checked:hidden transition-all duration-300
+          {% if message.tags == 'success' %}alert-success
+          {% elif message.tags == 'error' %}alert-error
+          {% elif message.tags == 'warning' %}alert-warning
+          {% else %}alert-info{% endif %}">
         <span>{{ message }}</span>
-        <button type="button"
-                class="btn btn-sm btn-ghost"
-                @click="show = false"
-                aria-label="Close message">✕</button>
+        <label for="toast-{{ forloop.counter }}" 
+               class="btn btn-sm btn-circle btn-ghost cursor-pointer" 
+               aria-label="Fechar mensagem">✕</label>
       </div>
-    </div>
-  {% endfor %}
-</div>
+    {% endfor %}
+  </div>
+{% endif %}

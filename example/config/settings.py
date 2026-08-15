@@ -61,7 +61,6 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.messages.context_processors.messages",
                 "config.context_processors.variants",
-                "config.context_processors.demo_mode",
             ],
         },
     },

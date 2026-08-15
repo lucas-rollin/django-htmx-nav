@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% if not uses_htmx %}{% block title %}{{ project.name }} · {{ org.name }}{% endblock %}{% endif %}
+{% block title %}{{ project.name }} · {{ org.name }}{% endblock %}
 {% block content %}
   {% partialdef content inline %}
     <div class="p-6 max-w-6xl mx-auto">
@@ -172,7 +172,7 @@
           <div id="subtabs">
             {% partialdef settings_subtabs inline %}
               <ul class="menu w-48 shrink-0 bg-base-100 rounded-box border border-base-300 h-fit"
-                  {% if uses_htmx %}hx-target="#subtab-content"{% endif %}>
+                  {% if active_variant.namespace == "htmx_nav_atomic" or active_variant.namespace == "htmx_nav_declarative" %}hx-target="#subtab-content"{% endif %}>
                 <li>
                   <a href="{% url request.resolver_match.namespaces|last|add:':project_settings' org.id project.id %}"
                      class="{% if active_subtab == 'general' %}menu-active{% endif %}">General</a>

@@ -1,6 +1,6 @@
 # django-htmx-nav
 
-[![Docs](https://img.shields.io/badge/docs-mkdocs--material-blue)](https://lucas-rollin.github.io/django-htmx-nav/)
+[![Docs](https://img.shields.io/badge/docs-furo-blue)](https://lucas-rollin.github.io/django-htmx-nav/)
 
 Django 6 added native template partials, so a single file can define
 both the full page and the fragment HTMX swaps into:
@@ -11,33 +11,33 @@ both the full page and the fragment HTMX swaps into:
 {% block content %}
 {% partialdef content inline %}
   <div>My page!</div>
-{% endpartial %}
+{% endpartialdef %}
 {% endblock %}
 ```
 
 That's most of what you need for server-driven, SPA-like UX with MPA
-simplicity, the URL stays the source of truth, and a full load vs. an
+simplicity: the URL stays the source of truth, and a full load vs. an
 HTMX swap render the same fragment. What's still missing is the
-boilerplate around it: detecting HTMX, picking the partial and 
+boilerplate around it: detecting HTMX, picking the partial, and
 doing HTMX-safe redirects. And, once your page has more
 than one region (a sidebar, breadcrumbs), keeping those regions from
 drifting out of sync depending on how the page was reached.
 
-`django-htmx-nav` is two functions for that. Not a Django app, nothing
+`django-htmx-nav` provides lightweight helpers for that. Not a Django app, nothing
 to add to `INSTALLED_APPS`.
 
 ```bash
 pip install django-htmx-nav
 ```
 
-## `render_htmx`: partial rendering, done
+## `render_nav`: partial rendering, done
 
 ```python
-from htmx_nav.responses import render_htmx
+from htmx_nav import render_nav
 
 
 def project_list(request):
-    return render_htmx(
+    return render_nav(
         request, "app/project_list.html", {"projects": Project.objects.all()}
     )
 ```
@@ -47,7 +47,7 @@ def project_list(request):
 {% block content %}
 {% partialdef content inline %}
   {% for project in projects %}<div>{{ project.name }}</div>{% endfor %}
-{% endpartial %}
+{% endpartialdef %}
 {% endblock %}
 ```
 
@@ -63,12 +63,12 @@ update on their own. HTMX's out-of-band swaps solve this: render extra
 fragments alongside the main one, each targeting its own DOM id.
 
 ```python
-from htmx_nav.responses import Swap, render_htmx
+from htmx_nav import Swap, render_nav
 
 
 def project_detail(request, pk):
     project = get_object_or_404(Project, pk=pk)
-    return render_htmx(
+    return render_nav(
         request,
         "app/project_detail.html",
         {"project": project},
@@ -82,7 +82,7 @@ def project_detail(request, pk):
 ```
 
 This works, but every view that touches the sidebar now needs to
-rebuild the same nav context and remember to pass the same two `Swap`s,
+rebuild the same nav context and remember to pass the same `Swap`s,
 easy to forget in view #12.
 
 ## `make_shell_renderer`: the shell, abstracted away
@@ -92,7 +92,7 @@ easy to forget in view #12.
 view — the shell just always comes along for free:
 
 ```python
-from htmx_nav.responses import make_shell_renderer
+from htmx_nav import make_shell_renderer
 
 render_shell = make_shell_renderer(
     shell_template="app/_shell.html",  # renders sidebar + breadcrumbs together
@@ -109,50 +109,40 @@ Every HTMX response from `render_shell` includes the shell as an
 out-of-band swap, built from the same `build_nav_context` a full page
 load would use, so the sidebar can never show one thing on first load
 and another after an HTMX swap. `render_shell` accepts the same
-keyword arguments as `render_htmx` (`extra_swaps`, `partial_name` ...),
+keyword arguments as `render_nav` (`extra_swaps`, `partial` ...),
 so it's a drop-in.
 
-## Advanced: three-pathway views (e.g. intrapage navigtion with tabs)
+## Target-aware partial resolution
 
-Some views have more than two ways they can be entered: a full reload,
-an HTMX navigation into the page from elsewhere (targeting the page's
-own top-level container), and an HTMX swap *within* the page (e.g.
-clicking a tab). The first two should render the whole "content" region
-and skip any extra OOB fragments beyond the shell; only the third needs
-`extra_swaps` for siblings like a tab strip. `page_target_id` tells
-`render_shell` how to fold the first two together automatically:
+Views can resolve different partial blocks dynamically based on `HX-Target` headers using target specifications:
 
 ```python
-render_staff = make_shell_renderer(
+from htmx_nav import Swap, make_shell_renderer, targeting
+
+render_project = make_shell_renderer(
     "app/_shell.html",
     context_builder=lambda request: {"nav": build_nav_context(request)},
-    page_target_id="page-content",  # DOM id of the page's own container
 )
 
 
-def project_tab(request, pk, *, tab_partial_name):
+def project_tab(request, pk):
     project = get_object_or_404(Project, pk=pk)
-    return render_staff(
+    return render_project(
         request,
         "app/project_detail.html",
         {"project": project},
-        partial_name=tab_partial_name,
+        partial={
+            "#tab_content": targeting("tab-content"),
+            "#main_content": targeting("main-content"),
+            "#content": True,
+        },
         extra_swaps=[
-            Swap("app/_tabs.html", {"active": tab_partial_name}, target_id="tabs")
+            Swap("app/_tabs.html", {"active": "overview"}, target_id="tabs")
         ],
     )
 ```
 
-- **Full reload / HTMX targeting `#page-content`:** `render_staff`
-  overrides `partial_name` to `"content"` and drops `extra_swaps` down
-  to just the shell — nothing else in the DOM exists yet to refresh.
-- **Any other HTMX target** (a tab click, a modal retargeted to a tab):
-  falls through to `partial_name=tab_partial_name` and the tab strip
-  swap, exactly as passed.
-
-The view stays focused on what's actually tab-specific (which partial,
-which sibling needs refreshing); the "which of the 3 pathways is this"
-branching lives once, inside `render_shell`.
+The view stays focused on what's actually tab-specific; partial selection and out-of-band shell delivery are handled cleanly by `render_project`.
 
 ---
 

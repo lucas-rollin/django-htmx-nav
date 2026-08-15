@@ -18,7 +18,7 @@ Including another URLconf
 from importlib import import_module
 
 from core.navigation.registry import VARIANTS
-from core.url_utils import generate_variant_urls
+from core.urls import generate_variant_urls
 from django.urls import include, path
 from django.views.generic import RedirectView
 
@@ -29,7 +29,8 @@ def _variant_mounts():
         yield path(
             variant.url_prefix,
             include(
-                (generate_variant_urls(views), variant.app_name), namespace=variant.namespace
+                (generate_variant_urls(views), variant.app_name),
+                namespace=variant.namespace,
             ),
         )
 

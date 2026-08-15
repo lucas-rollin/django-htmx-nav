@@ -1,5 +1,5 @@
 """
-Generate resuable urls for the different variants
+Generate resuable urls for the different variants.
 """
 
 from django.urls import path
@@ -42,6 +42,11 @@ def generate_variant_urls(views):
             name="kanban_board",
         ),
         path(
+            "tickets/<str:ticket_id>/move/",
+            views.ticket_move_status,
+            name="ticket_move_status",
+        ),
+        path(
             "orgs/<str:org_id>/projects/<str:project_id>/tickets/new/<str:step>/",
             views.ticket_wizard_step,
             name="ticket_wizard_step",
@@ -61,10 +66,5 @@ def generate_variant_urls(views):
             "tickets/<str:ticket_id>/attachments/",
             views.ticket_attachments,
             name="ticket_attachments",
-        ),
-        path(
-            "tickets/<str:ticket_id>/move/",
-            views.ticket_move_status,
-            name="ticket_move_status",
         ),
     ]

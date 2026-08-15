@@ -105,20 +105,20 @@ def render_nav(
     context for nav/tab highlighting.
 
     Example:
-    ```python
-        return render_nav(
-            request,
-            "project/detail.html",
-            {"project": project},
-            partial={
-                "#tab_content": targeting("tab-content"),
-                "#main_content": targeting("main-content"),
-                "#content": True,
-            },
-            swaps=[Swap("partials/sidebar.html", target_id="sidebar")],
-            title=project.name,
-        )
-    ```
+        .. code-block:: python
+
+            return render_nav(
+                request,
+                "project/detail.html",
+                {"project": project},
+                partial={
+                    "#tab_content": targeting("tab-content"),
+                    "#main_content": targeting("main-content"),
+                    "#content": True,
+                },
+                swaps=[Swap("partials/sidebar.html", target_id="sidebar")],
+                title=project.name,
+            )
     """
     is_htmx = _is_htmx_request(request)
     active_partial = _resolve_partial_name(partial, request)

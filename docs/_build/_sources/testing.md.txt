@@ -1,0 +1,127 @@
+# Testing & Visual Debugging
+
+`django-htmx-nav` provides automated test utilities to verify navigation state consistency across HTMX request pathways, as well as a visual debugging feature to highlight out-of-band DOM swaps in development.
+
+---
+
+## 1. Verifying Navigation Parity (`assert_shell_parity`)
+
+In applications using shell layouts (sidebars, breadcrumbs, headers), a single page URL can often be reached in multiple ways:
+1. **Full Page Reload:** Initial browser navigation or page refresh.
+2. **Page Shell Swap:** HTMX navigation into the page targeting the main container.
+3. **Tab/Component Swap:** HTMX interaction within the page targeting a partial container.
+
+`assert_shell_parity` makes HTTP requests for each pathway using Django's test client and asserts that the resolved template context yields identical navigation data across all variants.
+
+```python
+from django.test import Client
+from htmx_nav.testing import assert_shell_parity
+
+
+def test_project_detail_navigation_parity(client: Client, project):
+    assert_shell_parity(
+        client,
+        f"/projects/{project.pk}/",
+        requests={
+            "full_reload": {},
+            "page_shell": {"HTTP_HX_REQUEST": "true", "HTTP_HX_TARGET": "page-content"},
+            "tab_shell": {"HTTP_HX_REQUEST": "true", "HTTP_HX_TARGET": "tab-content"},
+        },
+        checks={
+            "sidebar_active_item": lambda ctx: [
+                item["label"] for item in ctx["nav"]["sidebar"] if item["active"]
+            ],
+            "breadcrumbs": lambda ctx: [c["label"] for c in ctx["nav"]["breadcrumbs"]],
+            "active_partial": lambda ctx: ctx.get("active_partial"),
+        },
+    )
+```
+
+---
+
+## 2. Verifying DOM Fragment Composition (`assert_shell_composition`)
+
+While `assert_shell_parity` verifies template context parity, `assert_shell_composition` goes further by parsing the actual response HTML using BeautifulSoup to ensure that:
+
+1. The full-reload response's `#page-content` fragment matches the page-shell response body.
+2. The page-shell response's `#tab-content` fragment matches the tab-shell response body.
+3. The full-reload response's `#tab-content` fragment matches the tab-shell response body.
+
+This catches bugs such as missing wrapper elements or header-dependent template branching that context assertions alone cannot detect.
+
+```python
+from django.test import Client
+from htmx_nav.testing import assert_shell_composition
+
+
+def test_project_detail_html_composition(client: Client, project):
+    responses = assert_shell_composition(
+        client,
+        f"/projects/{project.pk}/",
+        page_shell_kwargs={"HTTP_HX_REQUEST": "true", "HTTP_HX_TARGET": "page-content"},
+        tab_shell_kwargs={"HTTP_HX_REQUEST": "true", "HTTP_HX_TARGET": "tab-content"},
+        page_container_id="page-content",
+        tab_container_id="tab-content",
+    )
+
+    # Further custom assertions on individual responses
+    assert responses["full_reload"].status_code == 200
+```
+
+> **Note:** `assert_shell_composition` requires `beautifulsoup4`. Install it via:
+> ```bash
+> pip install beautifulsoup4
+> ```
+
+---
+
+## 3. Visual Swap Debugging (`HTMX_NAV_DEBUG_SWAPS`)
+
+`django-htmx-nav` includes a built-in visual debug tool to highlight DOM elements whenever they are updated via out-of-band HTMX swaps.
+
+### Enabling Debug Swaps
+
+1. Enable the setting in your Django `settings.py` (typically in development environments):
+
+```python
+# settings.py
+HTMX_NAV_DEBUG_SWAPS = True
+```
+
+2. Include the debug stylesheet in your base HTML template:
+
+```html
+{% load static %}
+<link rel="stylesheet" href="{% static 'htmx_nav/debug-swaps.css' %}">
+```
+
+3. Add the `data-hn-debug-swaps` attribute to your `<body>` tag:
+
+```html
+<body data-hn-debug-swaps>
+  <!-- App content -->
+</body>
+```
+
+### How It Works
+
+When `HTMX_NAV_DEBUG_SWAPS` is enabled, `Swap` instances targeting a `target_id` automatically append an inline script to the fragment:
+
+```html
+<script>(function(){var el=document.getElementById("target-id");if(!el)return;el.classList.remove('hn-swap');void el.offsetWidth;el.classList.add('hn-swap');})();</script>
+```
+
+The script applies the `.hn-swap` CSS class to the target element and forces a reflow. The `debug-swaps.css` stylesheet triggers a brief background color flash animation on the updated element whenever an HTMX swap occurs:
+
+```css
+[data-hn-debug-swaps] .hn-swap {
+  animation: hn-flash-pulse 900ms ease-out;
+}
+
+@keyframes hn-flash-pulse {
+  from { background-color: #fef08a; }
+  to   { background-color: transparent; }
+}
+```
+
+This visual feedback makes it immediate and obvious during development which DOM elements were swapped out-of-band.

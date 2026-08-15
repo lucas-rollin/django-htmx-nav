@@ -21,7 +21,7 @@
           type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script defer src="{% static 'js/theme.js' %}"></script>
-    {% if uses_htmx %}
+    {% if active_variant.uses_htmx %}
       <!--<script src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.0-beta6/dist/htmx.min.js"></script>-->
       <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js"
               integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V"
@@ -30,12 +30,12 @@
     {% endif %}
   </head>
   <body data-demo-mode="{{ demo_mode }}"
-        {% if uses_htmx %}hx-boost="true" hx-target="#main-content" data-hn-debug-swaps{% endif %}>
+        {% if active_variant.uses_htmx %}hx-boost="true" hx-target="#main-content" data-hn-debug-swaps{% endif %}>
     <div class="drawer lg:drawer-open">
       <input id="my-drawer" type="checkbox" class="drawer-toggle" />
       <div class="drawer-content min-h-dvh flex flex-col justify-between">
         <header>
-          <nav class="navbar {% if uses_htmx %}bg-primary/10{% else %}bg-error/10{% endif %} shadow-sm">
+          <nav class="navbar {% if active_variant.uses_htmx %}bg-primary/10{% else %}bg-error/10{% endif %} shadow-sm">
             <div class="navbar-start gap-2">
               <label for="my-drawer"
                      aria-label="open sidebar"
@@ -64,14 +64,14 @@
               </a>
             </div>
             <div class="navbar-center gap-2 hidden sm:inline-flex">
-              {% if uses_htmx %}
+              {% if active_variant.uses_htmx %}
                 <span class="badge badge-primary badge-lg font-semibold">HTMX MODE</span>
               {% else %}
                 <span class="badge badge-error badge-lg font-semibold">MPA MODE</span>
               {% endif %}
             </div>
             <div class="navbar-end space-x-2">
-              {% if uses_htmx %}
+              {% if active_variant.uses_htmx %}
                 <button type="button"
                         class="btn btn-ghost"
                         onclick="document.body.toggleAttribute('data-hn-debug-swaps')">Highlight swaps</button>
@@ -104,15 +104,13 @@
                     </path>
                   </svg>
                 </summary>
-                <ul class="menu dropdown-content bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm" 
-                  {% if active_variant.uses_htmx %}hx-boost="false"{% endif%}>
+                <ul class="menu dropdown-content bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
+                    {% if active_variant.uses_htmx %}hx-boost="false"{% endif %}>
                   {% for variant in all_variants.values %}
                     {% with variant.namespace|add:':overview' as url_name %}
                       <li>
-                        <a href="{% url url_name %}" 
-                          class="{% if variant == active_variant %}menu-active{% endif %}">
-                          {{ variant.label }}
-                        </a>
+                        <a href="{% url url_name %}"
+                           class="{% if variant == active_variant %}menu-active{% endif %}">{{ variant.label }}</a>
                       </li>
                     {% endwith %}
                   {% endfor %}

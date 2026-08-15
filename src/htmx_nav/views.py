@@ -28,30 +28,30 @@ def make_shell_view_mixin(
     default_swaps: Swaps = None,
     default_partial: PartialSpec = "#content",
 ) -> type:
-    """
-        Build a mixin that routes a CBV's response through `render_nav` —
-        directly by default, or through a shell renderer if one is supplied.
+    """Build a mixin that routes a CBV's response through `render_nav` —
+    directly by default, or through a shell renderer if one is supplied.
 
-        Args:
-            render: Optional render function, usually created by
-                `make_shell_renderer`. When omitted, the mixin calls
-                `render_nav` directly — no `make_shell_renderer` required for
-                a CBV to use swaps.
-            default_swaps: Swap(s) applied on every view using this mixin,
-                combined with (not replaced by) each view's own
-                `get_extra_swaps()`.
-            default_partial: Partial spec used unless a view overrides
-                `get_partial()`.
+    Args:
+        render: Optional render function, usually created by
+            `make_shell_renderer`. When omitted, the mixin calls
+            `render_nav` directly — no `make_shell_renderer` required for
+            a CBV to use swaps.
+        default_swaps: Swap(s) applied on every view using this mixin,
+            combined with (not replaced by) each view's own
+            `get_extra_swaps()`.
+        default_partial: Partial spec used unless a view overrides
+            `get_partial()`.
 
-        Override points on the view:
-            - `get_extra_swaps()`: this view's Swap(s), runs after
-              `self.request`/`self.object` are set.
-            - `get_title()` / `title` class attribute.
-            - `get_partial()`: overrides `default_partial` per-view.
-            - `get_shell_template_name()`: defaults to `get_template_names()[0]`.
+    Override points on the view:
+        - `get_extra_swaps()`: this view's Swap(s), runs after
+          `self.request`/`self.object` are set.
+        - `get_title()` / `title` class attribute.
+        - `get_partial()`: overrides `default_partial` per-view.
+        - `get_shell_template_name()`: defaults to `get_template_names()[0]`.
 
-        Example:
-    ```python
+    Example:
+        .. code-block:: python
+
             ShellViewMixin = make_shell_view_mixin()
 
             class TicketListView(ShellViewMixin, ListView):
@@ -59,7 +59,6 @@ def make_shell_view_mixin(
 
                 def get_extra_swaps(self):
                     return [sidebar_swap, breadcrumb_swap]
-    ```
     """
     defaults = _normalize_swaps(default_swaps)
     render_fn: Callable[..., TemplateResponse] = render or render_nav

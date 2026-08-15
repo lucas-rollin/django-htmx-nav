@@ -12,23 +12,21 @@ Install `django-htmx-nav` via `pip`:
 pip install django-htmx-nav
 ```
 
-> **Note:** `django-htmx-nav` is a Python package containing lightweight utility functions. You do **not** need to add anything to `INSTALLED_APPS` in your Django `settings.py`.
-
 ---
 
-## 2. Basic Partial Rendering (`render_htmx`)
+## 2. Basic Partial Rendering (`render_nav`)
 
-Use `render_htmx` in your view functions instead of standard Django `render`.
+Use `render_nav` in your view functions instead of standard Django `render`.
 
 ```python
 # views.py
-from htmx_nav.responses import render_htmx
+from htmx_nav import render_nav
 from .models import Project
 
 
 def project_list(request):
     projects = Project.objects.all()
-    return render_htmx(request, "app/project_list.html", {"projects": projects})
+    return render_nav(request, "app/project_list.html", {"projects": projects})
 ```
 
 In your HTML template, mark the partial block using Django 6 inline partials:
@@ -44,14 +42,14 @@ In your HTML template, mark the partial block using Django 6 inline partials:
       <div class="card">{{ project.name }}</div>
     {% endfor %}
   </div>
-{% endpartial %}
+{% endpartialdef %}
 {% endblock %}
 ```
 
 ### Behavior
 
 - **Full Page Load:** Renders the full template including `base.html`.
-- **HTMX Request:** Renders only the `content` partial, sets `HX-Push-Url` to the request URL, and patches `Vary: HX-Request` for correct HTTP caching.
+- **HTMX Request:** Renders only the `content` partial, resolves active partials, and patches `Vary: HX-Request` for correct HTTP caching.
 
 ---
 
@@ -60,12 +58,12 @@ In your HTML template, mark the partial block using Django 6 inline partials:
 When navigating between pages, components outside the main content area (such as sidebars or breadcrumbs) may also need updating. Use `Swap` to append out-of-band fragments:
 
 ```python
-from htmx_nav.responses import render_htmx, Swap
+from htmx_nav import Swap, render_nav
 
 
 def project_detail(request, pk):
     project = get_object_or_404(Project, pk=pk)
-    return render_htmx(
+    return render_nav(
         request,
         "app/project_detail.html",
         {"project": project},
@@ -74,9 +72,16 @@ def project_detail(request, pk):
             Swap(
                 "app/_breadcrumbs.html", {"project": project}, target_id="breadcrumbs"
             ),
+            Swap.text("notification-badge", "3"),
+            Swap.delete("temporary-alert"),
         ],
     )
 ```
+
+### Ready-made Strings and Deletions
+
+- **`Swap.text(target_id, content)`**: Emits string content directly without template rendering.
+- **`Swap.delete(target_id)`**: Generates an out-of-band delete fragment (`<div id="target_id" hx-swap-oob="delete"></div>`).
 
 ---
 
@@ -86,7 +91,7 @@ To avoid repeating shell swap definitions across every view, use `make_shell_ren
 
 ```python
 # renderers.py
-from htmx_nav.responses import make_shell_renderer
+from htmx_nav import make_shell_renderer
 
 render_shell = make_shell_renderer(
     shell_template="app/_shell.html",
@@ -127,23 +132,16 @@ class ProjectDetailView(ShellViewMixin, DetailView):
 
 ---
 
-## 6. Verifying Navigation Parity in Tests
+## 6. Testing & Visual Debugging
 
-Use `assert_shell_parity` from `htmx_nav.testing` to verify that full page loads and HTMX swaps yield identical navigation states:
-
-```python
-from htmx_nav.testing import assert_shell_parity
-
-
-def test_project_detail_navigation(client, project):
-    assert_shell_parity(client, f"/projects/{project.pk}/")
-```
+For testing navigation context parity, HTML composition, and using visual swap debugging in development, see the standalone [Testing & Visual Debugging Guide](testing.md).
 
 ---
 
 ## Next Steps
 
 - Check out the [API Reference / Docstrings](api.md) for full function signatures.
+- Learn about [Testing & Visual Debugging](testing.md).
 - Explore architectural patterns:
   - [Context Processor & Template Tags](pattern/context_processor_and_templatetags.md)
   - [Centralized Navigation Registry](pattern/registry_pattern.md)

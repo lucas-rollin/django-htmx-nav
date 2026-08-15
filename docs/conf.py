@@ -35,6 +35,7 @@ extensions = [
     "sphinx_autodoc_typehints",
 ]
 
+
 myst_enable_extensions = [
     "colon_fence",
     "fieldlist",
@@ -42,6 +43,11 @@ myst_enable_extensions = [
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+autodoc_typehints = "none"
+
+autodoc_default_options = {
+    "no-imported-members": True,
+}
 
 html_theme = "furo"
 html_title = "django-htmx-nav"

@@ -20,21 +20,21 @@ Values resolve to:
     - `None`: Forces a full-page render.
 
 Examples:
-```python
-    "#content"
+    .. code-block:: python
 
-    "partials/_tab_content.html"
+        "#content"
 
-    "partials/navigation_components.html#sidebar"
+        "partials/_tab_content.html"
 
-    lambda request: "#tab_content" if htmx_target_is(request, "tabs") else "#content"
+        "partials/navigation_components.html#sidebar"
 
-    {
-        "partials/_tab_content.html": targeting("tabs"),
-        "#main_content": targeting("main"),
-        "#content": True,
-    }
-```
+        lambda request: "#tab_content" if htmx_target_is(request, "tabs") else "#content"
+
+        {
+            "partials/_tab_content.html": targeting("tabs"),
+            "#main_content": targeting("main"),
+            "#content": True,
+        }
 """
 
 

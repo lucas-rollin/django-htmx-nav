@@ -12,13 +12,13 @@ Target: TypeAlias = str | Callable[[HttpRequest], bool] | bool
 """Condition deciding whether a partial or swap applies to an HTMX request.
 
 Examples:
-```python
-    "main-content"  # Matches HX-Target header
-    targeting("main-content", "modal")
-    not_targeting("sidebar")
-    True
-    False
-```
+    .. code-block:: python
+
+        "main-content"  # Matches HX-Target header
+        targeting("main-content", "modal")
+        not_targeting("sidebar")
+        True
+        False
 """
 
 
@@ -66,10 +66,10 @@ def htmx_target_is(request: HttpRequest, *dom_ids: str) -> bool:
         True if the request target matches any provided ID.
 
     Example:
-    ```python
-        if htmx_target_is(request, "tab-content", "modal-body"):
-            ...
-    ```
+        .. code-block:: python
+
+            if htmx_target_is(request, "tab-content", "modal-body"):
+                ...
     """
     target = _htmx_target_header(request)
     return any(_htmx_target_is(target, dom_id) for dom_id in dom_ids)
@@ -79,13 +79,13 @@ def targeting(*dom_ids: str) -> Callable[[HttpRequest], bool]:
     """Creates a predicate checking if a request targets any specified DOM ID.
 
     Example:
-    ```python
-        Swap(
-            "partials/tabs.html",
-            target_id="tabs",
-            include_if=targeting("tab-content", "tabs"),
-        )
-    ```
+        .. code-block:: python
+
+            Swap(
+                "partials/tabs.html",
+                target_id="tabs",
+                include_if=targeting("tab-content", "tabs"),
+            )
     """
 
     def predicate(request: HttpRequest) -> bool:
@@ -98,13 +98,13 @@ def not_targeting(*dom_ids: str) -> Callable[[HttpRequest], bool]:
     """Creates a predicate checking that a request does NOT target specified DOM IDs.
 
     Example:
-    ```python
-        Swap(
-            "partials/sidebar.html",
-            target_id="sidebar",
-            include_if=not_targeting("main-content"),
-        )
-    ```
+        .. code-block:: python
+
+            Swap(
+                "partials/sidebar.html",
+                target_id="sidebar",
+                include_if=not_targeting("main-content"),
+            )
     """
 
     def predicate(request: HttpRequest) -> bool:

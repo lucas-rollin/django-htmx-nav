@@ -9,6 +9,8 @@
 :caption: Contents
 
 quickstart
+testing
+example_project
 api
 pattern/context_processor_and_templatetags
 pattern/registry_pattern
@@ -42,7 +44,9 @@ While partials solve single-fragment swapping, real-world web applications often
 
 ## Core Capabilities
 
-- **`render_htmx`**: Renders only requested partial blocks on HTMX requests, manages `HX-Push-Url`, and appends extra OOB `Swap` fragments seamlessly.
+- **`render_nav`**: Renders requested template partial blocks on HTMX requests, manages active navigation state, patches `Vary: HX-Request`, and appends extra OOB `Swap` fragments seamlessly.
+- **`render_with_swaps`**: Renderer for views that need out-of-band swaps without partial/block resolution logic.
+- **`Swap` (`Swap.delete`, `Swap.text`)**: Out-of-band fragment specification supporting template rendering, direct text content, and DOM element deletion (`hx-swap-oob="delete"`).
 - **`make_shell_renderer`**: Encapsulates common page layouts (sidebar, header, breadcrumbs) into a clean renderer function so view functions remain uncluttered.
 - **`make_shell_view_mixin`**: Class-Based View (CBV) integration for Django generic views (`DetailView`, `ListView`, `FormView`).
-- **`assert_shell_parity`**: Automated test utility to verify navigation state consistency across full loads and HTMX interactions in CI.
+- **`assert_shell_parity` & `assert_shell_composition`**: Automated test utilities to verify navigation state consistency and HTML composition across full loads and HTMX swaps in CI.

@@ -17,6 +17,7 @@ from htmx_nav import (
     Swap,
     make_shell_view_mixin,
     render_nav,
+    render_with_swaps,
     targeting,
 )
 
@@ -264,16 +265,26 @@ def ticket_move_status(request: HttpRequest, ticket_id: str) -> HttpResponse:
     submissions and standard browser form posts.
     """
     ticket = Ticket.objects.get(id=ticket_id)
+    old_status = ticket.status
     new_status = request.POST.get("new_status")
     if new_status in ("open", "in_progress", "resolved", "closed"):
         ticket.status = new_status
         ticket.save(update_fields=["status"])
-    project = ticket.project
-    return redirect(
-        f"{NAMESPACE}:kanban_board",
-        org_id=project.organization.id,
-        project_id=project.id,
+
+    swaps = [Swap.delete(f"ticket-{ticket.id}")]
+    if new_status != old_status:
+        for status in (old_status, new_status):
+            count = Ticket.objects.filter(
+                project_id=ticket.project.id, status=status
+            ).count()
+            swaps.append(Swap.text(f"column-count-{status}", str(count)))
+
+    response = render_with_swaps(
+        request, "pages/_board.html#ticket-card", {"ticket": ticket}, swaps=swaps
     )
+    response["HX-Retarget"] = f"#column-{ticket.status}"
+    response["HX-Push-Url"] = "false"
+    return response
 
 
 def kanban_board(request: HttpRequest, org_id: str, project_id: str) -> HttpResponse:

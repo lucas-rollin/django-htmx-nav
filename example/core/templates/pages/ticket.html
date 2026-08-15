@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load nav_extras %}
-{% if not is_htmx_nav %}{% block title %}#{{ ticket.id|slice:":8" }} · {{ ticket.title }}{% endblock %}{% endif %}
+{% block title %}#{{ ticket.id|slice:":8" }} · {{ ticket.title }}{% endblock %}
 {% block content %}
   {% partialdef content inline %}
     <div class="p-6 max-w-4xl mx-auto">
@@ -9,11 +9,14 @@
         <span class="badge {{ ticket.status|status_badge_class }}">{{ ticket.status|status_label }}</span>
       </div>
       <p class="text-base-content/50 font-mono text-sm mb-6">#{{ ticket.id|slice:":8" }}</p>
+      {# ================================ #}
+      {# --- Call the navigation Swap --- #}
+      {# ================================ #}
       <div id="ticket-tabs">{% include "components/_ticket_tabs.html" %}</div>
-      {# ============================== #}
-      {# --- Define the tab content --- #}
-      {# ============================== #}
-      {% partialdef detail %}
+      {# ================================ #}
+      {# --- Define the tab content   --- #}
+      {# ================================ #}
+      {% partialdef details %}
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="md:col-span-2 card bg-base-100 border border-base-300">
             <div class="card-body">
@@ -45,7 +48,7 @@
             </div>
           </div>
         </div>
-      {% endpartialdef detail %}
+      {% endpartialdef details %}
       {% partialdef activity %}
         <ul class="timeline timeline-vertical">
           {% for event in activity %}
@@ -106,12 +109,12 @@
           <button type="submit" class="btn btn-primary" disabled>Post</button>
         </form>
       {% endpartialdef comments %}
-      {# ============================== #}
-      {# --- Call the tab content   --- #}
-      {# ============================== #}
+      {# ================================ #}
+      {# --- Call the tab content     --- #}
+      {# ================================ #}
       <div id="tab-content">
-        {% if active_tab == "detail" %}
-          {% partial detail %}
+        {% if active_tab == "details" %}
+          {% partial details %}
         {% elif active_tab == "activity" %}
           {% partial activity %}
         {% elif active_tab == "attachments" %}
