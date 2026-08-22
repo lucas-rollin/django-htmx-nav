@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from typing import TypeVar
+from typing import Any, TypeVar
 
 from django.http import HttpRequest
 from django.urls import NoReverseMatch, reverse
@@ -11,7 +11,7 @@ _MISSING = object()
 
 def reverse_maybe(
     view_name: str | None,
-    kwargs: dict | None = None,
+    kwargs: dict[str, Any] | None = None,
     *,
     strict: bool = True,
 ) -> str | None:

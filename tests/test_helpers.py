@@ -3,7 +3,7 @@ from django.http import HttpRequest, HttpResponse
 from django.test import RequestFactory
 from django.urls import NoReverseMatch, path
 
-from htmx_nav import make_shell_renderer
+from htmx_nav import Swap, make_shell_renderer
 from htmx_nav.helpers import cache_on_request, reverse_maybe
 
 # Tell pytest to use this module's urlpatterns
@@ -53,8 +53,7 @@ def build_nav_context(request: HttpRequest) -> dict:
 
 
 render_shell = make_shell_renderer(
-    shell_template="tests/_shell.html",
-    context_builder=lambda request: {"nav": build_nav_context(request)},
+    lambda request: Swap("tests/_shell.html", {"nav": build_nav_context(request)})
 )
 
 

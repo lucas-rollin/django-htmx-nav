@@ -4,6 +4,10 @@
 - **`htmx_nav.targeting`**:
     - `has_messages`: Predicate for `Swap.include_if` that returns True if there are pending Django messages.
 
+### Changed
+- **`htmx_nav.shell`**:
+    - `make_shell_renderer`: Changed to be a simple wrapper around `render_nav` using Swaps instead of a template shell.
+
 ## 0.3.0 — 2026-08-15
 
 ### Added

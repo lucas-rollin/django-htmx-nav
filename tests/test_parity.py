@@ -2,7 +2,7 @@ import pytest
 from django.test import Client
 from django.urls import path
 
-from htmx_nav import make_shell_renderer
+from htmx_nav import Swap, make_shell_renderer
 from htmx_nav.testing import assert_shell_parity
 
 # Tell pytest to use this module's urlpatterns
@@ -12,13 +12,15 @@ pytestmark = pytest.mark.urls(__name__)
 # -- Setup for parity tests ---------------
 
 render_shell = make_shell_renderer(
-    "tests/_shell_nav.html",
-    context_builder=lambda request: {
-        "nav": {
-            "sidebar": [{"label": "Record 42", "active": True}],
-            "breadcrumbs": [{"label": "Workspace"}, {"label": "Record 42"}],
-        }
-    },
+    lambda request: Swap(
+        "tests/_shell_nav.html",
+        {
+            "nav": {
+                "sidebar": [{"label": "Record 42", "active": True}],
+                "breadcrumbs": [{"label": "Workspace"}, {"label": "Record 42"}],
+            }
+        },
+    )
 )
 
 

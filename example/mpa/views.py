@@ -87,6 +87,29 @@ def org_list(request: HttpRequest) -> HttpResponse:
 # ---------------------------------------------------------------------------
 
 
+def _project_tabs(request, active: str) -> list[dict]:
+    org_id = request.resolver_match.kwargs["org_id"]
+    project_id = request.resolver_match.kwargs["project_id"]
+    specs = [
+        ("overview", "Overview", "project_overview"),
+        ("tickets", "Tickets", "ticket_list"),
+        ("board", "Board", "kanban_board"),
+        ("team", "Team", "project_team"),
+        ("settings", "Settings", "project_settings"),
+    ]
+    ns = request.resolver_match.namespace
+    tabs_context = [
+        {
+            "key": key,
+            "label": label,
+            "url": reverse(f"{ns}:{view_name}", args=[org_id, project_id]),
+            "active": key == active,
+        }
+        for key, label, view_name in specs
+    ]
+    return {"active_tab": active, "tabs": tabs_context}
+
+
 def org_detail(request: HttpRequest, org_id: str) -> HttpResponse:
     """Displays single organization details and its associated projects."""
     org = Organization.objects.get(id=org_id)
@@ -115,9 +138,9 @@ def project_overview(
             (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org_id])),
             (project.name, None),
         ),
+        **_project_tabs(request, active="overview"),
         "org": org,
         "project": project,
-        "active_tab": "overview",
     }
     return render(request, "pages/project.html", context)
 
@@ -139,9 +162,9 @@ def project_team(request: HttpRequest, org_id: str, project_id: str) -> HttpResp
             ),
             ("Team", None),
         ),
+        **_project_tabs(request, active="team"),
         "org": org,
         "project": project,
-        "active_tab": "team",
         "team": team_members,
     }
     return render(request, "pages/project.html", context)
@@ -167,9 +190,9 @@ def project_settings(
             ),
             ("Settings", None),
         ),
+        **_project_tabs(request, active="settings"),
         "org": org,
         "project": project,
-        "active_tab": "settings",
         "active_subtab": subtab,
     }
     return render(request, "pages/project.html", context)
@@ -219,10 +242,10 @@ def kanban_board(request: HttpRequest, org_id: str, project_id: str) -> HttpResp
             ),
             ("Board", None),
         ),
+        **_project_tabs(request, active="board"),
         "org": org,
         "project": project,
         "columns": columns,
-        "active_tab": "board",
     }
     return render(request, "pages/project.html", context)
 
@@ -285,12 +308,12 @@ class TicketListView(ListView):
                 ("Tickets", None),
             )
         )
+        (context.update(_project_tabs(self.request, active="tickets")),)
         context["org"] = self.org
         context["project"] = self.project
         context["current_status"] = self.request.GET.get("status", "")
         context["current_priority"] = self.request.GET.get("priority", "")
         context["current_query"] = self.request.GET.get("q", "")
-        context["active_tab"] = "tickets"
         context["employee_names"] = {e.id: e.name for e in Employee.objects.all()}
         return context
 
@@ -298,6 +321,27 @@ class TicketListView(ListView):
 # ---------------------------------------------------------------------------
 # TICKET DETAIL + its "tabs" as full pages
 # ---------------------------------------------------------------------------
+
+
+def _ticket_tabs(request, ticket, active: str) -> list[dict]:
+    ns = request.resolver_match.namespace
+    specs = [
+        ("details", "Details", "ticket_detail", None),
+        ("comments", "Comments", "ticket_comments", len(ticket.comments) or None),
+        ("activity", "Activity", "ticket_activity", None),
+        ("attachments", "Attachments", "ticket_attachments", None),
+    ]
+    tabs_context = [
+        {
+            "key": key,
+            "label": label,
+            "badge": badge,
+            "active": key == active,
+            "url": reverse(f"{ns}:{view_name}", args=[ticket.id]),
+        }
+        for key, label, view_name, badge in specs
+    ]
+    return {"active_tab": active, "tabs": tabs_context}
 
 
 def ticket_detail(request: HttpRequest, ticket_id: str) -> HttpResponse:
@@ -321,9 +365,9 @@ def ticket_detail(request: HttpRequest, ticket_id: str) -> HttpResponse:
             ),
             (f"#{ticket.id[:8]}", None),
         ),
+        **_ticket_tabs(request, ticket, active="details"),
         "ticket": ticket,
         "assignee_name": assignee_name,
-        "active_tab": "details",
     }
     return render(request, "pages/ticket.html", context)
 
@@ -349,8 +393,8 @@ def ticket_comments(request: HttpRequest, ticket_id: str) -> HttpResponse:
             ),
             ("Comments", None),
         ),
+        **_ticket_tabs(request, ticket, active="comments"),
         "ticket": ticket,
-        "active_tab": "comments",
         "comments": ticket.comments,
     }
     return render(request, "pages/ticket.html", context)
@@ -381,8 +425,8 @@ def ticket_activity(request: HttpRequest, ticket_id: str) -> HttpResponse:
             ),
             ("Activity", None),
         ),
+        **_ticket_tabs(request, ticket, active="activity"),
         "ticket": ticket,
-        "active_tab": "activity",
         "activity": [
             f"Ticket created with priority {ticket.priority}",
             f"Assigned to {assignee_name}",
@@ -413,8 +457,8 @@ def ticket_attachments(request: HttpRequest, ticket_id: str) -> HttpResponse:
             ),
             ("Attachments", None),
         ),
+        **_ticket_tabs(request, ticket, active="attachments"),
         "ticket": ticket,
-        "active_tab": "attachments",
     }
     return render(request, "pages/ticket.html", context)
 

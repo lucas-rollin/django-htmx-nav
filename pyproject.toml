@@ -72,3 +72,16 @@ wrap_attributes = true
 ignore = "H021,H025"
 
 indent = 2
+
+[tool.mypy]
+files = ["src", "example"]
+mypy_path = ["src", "example"]
+plugins = ["mypy_django_plugin.main"]
+explicit_package_bases = true
+
+strict = true
+ignore_missing_imports = true
+
+[tool.django-stubs]
+django_settings_module = "config.settings"
+strict_settings = false

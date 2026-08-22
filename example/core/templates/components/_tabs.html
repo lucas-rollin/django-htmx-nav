@@ -1,0 +1,7 @@
+<div role="tablist"
+     class="tabs tabs-lift mb-6"
+     {% if active_variant.namespace == "htmx_nav_atomic" or active_variant.namespace == "htmx_nav_declarative" %}hx-target="#tab-content"{% endif %}>
+     {% for tab in tabs %}
+  <a role="tab" class="tab {% if tab.active %}tab-active font-semibold{% endif %}" href="{{ tab.url }}">{{ tab.label }}</a>
+     {% endfor %}
+</div>

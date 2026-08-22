@@ -29,4 +29,14 @@ VARIANTS = {
         uses_htmx=True,
         uses_htmx_nav=True,
     ),
+    "htmx_nav_declarative": Variant(
+        namespace="htmx_nav_declarative",
+        label="Declarative Context",
+        group="package",
+        views_module="htmx_nav_demo.views_declarative",
+        url_prefix="htmx-nav/declarative/",
+        app_name="htmx_nav_demo",
+        uses_htmx=True,
+        uses_htmx_nav=True,
+    ),
 }

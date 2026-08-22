@@ -17,7 +17,7 @@
       {# =================================================== #}
       {# --- Call the navigation Swap                    --- #}
       {# =================================================== #}
-      <div id="project-tabs">{% include "components/_project_tabs.html" %}</div>
+      <div id="tabs">{% include "components/_tabs.html" %}</div>
       {# =================================================== #}
       {# --- Define the tab content                      --- #}
       {# =================================================== #}
@@ -154,7 +154,7 @@
                 </div>
                 <div class="min-w-0">
                   <p class="font-medium truncate">{{ member.name }}</p>
-                  <p class="text-xs text-base-content/60 truncate">{{ member.email }}</p>
+                  <p class="text-xs ttext-base-content/60 truncate">{{ member.email }}</p>
                   <span class="badge badge-ghost badge-xs mt-1">{{ member.department|department_label }}</span>
                 </div>
               </div>

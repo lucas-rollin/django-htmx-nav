@@ -180,7 +180,7 @@ def org_detail(request: HttpRequest, org_id: str) -> HttpResponse:
 # ===========================================================================
 
 
-def _project_tab_swap(active_tab: str) -> Swap:
+def _project_tab_swap(request, active: str) -> list[dict]:
     """Return a Swap fragment to update project tab state during inner page navigation.
 
     When navigating directly between tabs (where `HX-Target` is "tab-content"),
@@ -192,10 +192,29 @@ def _project_tab_swap(active_tab: str) -> Swap:
     is omitted during broader layout re-renders (e.g., `#content` or full page load)
     where the tabs are already re-rendered in place.
     """
+    org_id = request.resolver_match.kwargs["org_id"]
+    project_id = request.resolver_match.kwargs["project_id"]
+    specs = [
+        ("overview", "Overview", "project_overview"),
+        ("tickets", "Tickets", "ticket_list"),
+        ("board", "Board", "kanban_board"),
+        ("team", "Team", "project_team"),
+        ("settings", "Settings", "project_settings"),
+    ]
+    ns = request.resolver_match.namespace
+    tabs_context = [
+        {
+            "key": key,
+            "label": label,
+            "url": reverse(f"{ns}:{view_name}", args=[org_id, project_id]),
+            "active": key == active,
+        }
+        for key, label, view_name in specs
+    ]
     return Swap(
-        "components/_project_tabs.html",
-        {"active_tab": active_tab},
-        target_id="project-tabs",
+        "components/_tabs.html",
+        {"active_tab": active, "tabs": tabs_context},
+        target_id="tabs",
         include_if=targeting("tab-content"),
     )
 
@@ -222,7 +241,7 @@ def project_overview(
                 (org.name, reverse(f"{NAMESPACE}:org_detail", args=[org_id])),
                 (project.name, None),
             ),
-            _project_tab_swap(active_tab="overview"),
+            _project_tab_swap(request, active="overview"),
         ],
         title=f"{project.name} · {org.name}",
     )
@@ -255,7 +274,7 @@ def project_team(request: HttpRequest, org_id: str, project_id: str) -> HttpResp
                 ),
                 ("Team", None),
             ),
-            _project_tab_swap(active_tab="team"),
+            _project_tab_swap(request, active="team"),
         ],
         title=f"{project.name} · {org.name}",
     )
@@ -317,7 +336,7 @@ def project_settings(
                 ),
                 ("Settings", None),
             ),
-            _project_tab_swap(active_tab="settings"),
+            _project_tab_swap(request, active="settings"),
             _settings_subtab_swap,
         ],
         title=f"{project.name} · {org.name}",
@@ -397,7 +416,7 @@ def kanban_board(request: HttpRequest, org_id: str, project_id: str) -> HttpResp
                 ),
                 ("Board", None),
             ),
-            _project_tab_swap(active_tab="board"),
+            _project_tab_swap(request, active="board"),
         ],
         title=f"{project.name} · {org.name}",
     )
@@ -464,7 +483,7 @@ class TicketListView(ShellViewMixin, ListView):
                 ),
                 ("Tickets", None),
             ),
-            _project_tab_swap(active_tab="tickets"),
+            _project_tab_swap(self.request, active="tickets"),
         ]
 
     def get_partial(self) -> str:
@@ -487,16 +506,33 @@ class TicketListView(ShellViewMixin, ListView):
 # ===========================================================================
 
 
-def _ticket_tab_swap(active_tab: str) -> Swap:
+def _ticket_tab_swap(request, ticket, active: str) -> list[dict]:
     """Return a Swap fragment to update active ticket tab states OOB.
 
     Updates `#ticket-tabs` during intra-tab navigation where `HX-Target` is
     "tab-content", keeping the parent layout intact while switching active visual tabs.
     """
+    ns = request.resolver_match.namespace
+    specs = [
+        ("details", "Details", "ticket_detail", None),
+        ("comments", "Comments", "ticket_comments", len(ticket.comments) or None),
+        ("activity", "Activity", "ticket_activity", None),
+        ("attachments", "Attachments", "ticket_attachments", None),
+    ]
+    tabs_context = [
+        {
+            "key": key,
+            "label": label,
+            "badge": badge,
+            "active": key == active,
+            "url": reverse(f"{ns}:{view_name}", args=[ticket.id]),
+        }
+        for key, label, view_name, badge in specs
+    ]
     return Swap(
-        "components/_ticket_tabs.html",
-        {"active_tab": active_tab},
-        target_id="ticket-tabs",
+        "components/_tabs.html",
+        {"active_tab": active, "tabs": tabs_context},
+        target_id="tabs",
         include_if=targeting("tab-content"),
     )
 
@@ -531,7 +567,7 @@ def ticket_detail(request: HttpRequest, ticket_id: str) -> HttpResponse:
                 ),
                 (f"#{ticket.id[:8]}", None),
             ),
-            _ticket_tab_swap(active_tab="details"),
+            _ticket_tab_swap(request, ticket, active="details"),
             Swap("components/_messages.html", include_if=has_messages),
         ],
         title=f"#{ticket.id[:8]} · {ticket.title}",
@@ -568,7 +604,7 @@ def ticket_comments(request: HttpRequest, ticket_id: str) -> HttpResponse:
                 ),
                 ("Comments", None),
             ),
-            _ticket_tab_swap(active_tab="comments"),
+            _ticket_tab_swap(request, ticket, active="comments"),
         ],
         title=f"#{ticket.id[:8]} · {ticket.title}",
     )
@@ -612,7 +648,7 @@ def ticket_activity(request: HttpRequest, ticket_id: str) -> HttpResponse:
                 ),
                 ("Activity", None),
             ),
-            _ticket_tab_swap(active_tab="activity"),
+            _ticket_tab_swap(request, ticket, active="activity"),
         ],
         title=f"#{ticket.id[:8]} · {ticket.title}",
     )
@@ -648,7 +684,7 @@ def ticket_attachments(request: HttpRequest, ticket_id: str) -> HttpResponse:
                 ),
                 ("Attachments", None),
             ),
-            _ticket_tab_swap(active_tab="attachments"),
+            _ticket_tab_swap(request, ticket, active="attachments"),
         ],
         title=f"#{ticket.id[:8]} · {ticket.title}",
     )

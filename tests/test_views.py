@@ -6,8 +6,7 @@ from htmx_nav.swaps import Swap
 from htmx_nav.views import make_shell_view_mixin
 
 render_shell = make_shell_renderer(
-    "tests/_shell.html",
-    context_builder=lambda request: {"nav": {"sidebar": [1, 2, 3]}},
+    lambda request: Swap("tests/_shell.html", {"nav": {"sidebar": [1, 2, 3]}})
 )
 ShellViewMixin = make_shell_view_mixin(render_shell)
 

@@ -15,7 +15,7 @@ def assert_shell_parity(
     client: Client,
     url: str,
     *,
-    requests: dict[str, dict],
+    requests: dict[str, dict[str, Any]],
     checks: dict[str, Callable[[Any], Any]],
 ) -> dict[str, Any]:
     """
@@ -117,9 +117,9 @@ def assert_shell_composition(
     client: Client,
     url: str,
     *,
-    page_shell_kwargs: dict,
-    tab_shell_kwargs: dict,
-    full_reload_kwargs: dict | None = None,
+    page_shell_kwargs: dict[str, Any],
+    tab_shell_kwargs: dict[str, Any],
+    full_reload_kwargs: dict[str, Any] | None = None,
     page_container_id: str = "page-content",
     tab_container_id: str = "tab-content",
 ) -> dict[str, Any]:
