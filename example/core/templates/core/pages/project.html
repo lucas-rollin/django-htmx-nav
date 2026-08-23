@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "core/base.html" %}
 {% block title %}{{ project.name }} · {{ org.name }}{% endblock %}
 {% block content %}
   {% partialdef content inline %}
@@ -17,7 +17,7 @@
       {# =================================================== #}
       {# --- Call the navigation Swap                    --- #}
       {# =================================================== #}
-      <div id="tabs">{% include "components/_tabs.html" %}</div>
+      <div id="tabs">{% include "core/components/_tabs.html" %}</div>
       {# =================================================== #}
       {# --- Define the tab content                      --- #}
       {# =================================================== #}
@@ -259,7 +259,7 @@
           {% partial tickets %}
         {% elif active_tab == "board" %}
           {# Example where the partial is very big so you defined it elsewhere #}
-          {% include "pages/_board.html" %}
+          {% include "core/pages/_board.html" %}
         {% elif active_tab == "team" %}
           {% partial team %}
         {% elif active_tab == "settings" %}

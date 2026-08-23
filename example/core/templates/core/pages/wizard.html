@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "core/base.html" %}
 {% load nav_extras %}
 {% block content %}
   {% partialdef content inline %}
@@ -8,7 +8,7 @@
       {# ================================== #}
       {# --- Define the navigation Swap --- #}
       {# ================================== #}
-      <div id="steps">{% include "components/_wizard_steps.html" %}</div>
+      <div id="steps">{% include "core/components/_wizard_steps.html" %}</div>
       {# ================================== #}
       {# --- Define the tab content     --- #}
       {# ================================== #}

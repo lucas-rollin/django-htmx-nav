@@ -3,15 +3,25 @@ from .variants import Variant
 VARIANTS = {
     "mpa": Variant(
         namespace="mpa",
-        label="Vanilla MPA",
+        label="Pure MPA",
         group="mpa",
         views_module="mpa.views",
         url_prefix="mpa/",
         app_name="mpa",
     ),
+    "htmx_nav_baseline": Variant(
+        namespace="htmx_nav_baseline",
+        label="HTMX Nav Baseline",
+        group="package",
+        views_module="htmx_nav_demo.views_baseline",
+        url_prefix="htmx-nav/baseline/",
+        app_name="htmx_nav_demo",
+        uses_htmx=True,
+        uses_htmx_nav=True,
+    ),
     "htmx_nav_composite": Variant(
         namespace="htmx_nav_composite",
-        label="Composite Swaps",
+        label="HTMX Nav Composite",
         group="package",
         views_module="htmx_nav_demo.views_composite",
         url_prefix="htmx-nav/composite/",
@@ -21,7 +31,7 @@ VARIANTS = {
     ),
     "htmx_nav_atomic": Variant(
         namespace="htmx_nav_atomic",
-        label="Atomic Swaps",
+        label="HTMX Nav Atomic",
         group="package",
         views_module="htmx_nav_demo.views_atomic",
         url_prefix="htmx-nav/atomic/",
@@ -31,7 +41,7 @@ VARIANTS = {
     ),
     "htmx_nav_declarative": Variant(
         namespace="htmx_nav_declarative",
-        label="Declarative Context",
+        label="HTMX Nav Declarative",
         group="package",
         views_module="htmx_nav_demo.views_declarative",
         url_prefix="htmx-nav/declarative/",

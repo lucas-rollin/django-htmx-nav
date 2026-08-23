@@ -58,7 +58,7 @@ def _sidebar_swap(
         "active_page": active_page,
     }
 
-    return Swap("components/_sidebar_menu.html", context, target_id="sidebar")
+    return Swap("core/components/_sidebar_menu.html", context, target_id="sidebar")
 
 
 def _breadcrumb_swap(*crumbs: tuple[str, str | None]) -> Swap:
@@ -71,7 +71,7 @@ def _breadcrumb_swap(*crumbs: tuple[str, str | None]) -> Swap:
             is treated as the current (non-clickable) active breadcrumb.
     """
     context = {"breadcrumbs": [{"label": label, "url": url} for label, url in crumbs]}
-    return Swap("components/_breadcrumbs.html", context, target_id="breadcrumbs")
+    return Swap("core/components/_breadcrumbs.html", context, target_id="breadcrumbs")
 
 
 def _tab_content_partial(request: HttpRequest, partial_name: str) -> str:
@@ -103,7 +103,7 @@ def overview(request: HttpRequest) -> HttpResponse:
     """Display the main helpdesk overview dashboard."""
     return render_nav(
         request,
-        "pages/overview.html",
+        "core/pages/overview.html",
         swaps=[
             _sidebar_swap(active_page="overview"),
             _breadcrumb_swap(("helpdesk", None)),
@@ -115,7 +115,7 @@ def overview(request: HttpRequest) -> HttpResponse:
 def staff_list(request: HttpRequest) -> HttpResponse:
     """Display the staff directory along with active ticket counts.
 
-    Demonstrates rendering a standalone partial template (`pages/_staff_list.html`)
+    Demonstrates rendering a standalone partial template (`core/pages/_staff_list.html`)
     for HTMX partial updates rather than using Django 6+ inline template block syntax.
     """
     employees: list[dict] = []
@@ -128,9 +128,9 @@ def staff_list(request: HttpRequest) -> HttpResponse:
 
     return render_nav(
         request,
-        "pages/staff_list.html",
+        "core/pages/staff_list.html",
         {"employees": employees},
-        partial="pages/_staff_list.html",  # Explicit standalone template partial
+        partial="core/pages/_staff_list.html",  # Explicit standalone template partial
         swaps=[
             _sidebar_swap(active_page="staff_list"),
             _breadcrumb_swap(("helpdesk", None)),
@@ -143,7 +143,7 @@ def org_list(request: HttpRequest) -> HttpResponse:
     """Display a list of all client organizations."""
     return render_nav(
         request,
-        "pages/org_list.html",
+        "core/pages/org_list.html",
         {"orgs": Organization.objects.all()},
         swaps=[
             _sidebar_swap(active_page="org_list"),
@@ -162,7 +162,7 @@ def org_detail(request: HttpRequest, org_id: str) -> HttpResponse:
     }
     return render_nav(
         request,
-        "pages/org_detail.html",
+        "core/pages/org_detail.html",
         context,
         swaps=[
             _sidebar_swap(active_org_id=org_id),
@@ -185,7 +185,7 @@ def _project_tab_swap(request, active: str) -> list[dict]:
 
     When navigating directly between tabs (where `HX-Target` is "tab-content"),
     the tab bar itself is outside the swap target. This `Swap` conditionally
-    renders `components/_project_tabs.html` OOB to update the visual active state
+    renders `core/components/_project_tabs.html` OOB to update the visual active state
     of the tab navigation items.
 
     The `include_if=targeting("tab-content")` guard ensures this extra fragment
@@ -212,7 +212,7 @@ def _project_tab_swap(request, active: str) -> list[dict]:
         for key, label, view_name in specs
     ]
     return Swap(
-        "components/_tabs.html",
+        "core/components/_tabs.html",
         {"active_tab": active, "tabs": tabs_context},
         target_id="tabs",
         include_if=targeting("tab-content"),
@@ -231,7 +231,7 @@ def project_overview(
     }
     return render_nav(
         request,
-        "pages/project.html",
+        "core/pages/project.html",
         context,
         partial=_tab_content_partial(request, "#overview"),
         swaps=[
@@ -260,7 +260,7 @@ def project_team(request: HttpRequest, org_id: str, project_id: str) -> HttpResp
     }
     return render_nav(
         request,
-        "pages/project.html",
+        "core/pages/project.html",
         context,
         partial=_tab_content_partial(request, "#team"),
         swaps=[
@@ -299,7 +299,7 @@ def _project_settings_content_partial(request: HttpRequest, subtab: str) -> str:
 # Conditionally swap the subtab navigation bar OOB when navigating strictly
 # between individual subtabs (targeting "subtab-content").
 _settings_subtab_swap = Swap(
-    "pages/project.html#settings_subtabs",
+    "core/pages/project.html#settings_subtabs",
     target_id="subtabs",
     include_if=targeting("subtab-content"),
 )
@@ -322,7 +322,7 @@ def project_settings(
 
     return render_nav(
         request,
-        "pages/project.html",
+        "core/pages/project.html",
         context,
         partial=_project_settings_content_partial(request, subtab),
         swaps=[
@@ -370,7 +370,7 @@ def ticket_move_status(request: HttpRequest, ticket_id: str) -> HttpResponse:
             swaps.append(Swap.text(f"column-count-{status}", str(count)))
 
     response = render_with_swaps(
-        request, "pages/_board.html#ticket-card", {"ticket": ticket}, swaps=swaps
+        request, "core/pages/_board.html#ticket-card", {"ticket": ticket}, swaps=swaps
     )
     response["HX-Retarget"] = f"#column-{ticket.status}"
     response["HX-Push-Url"] = "false"
@@ -381,7 +381,7 @@ def kanban_board(request: HttpRequest, org_id: str, project_id: str) -> HttpResp
     """Display project tickets structured in visual status columns on a Kanban board.
 
     Demonstrates mapping target conditions directly using a dict spec for `partial`:
-    - Renders target fragment `pages/_board.html` when targeting "tab-content".
+    - Renders target fragment `core/pages/_board.html` when targeting "tab-content".
     - Fallback target `#content` renders the primary content shell.
     """
     org = Organization.objects.get(id=org_id)
@@ -402,9 +402,9 @@ def kanban_board(request: HttpRequest, org_id: str, project_id: str) -> HttpResp
     }
     return render_nav(
         request,
-        "pages/project.html",
+        "core/pages/project.html",
         context,
-        partial={"pages/_board.html": targeting("tab-content"), "#content": True},
+        partial={"core/pages/_board.html": targeting("tab-content"), "#content": True},
         swaps=[
             _sidebar_swap(active_org_id=org_id, active_project_id=project_id),
             _breadcrumb_swap(
@@ -437,7 +437,7 @@ class TicketListView(ShellViewMixin, ListView):
     lifecycle methods directly with the behavior of `render_nav`.
     """
 
-    template_name = "pages/project.html"
+    template_name = "core/pages/project.html"
     context_object_name = "tickets"
     paginate_by = TICKET_PAGE_SIZE
 
@@ -530,7 +530,7 @@ def _ticket_tab_swap(request, ticket, active: str) -> list[dict]:
         for key, label, view_name, badge in specs
     ]
     return Swap(
-        "components/_tabs.html",
+        "core/components/_tabs.html",
         {"active_tab": active, "tabs": tabs_context},
         target_id="tabs",
         include_if=targeting("tab-content"),
@@ -553,7 +553,7 @@ def ticket_detail(request: HttpRequest, ticket_id: str) -> HttpResponse:
     }
     return render_nav(
         request,
-        "pages/ticket.html",
+        "core/pages/ticket.html",
         context,
         partial=_tab_content_partial(request, "#details"),
         swaps=[
@@ -568,7 +568,7 @@ def ticket_detail(request: HttpRequest, ticket_id: str) -> HttpResponse:
                 (f"#{ticket.id[:8]}", None),
             ),
             _ticket_tab_swap(request, ticket, active="details"),
-            Swap("components/_messages.html", include_if=has_messages),
+            Swap("core/components/_messages.html", include_if=has_messages),
         ],
         title=f"#{ticket.id[:8]} · {ticket.title}",
     )
@@ -586,7 +586,7 @@ def ticket_comments(request: HttpRequest, ticket_id: str) -> HttpResponse:
     }
     return render_nav(
         request,
-        "pages/ticket.html",
+        "core/pages/ticket.html",
         context,
         partial=_tab_content_partial(request, "#comments"),
         swaps=[
@@ -630,7 +630,7 @@ def ticket_activity(request: HttpRequest, ticket_id: str) -> HttpResponse:
     }
     return render_nav(
         request,
-        "pages/ticket.html",
+        "core/pages/ticket.html",
         context,
         partial=_tab_content_partial(request, "#activity"),
         swaps=[
@@ -666,7 +666,7 @@ def ticket_attachments(request: HttpRequest, ticket_id: str) -> HttpResponse:
 
     return render_nav(
         request,
-        "pages/ticket.html",
+        "core/pages/ticket.html",
         context,
         partial=_tab_content_partial(request, "#attachments"),
         swaps=[
@@ -705,7 +705,7 @@ def _wizard_steps_swap(step: str) -> Swap:
     wizard navigation occurs (`targeting("steps-content")`).
     """
     return Swap(
-        "components/_wizard_steps.html",
+        "core/components/_wizard_steps.html",
         {"steps": WIZARD_STEPS, "step_index": WIZARD_STEPS.index(step)},
         target_id="steps",
         include_if=targeting("steps-content"),
@@ -785,7 +785,7 @@ def ticket_wizard_step(
     }
     return render_nav(
         request,
-        "pages/wizard.html",
+        "core/pages/wizard.html",
         context,
         partial=_step_partial,
         swaps=[

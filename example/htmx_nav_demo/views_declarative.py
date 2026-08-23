@@ -1,6 +1,6 @@
 """
-Views for the declarative variant. Every navigation view calls 
-`render_shell` directly, the function `make_shell_renderer` returned 
+Views for the declarative variant. Every navigation view calls
+`render_shell` directly, the function `make_shell_renderer` returned
 in registry_declarative.py.
 
 Sidebar, breadcrumbs, tabs, and title are gone from every call site and
@@ -48,7 +48,7 @@ def _tab_content_partial(request: HttpRequest, partial_name: str) -> str:
 
 
 def overview(request: HttpRequest) -> HttpResponse:
-    return render_shell(request, "pages/overview.html")
+    return render_shell(request, "core/pages/overview.html")
 
 
 def staff_list(request: HttpRequest) -> HttpResponse:
@@ -63,22 +63,22 @@ def staff_list(request: HttpRequest) -> HttpResponse:
     ]
     return render_shell(
         request,
-        "pages/staff_list.html",
+        "core/pages/staff_list.html",
         {"employees": employees},
-        partial="pages/_staff_list.html",
+        partial="core/pages/_staff_list.html",
     )
 
 
 def org_list(request: HttpRequest) -> HttpResponse:
     return render_shell(
-        request, "pages/org_list.html", {"orgs": Organization.objects.all()}
+        request, "core/pages/org_list.html", {"orgs": Organization.objects.all()}
     )
 
 
 def org_detail(request: HttpRequest, org_id: str) -> HttpResponse:
     org = get_org(request)
     context = {"org": org, "projects": Project.objects.filter(organization_id=org_id)}
-    return render_shell(request, "pages/org_detail.html", context)
+    return render_shell(request, "core/pages/org_detail.html", context)
 
 
 # --- project tabs -----------------------------------------------------
@@ -90,7 +90,7 @@ def project_overview(
     context = {"org": get_org(request), "project": get_project(request)}
     return render_shell(
         request,
-        "pages/project.html",
+        "core/pages/project.html",
         context,
         partial=_tab_content_partial(request, "#overview"),
     )
@@ -105,7 +105,7 @@ def project_team(request: HttpRequest, org_id: str, project_id: str) -> HttpResp
     }
     return render_shell(
         request,
-        "pages/project.html",
+        "core/pages/project.html",
         context,
         partial=_tab_content_partial(request, "#team"),
     )
@@ -130,16 +130,16 @@ def project_settings(
         partial = "#content"
 
     # The subtab bar showcases extra_swaps: it's page-specific nested
-    # nav so it's built here and only sent as OOB when navigating 
+    # nav so it's built here and only sent as OOB when navigating
     # strictly within it, same pattern as views_atomic.py.
     subtab_swap = Swap(
-        "pages/project.html#settings_subtabs",
+        "core/pages/project.html#settings_subtabs",
         target_id="subtabs",
         include_if=targeting("subtab-content"),
     )
     return render_shell(
         request,
-        "pages/project.html",
+        "core/pages/project.html",
         context,
         partial=partial,
         extra_swaps=[subtab_swap],
@@ -161,9 +161,9 @@ def kanban_board(request: HttpRequest, org_id: str, project_id: str) -> HttpResp
     }
     return render_shell(
         request,
-        "pages/project.html",
+        "core/pages/project.html",
         context,
-        partial={"pages/_board.html": targeting("tab-content"), "#content": True},
+        partial={"core/pages/_board.html": targeting("tab-content"), "#content": True},
     )
 
 
@@ -186,7 +186,7 @@ def ticket_move_status(request: HttpRequest, ticket_id: str) -> HttpResponse:
             swaps.append(Swap.text(f"column-count-{status}", str(count)))
 
     response = render_with_swaps(
-        request, "pages/_board.html#ticket-card", {"ticket": ticket}, swaps=swaps
+        request, "core/pages/_board.html#ticket-card", {"ticket": ticket}, swaps=swaps
     )
     response["HX-Retarget"] = f"#column-{ticket.status}"
     response["HX-Push-Url"] = "false"
@@ -199,7 +199,7 @@ ShellViewMixin = make_shell_view_mixin(render_shell)
 
 
 class TicketListView(ShellViewMixin, ListView):
-    template_name = "pages/project.html"
+    template_name = "core/pages/project.html"
     context_object_name = "tickets"
     paginate_by = TICKET_PAGE_SIZE
 
@@ -242,10 +242,10 @@ def ticket_detail(request: HttpRequest, ticket_id: str) -> HttpResponse:
     ticket = get_ticket(request)
     assignee_name = ticket.assignee.name if ticket.assignee else "Unassigned"
     context = {"ticket": ticket, "assignee_name": assignee_name}
-    messages_swap = Swap("components/_messages.html", include_if=has_messages)
+    messages_swap = Swap("core/components/_messages.html", include_if=has_messages)
     return render_shell(
         request,
-        "pages/ticket.html",
+        "core/pages/ticket.html",
         context,
         partial=_tab_content_partial(request, "#details"),
         extra_swaps=[messages_swap],
@@ -257,7 +257,7 @@ def ticket_comments(request: HttpRequest, ticket_id: str) -> HttpResponse:
     context = {"ticket": ticket, "comments": ticket.comments}
     return render_shell(
         request,
-        "pages/ticket.html",
+        "core/pages/ticket.html",
         context,
         partial=_tab_content_partial(request, "#comments"),
     )
@@ -276,7 +276,7 @@ def ticket_activity(request: HttpRequest, ticket_id: str) -> HttpResponse:
     }
     return render_shell(
         request,
-        "pages/ticket.html",
+        "core/pages/ticket.html",
         context,
         partial=_tab_content_partial(request, "#activity"),
     )
@@ -286,7 +286,7 @@ def ticket_attachments(request: HttpRequest, ticket_id: str) -> HttpResponse:
     context = {"ticket": get_ticket(request)}
     return render_shell(
         request,
-        "pages/ticket.html",
+        "core/pages/ticket.html",
         context,
         partial=_tab_content_partial(request, "#attachments"),
     )
@@ -305,7 +305,7 @@ def _wizard_steps_swap(step: str) -> Swap:
     """Page-specific, one-view-only — built here and passed as
     extra_swaps, same showcase role as the subtab swap above."""
     return Swap(
-        "components/_wizard_steps.html",
+        "core/components/_wizard_steps.html",
         {"steps": WIZARD_STEPS, "step_index": WIZARD_STEPS.index(step)},
         target_id="steps",
         include_if=targeting("steps-content"),
@@ -361,7 +361,7 @@ def ticket_wizard_step(
     }
     return render_shell(
         request,
-        "pages/wizard.html",
+        "core/pages/wizard.html",
         context,
         partial=_step_partial,
         extra_swaps=[_wizard_steps_swap(step)],

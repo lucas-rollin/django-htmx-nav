@@ -5,7 +5,7 @@ This exemplifies the use of a declarative system to simplify the views
 while achieving the same specificity as the `views_atomic.py` variant.
 
 The registry can contain any shape as long as it resolves to a Swaps
-for `make_shell_renderer`. Here dataclasses were used to compose the 
+for `make_shell_renderer`. Here dataclasses were used to compose the
 constants containing the navigation component structural data and their
 state for each view. This was then resolved into Swaps via functions.
 """
@@ -17,13 +17,13 @@ from core.models import Organization, Project, Ticket
 from django.http import HttpRequest
 from django.urls import reverse_lazy
 
-from htmx_nav import Swap, make_shell_renderer
+from htmx_nav import Swap, make_shell_renderer, targeting
 from htmx_nav.helpers import cache_on_request
 
 NAMESPACE = "htmx_nav_declarative"
 
 Resolvable = str | Callable[[HttpRequest], str]
-"""A literal, or a value resolved lazily against the request — used for
+"""A literal, or a value resolved lazily against the request. Used for
 the handful of genuinely dynamic labels/urls (org name, project name)."""
 
 
@@ -342,12 +342,12 @@ def build_shell_swaps(request: HttpRequest) -> list[Swap]:
 
     swaps = [
         Swap(
-            "components/_sidebar_menu.html",
+            "core/components/_sidebar_menu.html",
             _resolve_sidebar(request),
             target_id="sidebar",
         ),
         Swap(
-            "components/_breadcrumbs.html",
+            "core/components/_breadcrumbs.html",
             {
                 "breadcrumbs": [_resolve_crumb(c, request) for c in entry.breadcrumbs],
                 "title": entry.title(request) if callable(entry.title) else entry.title,
@@ -359,9 +359,10 @@ def build_shell_swaps(request: HttpRequest) -> list[Swap]:
     if entry.tabs:
         swaps.append(
             Swap(
-                "components/_tabs.html",
+                "core/components/_tabs.html",
                 _resolve_tabs(entry, request),
                 target_id="tabs",
+                include_if=targeting("tab-content")
             )
         )
 

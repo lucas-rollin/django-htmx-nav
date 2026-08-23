@@ -8,14 +8,28 @@ handling navigation for dashboard overviews, projects, tickets, and staff list.
 from core.models import Employee, Organization, Project, Ticket
 from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from django.views.generic import ListView
 
-NAMESPACE = "mpa"
+from htmx_nav import (
+    Swap,
+    make_shell_renderer,
+    make_shell_view_mixin,
+    render_with_swaps,
+)
+
+NAMESPACE = "htmx_nav_baseline"
 TICKET_PAGE_SIZE = 6
 
+
+SHELL_SWAPS = [
+    Swap("core/components/_sidebar_menu.html", target_id="sidebar"),
+    Swap("core/components/_breadcrumbs.html", target_id="breadcrumbs"),
+]
+
+render_shell = make_shell_renderer(swaps=lambda request: SHELL_SWAPS)
 
 # ---------------------------------------------------------------------------
 # Sidebar & Breadcrumbs Helpers
@@ -53,7 +67,12 @@ def overview(request: HttpRequest) -> HttpResponse:
         **_sidebar_context(active_page="overview"),
     }
 
-    return render(request, "core/pages/overview.html", context)
+    return render_shell(
+        request,
+        "core/pages/overview.html",
+        context,
+        title="Organizations · Helpdesk",
+    )
 
 
 def staff_list(request: HttpRequest) -> HttpResponse:
@@ -70,7 +89,12 @@ def staff_list(request: HttpRequest) -> HttpResponse:
         **_sidebar_context(active_page="staff_list"),
         "employees": employees,
     }
-    return render(request, "core/pages/staff_list.html", context)
+    return render_shell(
+        request,
+        "core/pages/staff_list.html",
+        context,
+        title="Staff · Helpdesk",
+    )
 
 
 def org_list(request: HttpRequest) -> HttpResponse:
@@ -79,7 +103,32 @@ def org_list(request: HttpRequest) -> HttpResponse:
         **_sidebar_context(active_page="org_list"),
         "orgs": Organization.objects.all(),
     }
-    return render(request, "core/pages/org_list.html", context)
+    return render_shell(
+        request,
+        "core/pages/org_list.html",
+        context,
+        title="Organizations · Helpdesk",
+    )
+
+
+def org_detail(request: HttpRequest, org_id: str) -> HttpResponse:
+    """Displays single organization details and its associated projects."""
+    org = Organization.objects.get(id=org_id)
+    context = {
+        **_sidebar_context(active_org_id=org_id),
+        **_breadcrumbs(
+            ("Organizations", reverse(f"{NAMESPACE}:org_list")),
+            (org.name, None),
+        ),
+        "org": org,
+        "projects": Project.objects.filter(organization_id=org_id),
+    }
+    return render_shell(
+        request,
+        "core/pages/org_detail.html",
+        context,
+        title=f"{org.name} · Helpdesk",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -110,21 +159,6 @@ def _project_tabs(request, active: str) -> list[dict]:
     return {"active_tab": active, "tabs": tabs_context}
 
 
-def org_detail(request: HttpRequest, org_id: str) -> HttpResponse:
-    """Displays single organization details and its associated projects."""
-    org = Organization.objects.get(id=org_id)
-    context = {
-        **_sidebar_context(active_org_id=org_id),
-        **_breadcrumbs(
-            ("Organizations", reverse(f"{NAMESPACE}:org_list")),
-            (org.name, None),
-        ),
-        "org": org,
-        "projects": Project.objects.filter(organization_id=org_id),
-    }
-    return render(request, "core/pages/org_detail.html", context)
-
-
 def project_overview(
     request: HttpRequest, org_id: str, project_id: str
 ) -> HttpResponse:
@@ -142,7 +176,12 @@ def project_overview(
         "org": org,
         "project": project,
     }
-    return render(request, "core/pages/project.html", context)
+    return render_shell(
+        request,
+        "core/pages/project.html",
+        context,
+        title=f"{project.name} · {org.name}",
+    )
 
 
 def project_team(request: HttpRequest, org_id: str, project_id: str) -> HttpResponse:
@@ -167,7 +206,12 @@ def project_team(request: HttpRequest, org_id: str, project_id: str) -> HttpResp
         "project": project,
         "team": team_members,
     }
-    return render(request, "core/pages/project.html", context)
+    return render_shell(
+        request,
+        "core/pages/project.html",
+        context,
+        title=f"{project.name} · {org.name}",
+    )
 
 
 def project_settings(
@@ -195,7 +239,12 @@ def project_settings(
         "project": project,
         "active_subtab": subtab,
     }
-    return render(request, "core/pages/project.html", context)
+    return render_shell(
+        request,
+        "core/pages/project.html",
+        context,
+        title=f"{project.name} · {org.name}",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -205,18 +254,31 @@ def project_settings(
 
 @require_http_methods(["POST"])
 def ticket_move_status(request: HttpRequest, ticket_id: str) -> HttpResponse:
-    """Updates a ticket's status state and redirects to the Kanban board."""
+    """Update a ticket's status and redirect back to the Kanban board.
+
+    Uses `render_with_swaps` to not navigate and do pinpoint swaps.
+    """
     ticket = Ticket.objects.get(id=ticket_id)
+    old_status = ticket.status
     new_status = request.POST.get("new_status")
     if new_status in ("open", "in_progress", "resolved", "closed"):
         ticket.status = new_status
         ticket.save(update_fields=["status"])
-    project = ticket.project
-    return redirect(
-        f"{NAMESPACE}:kanban_board",
-        org_id=project.organization.id,
-        project_id=project.id,
+
+    swaps = [Swap.delete(f"ticket-{ticket.id}")]
+    if new_status != old_status:
+        for status in (old_status, new_status):
+            count = Ticket.objects.filter(
+                project_id=ticket.project.id, status=status
+            ).count()
+            swaps.append(Swap.text(f"column-count-{status}", str(count)))
+
+    response = render_with_swaps(
+        request, "core/pages/_board.html#ticket-card", {"ticket": ticket}, swaps=swaps
     )
+    response["HX-Retarget"] = f"#column-{ticket.status}"
+    response["HX-Push-Url"] = "false"
+    return response
 
 
 def kanban_board(request: HttpRequest, org_id: str, project_id: str) -> HttpResponse:
@@ -247,7 +309,12 @@ def kanban_board(request: HttpRequest, org_id: str, project_id: str) -> HttpResp
         "project": project,
         "columns": columns,
     }
-    return render(request, "core/pages/project.html", context)
+    return render_shell(
+        request,
+        "core/pages/project.html",
+        context,
+        title=f"{project.name} · {org.name}",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -255,7 +322,10 @@ def kanban_board(request: HttpRequest, org_id: str, project_id: str) -> HttpResp
 # ---------------------------------------------------------------------------
 
 
-class TicketListView(ListView):
+ShellViewMixin = make_shell_view_mixin(default_swaps=SHELL_SWAPS)
+
+
+class TicketListView(ShellViewMixin, ListView):
     """Displays a paginated, searchable, and filterable table of project tickets."""
 
     template_name = "core/pages/project.html"
@@ -286,6 +356,9 @@ class TicketListView(ListView):
 
         # Sort tickets reverse chronologically by creation timestamp
         return tickets.order_by("-created_at")
+
+    def title(self) -> str:
+        return f"{self.project.name} · {self.org.name}"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -369,7 +442,12 @@ def ticket_detail(request: HttpRequest, ticket_id: str) -> HttpResponse:
         "ticket": ticket,
         "assignee_name": assignee_name,
     }
-    return render(request, "core/pages/ticket.html", context)
+    return render_shell(
+        request,
+        "core/pages/ticket.html",
+        context,
+        title=f"#{ticket.id[:8]} · {ticket.title}",
+    )
 
 
 def ticket_comments(request: HttpRequest, ticket_id: str) -> HttpResponse:
@@ -397,7 +475,12 @@ def ticket_comments(request: HttpRequest, ticket_id: str) -> HttpResponse:
         "ticket": ticket,
         "comments": ticket.comments,
     }
-    return render(request, "core/pages/ticket.html", context)
+    return render_shell(
+        request,
+        "core/pages/ticket.html",
+        context,
+        title=f"#{ticket.id[:8]} · {ticket.title}",
+    )
 
 
 def ticket_activity(request: HttpRequest, ticket_id: str) -> HttpResponse:
@@ -433,7 +516,12 @@ def ticket_activity(request: HttpRequest, ticket_id: str) -> HttpResponse:
             f"Status set to {ticket.status}",
         ],
     }
-    return render(request, "core/pages/ticket.html", context)
+    return render_shell(
+        request,
+        "core/pages/ticket.html",
+        context,
+        title=f"#{ticket.id[:8]} · {ticket.title}",
+    )
 
 
 def ticket_attachments(request: HttpRequest, ticket_id: str) -> HttpResponse:
@@ -460,7 +548,12 @@ def ticket_attachments(request: HttpRequest, ticket_id: str) -> HttpResponse:
         **_ticket_tabs(request, ticket, active="attachments"),
         "ticket": ticket,
     }
-    return render(request, "core/pages/ticket.html", context)
+    return render_shell(
+        request,
+        "core/pages/ticket.html",
+        context,
+        title=f"#{ticket.id[:8]} · {ticket.title}",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -537,4 +630,9 @@ def ticket_wizard_step(
         # Pass title as context since it varies and a single template was used
         "title": f"New ticket · {step}",
     }
-    return render(request, "core/pages/wizard.html", context)
+    return render_shell(
+        request,
+        "core/pages/wizard.html",
+        context,
+        title=f"New ticket · {step}",
+    )

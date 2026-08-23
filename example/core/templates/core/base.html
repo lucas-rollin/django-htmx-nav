@@ -20,7 +20,7 @@
           rel="stylesheet"
           type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script defer src="{% static 'js/theme.js' %}"></script>
+    <script defer src="{% static 'core/js/theme.js' %}"></script>
     {% if active_variant.uses_htmx %}
       <!--<script src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.0-beta6/dist/htmx.min.js"></script>-->
       <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js"
@@ -31,6 +31,7 @@
   </head>
   <body data-demo-mode="{{ demo_mode }}"
         {% if active_variant.uses_htmx %}hx-boost="true" hx-target="#main-content" data-hn-debug-swaps{% endif %}>
+    {% partialdef body inline %}
     <div class="drawer lg:drawer-open">
       <input id="my-drawer" type="checkbox" class="drawer-toggle" />
       <div class="drawer-content min-h-dvh flex flex-col justify-between">
@@ -119,10 +120,10 @@
               </details>
             </div>
           </nav>
-          {% include "components/_mode_banner.html" %}
-          <div id="breadcrumbs" class="flex justify-center">{% include "components/_breadcrumbs.html" %}</div>
+          {% include "core/components/_mode_banner.html" %}
+          <div id="breadcrumbs" class="flex justify-center">{% include "core/components/_breadcrumbs.html" %}</div>
         </header>
-        <div id="messages">{% include "components/_messages.html" %}</div>
+        <div id="messages">{% include "core/components/_messages.html" %}</div>
         <main class="flex-1 h-full">
           <div id="main-content" class="h-full">
             {% block content %}{% endblock %}
@@ -148,8 +149,9 @@
       </div>
       <div class="drawer-side">
         <label for="my-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
-        <div id="sidebar" class="h-full">{% include "components/_sidebar_menu.html" %}</div>
+        <div id="sidebar" class="h-full">{% include "core/components/_sidebar_menu.html" %}</div>
       </div>
     </div>
+    {% endpartialdef %}
   </body>
 </html>

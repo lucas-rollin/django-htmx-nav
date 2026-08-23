@@ -24,7 +24,7 @@
                 </div>
                 <form method="post"
                       action="{% url request.resolver_match.namespaces|last|add:':ticket_move_status' ticket.id %}"
-                      {% if active_variant.namespace == "htmx_nav_atomic" %}hx-swap="beforeend"{% endif %}
+                      {% if active_variant.uses_htmx_nav %}hx-swap="beforeend"{% endif %}
                       class="flex gap-1">
                   {% csrf_token %}
                   <select name="new_status" class="select select-xs flex-1">
