@@ -703,24 +703,16 @@ def _wizard_steps_swap(step: str) -> Swap:
 
     Targeting `#steps`, this conditionally includes step updates when inner
     wizard navigation occurs (`targeting("steps-content")`).
+
+    Manually OOB-wrapped: reuses the `steps` partial for both the
+    full-page render and this swap, rather than letting `Swap` build
+    the wrapper. See `{% htmx_nav_debug_marker %}` in the template.
     """
     return Swap(
-        "core/components/_wizard_steps.html",
+        "core/components/_wizard_steps.html#oob",
         {"steps": WIZARD_STEPS, "step_index": WIZARD_STEPS.index(step)},
-        target_id="steps",
         include_if=targeting("steps-content"),
     )
-
-
-# Build a partial mapping for the steps.
-# If the Hx-Target matches the step, render it's partial.
-# If the Hx-target is any other target, render the "#content" partial.
-# If non-HTMX, `render_nav` handles rendering the full page automatically.
-_step_partial = {}
-for step in WIZARD_STEPS:
-    _step_partial.update({f"#{step}": step})
-_step_partial.update({"#content": True})
-
 
 def _wizard_data(
     request: HttpRequest, org_id: str, project_id: str
@@ -783,11 +775,15 @@ def ticket_wizard_step(
         "employees": all_employees,
         "employee_names": {e.id: e.name for e in all_employees},
     }
+    # If HX-Target is "steps-content": render this step partial
+    # If HX-target is any other target, render the "#content" partial.
+    # If non-HTMX, `render_nav` handles rendering the full page automatically.
+    partial_spec = {f"#{step}": targeting("steps-content"), "#content": True}
     return render_nav(
         request,
         "core/pages/wizard.html",
         context,
-        partial=_step_partial,
+        partial=partial_spec,
         swaps=[
             _sidebar_swap(active_org_id=org_id, active_project_id=project_id),
             _breadcrumb_swap(

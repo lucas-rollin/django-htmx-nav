@@ -40,7 +40,7 @@ lint = [
 where = ["src"]
 
 [tool.setuptools.package-data]
-htmx_nav = ["py.typed"]
+htmx_nav = ["py.typed", "static/htmx_nav/*.css"]
 
 [project.urls]
 "Homepage" = "https://github.com/lucas-rollin/django-htmx-nav"

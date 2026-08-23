@@ -24,12 +24,10 @@ NAMESPACE = "htmx_nav_baseline"
 TICKET_PAGE_SIZE = 6
 
 
-SHELL_SWAPS = [
+render_shell = make_shell_renderer([
     Swap("core/components/_sidebar_menu.html", target_id="sidebar"),
     Swap("core/components/_breadcrumbs.html", target_id="breadcrumbs"),
-]
-
-render_shell = make_shell_renderer(swaps=lambda request: SHELL_SWAPS)
+])
 
 # ---------------------------------------------------------------------------
 # Sidebar & Breadcrumbs Helpers
@@ -322,7 +320,7 @@ def kanban_board(request: HttpRequest, org_id: str, project_id: str) -> HttpResp
 # ---------------------------------------------------------------------------
 
 
-ShellViewMixin = make_shell_view_mixin(default_swaps=SHELL_SWAPS)
+ShellViewMixin = make_shell_view_mixin(render=render_shell)
 
 
 class TicketListView(ShellViewMixin, ListView):

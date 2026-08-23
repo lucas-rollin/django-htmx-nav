@@ -83,3 +83,13 @@ This page provides the API reference generated automatically from docstrings in 
    :show-inheritance:
    :no-imported-members:
 ```
+
+## `htmx_nav.debugging`
+
+```{eval-rst}
+.. automodule:: htmx_nav.debugging
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :no-imported-members:
+```

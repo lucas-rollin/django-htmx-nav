@@ -13,29 +13,9 @@ from django.template.loader import render_to_string
 from django.utils.html import conditional_escape
 from django.utils.safestring import SafeString
 
+from .debugging import _build_marker_script
 from .settings import _debug_swaps_enabled, _default_swap_wrap
 from .targeting import Target, _eval_target
-
-
-def _debug_marker_script(target_id: str) -> str:
-    """
-    Inline script marking a swapped element for htmx-nav's visual debug tool.
-
-    Survives wrapper-stripping on innerHTML-style OOB/hx-partial swaps
-    because it's emitted as a sibling of the fragment's own content, inside
-    the wrapper — both get inserted as children of the real target
-    regardless of swap style, so the script always ends up in the DOM.
-    Class is re-applied with a forced reflow so repeated swaps of the same
-    (non-replaced) element retrigger the CSS animation each time.
-    """
-    return (
-        "<script>(function(){"
-        f"var el=document.getElementById({json.dumps(target_id)});"
-        "if(!el)return;"
-        "el.classList.remove('hn-swap');void el.offsetWidth;"
-        "el.classList.add('hn-swap');"
-        "})();</script>"
-    )
 
 
 @dataclass(frozen=True)
@@ -173,7 +153,7 @@ class Swap:
             )
 
         if self.target_id and _debug_swaps_enabled():
-            html += _debug_marker_script(self.target_id)
+            html += _build_marker_script(self.target_id)
         if not self.target_id:
             return html
         if self.wrap == "hx-partial":

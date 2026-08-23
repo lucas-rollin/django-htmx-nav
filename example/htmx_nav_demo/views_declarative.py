@@ -297,15 +297,19 @@ def ticket_attachments(request: HttpRequest, ticket_id: str) -> HttpResponse:
 WIZARD_STEPS = ["basics", "assignment", "review"]
 WIZARD_SESSION_KEY = "new_ticket_wizard"
 
-_step_partial = {f"#{s}": s for s in WIZARD_STEPS}
-_step_partial["#content"] = True
-
 
 def _wizard_steps_swap(step: str) -> Swap:
-    """Page-specific, one-view-only — built here and passed as
-    extra_swaps, same showcase role as the subtab swap above."""
+    """Return a Swap fragment for step indicator UI updates in the ticket wizard.
+
+    Targeting `#steps`, this conditionally includes step updates when inner
+    wizard navigation occurs (`targeting("steps-content")`).
+
+    Manually OOB-wrapped: reuses the `steps` partial for both the
+    full-page render and this swap, rather than letting `Swap` build
+    the wrapper. See `{% htmx_nav_debug_marker %}` in the template.
+    """
     return Swap(
-        "core/components/_wizard_steps.html",
+        "core/components/_wizard_steps.html#oob",
         {"steps": WIZARD_STEPS, "step_index": WIZARD_STEPS.index(step)},
         target_id="steps",
         include_if=targeting("steps-content"),
@@ -359,10 +363,14 @@ def ticket_wizard_step(
         "employees": all_employees,
         "employee_names": {e.id: e.name for e in all_employees},
     }
+    # If HX-Target is "steps-content": render this step partial
+    # If HX-target is any other target, render the "#content" partial.
+    # If non-HTMX, `render_nav` handles rendering the full page automatically.
+    partial_spec = {f"#{step}": targeting("steps-content"), "#content": True}
     return render_shell(
         request,
         "core/pages/wizard.html",
         context,
-        partial=_step_partial,
+        partial=partial_spec,
         extra_swaps=[_wizard_steps_swap(step)],
     )

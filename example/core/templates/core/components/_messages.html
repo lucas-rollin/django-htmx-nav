@@ -2,14 +2,10 @@
   <div class="toast toast-top toast-center z-50 w-full max-w-lg px-4 pointer-events-none">
     {% for message in messages %}
       <input type="checkbox" id="toast-{{ forloop.counter }}" class="peer hidden" />
-      <div class="alert pointer-events-auto flex justify-between items-center shadow-lg peer-checked:hidden transition-all duration-300
-          {% if message.tags == 'success' %}alert-success
-          {% elif message.tags == 'error' %}alert-error
-          {% elif message.tags == 'warning' %}alert-warning
-          {% else %}alert-info{% endif %}">
+      <div class="alert pointer-events-auto flex justify-between items-center shadow-lg peer-checked:hidden transition-all duration-300 {% if message.tags == 'success' %}alert-success {% elif message.tags == 'error' %}alert-error {% elif message.tags == 'warning' %}alert-warning {% else %}alert-info{% endif %}">
         <span>{{ message }}</span>
-        <label for="toast-{{ forloop.counter }}" 
-               class="btn btn-sm btn-circle btn-ghost cursor-pointer" 
+        <label for="toast-{{ forloop.counter }}"
+               class="btn btn-sm btn-circle btn-ghost cursor-pointer"
                aria-label="Fechar mensagem">✕</label>
       </div>
     {% endfor %}

@@ -65,7 +65,7 @@ class ShellRenderer(Protocol):
 
 
 def make_shell_renderer(
-    swaps: Callable[[HttpRequest], Swaps],
+    swaps: Swaps | Callable[[HttpRequest], Swaps],
     *,
     partial: PartialSpec = "#content",
 ) -> ShellRenderer:
@@ -73,10 +73,8 @@ def make_shell_renderer(
     Creates a renderer that always includes a fixed set of Swaps.
 
     Args:
-        swaps: Callable that returns the Swap(s) that should always
-            accompany this shell for a given request — typically one
-            Swap per navigational region, each with its own template,
-            context, target_id, and include_if. Called once per render.
+        swaps: Swaps inclued in this request by default. Using a Callable
+            allows the swap context to vary based on the request.
         partial: Default PartialSpec used unless overridden per-call.
 
     Returns:
@@ -108,13 +106,13 @@ def make_shell_renderer(
         partial: PartialSpec = default_partial,
         **kwargs: Any,
     ) -> TemplateResponse:
-        shell_swaps = _normalize_swaps(swaps(request))
+        resolved = swaps(request) if callable(swaps) else swaps
         return render_nav(
             request,
             template_name,
             context,
             partial=partial,
-            swaps=[*shell_swaps, *_normalize_swaps(extra_swaps)],
+            swaps=[*_normalize_swaps(resolved), *_normalize_swaps(extra_swaps)],
             **kwargs,
         )
 

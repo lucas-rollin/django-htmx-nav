@@ -1,0 +1,17 @@
+/**
+ * Debug-swap highlight, always active whenever the marker script
+ * toggles ".hn-swap", no body[data-hn-debug-swaps] required.
+ *
+ * Use this instead of debug-swaps.css if you don't need a client-side
+ * on/off toggle and just want highlighting live whenever
+ * HTMX_NAV_DEBUG_SWAPS is enabled.
+ */
+
+.hn-swap {
+  animation: hn-flash-pulse 900ms ease-out;
+}
+
+@keyframes hn-flash-pulse {
+  from { background-color: #fef08a; }
+  to   { background-color: transparent; }
+}

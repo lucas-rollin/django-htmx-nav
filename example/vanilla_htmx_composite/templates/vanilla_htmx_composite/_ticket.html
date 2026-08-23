@@ -1,0 +1,7 @@
+<div id="sidebar" hx-swap-oob="innerHTML">{% include "core/components/_sidebar_menu.html" %}</div>
+<div id="breadcrumbs" hx-swap-oob="innerHTML">{% include "core/components/_breadcrumbs.html" %}</div>
+{% if messages %}
+  <div id="messages" hx-swap-oob="innerHTML">{% include "components/_messages.html" %}</div>
+{% endif %}
+{% include "core/pages/ticket.html#content" %}
+<title>{{ title }}</title>

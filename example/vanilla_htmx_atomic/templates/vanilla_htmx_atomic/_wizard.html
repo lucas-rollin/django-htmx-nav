@@ -1,0 +1,10 @@
+{% load htmx_extras %}
+<div id="sidebar" hx-swap-oob="innerHTML">{% include "core/components/_sidebar_menu.html" %}</div>
+<div id="breadcrumbs" hx-swap-oob="innerHTML">{% include "core/components/_breadcrumbs.html" %}</div>
+{% if request|hx_target:"steps-content" %}
+  <div id="steps" hx-swap-oob="innerHTML">{% include "core/components/_wizard_steps.html" %}</div>
+  {% include "core/pages/wizard.html#"|add:step %}
+{% else %}
+  {% include "core/pages/wizard.html#content" %}
+{% endif %}
+<title>{{ title }}</title>

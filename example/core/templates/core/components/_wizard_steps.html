@@ -1,6 +1,16 @@
-<ul class="steps w-full mb-8">
-  {% for s in steps %}
-    <li class="step {% if forloop.counter0 <= step_index %}step-primary{% endif %}"
-        data-content="{{ forloop.counter }}">{{ s|title }}</li>
-  {% endfor %}
-</ul>
+{# Showcases a case where you don't want the Swap auto wrap for better control #}
+{% load htmx_nav %}
+{% partialdef steps inline %}
+ <ul class="steps w-full mb-8">
+   {% for s in steps %}
+     <li class="step {% if forloop.counter0 <= step_index %}step-primary{% endif %}"
+         data-content="{{ forloop.counter }}">{{ s|title }}</li>
+   {% endfor %}
+ </ul>
+{% endpartialdef %}
+{% partialdef oob %}
+  <div id="steps" hx-swap-oob="innerHTML">
+    {% partial steps %}
+    {% htmx_nav_debug_marker "steps" %}
+  </div>
+{% endpartialdef %}

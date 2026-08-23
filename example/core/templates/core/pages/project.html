@@ -172,7 +172,8 @@
           <div id="subtabs">
             {% partialdef settings_subtabs inline %}
               <ul class="menu w-48 shrink-0 bg-base-100 rounded-box border border-base-300 h-fit"
-                  {% if active_variant.namespace == "htmx_nav_atomic" or active_variant.namespace == "htmx_nav_declarative" %}hx-target="#subtab-content"{% endif %}>
+                  {% if "subtabs" in active_variant.component_swaps %}hx-target="#subtab-content" {% endif %}
+                  {% if active_variant.namespace == "hx_select" %}hx-select="#subtab-content" hx-select-oob="#sidebar, #breadcrumbs, #tabs, #subtabs"{% endif %}>
                 <li>
                   <a href="{% url request.resolver_match.namespaces|last|add:':project_settings' org.id project.id %}"
                      class="{% if active_subtab == 'general' %}menu-active{% endif %}">General</a>

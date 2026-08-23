@@ -6,7 +6,7 @@
         <span class="badge {{ status|status_badge_class }}">{{ status|status_label }}</span>
         <span class="text-xs text-base-content/50" id="column-count-{{ status }}">{{ tickets|length }}</span>
       </div>
-      <div class="space-y-2" id="column-{{status}}">
+      <div class="space-y-2" id="column-{{ status }}">
         {% for ticket in tickets %}
           {% partialdef ticket-card inline %}
             <div id="ticket-{{ ticket.id }}"

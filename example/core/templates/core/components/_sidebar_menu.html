@@ -1,5 +1,5 @@
 {% load nav_extras %}
-<ul class="hn-swap menu bg-base-200 min-h-full w-64 p-4">
+<ul class="menu min-h-full w-64 p-4">
   <li class="menu-title">Pages</li>
   <li>
     <a href="{% url request.resolver_match.namespaces|last|add:':overview' %}"

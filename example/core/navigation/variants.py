@@ -17,11 +17,7 @@ class Variant:
     url_prefix: str
     app_name: str = "core"
 
+    component_swaps: list[str] = False # ids of navigation component swaps
     uses_htmx: bool = False
     uses_htmx_nav: bool = False
     uses_idiomorph: bool = False
-
-    hx_boost: bool = False
-    hx_select: str | None = None
-    hx_target: str | None = None
-    hx_swap: str | None = None

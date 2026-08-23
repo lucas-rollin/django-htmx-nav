@@ -1,6 +1,6 @@
-# Testing & Visual Debugging
+# Testing
 
-`django-htmx-nav` provides automated test utilities to verify navigation state consistency across HTMX request pathways, as well as a visual debugging feature to highlight out-of-band DOM swaps in development.
+`django-htmx-nav` provides automated test utilities to verify navigation state consistency across HTMX request pathways.
 
 ---
 
@@ -72,67 +72,3 @@ def test_project_detail_html_composition(client: Client, project):
 > ```bash
 > pip install beautifulsoup4
 > ```
-
----
-
-## 3. Visual Swap Debugging (`HTMX_NAV_DEBUG_SWAPS`)
-
-`django-htmx-nav` includes a built-in visual debug tool to highlight DOM elements whenever they are updated via out-of-band HTMX swaps.
-
-### Enabling Debug Swaps
-
-1. Add `django-htmx-nav` to your `INSTALLED_APPS`:
-
-```python
-INSTALLED_APPS = [
-    ...,
-    "htmx_nav",
-    ...,
-]
-```
-
-Only needed if using the provided styles.
-
-2. Enable the setting in your Django `settings.py` (typically in development environments):
-
-```python
-# settings.py
-HTMX_NAV_DEBUG_SWAPS = True
-```
-
-3. Include the debug stylesheet in your base HTML template:
-
-```html
-{% load static %}
-<link rel="stylesheet" href="{% static 'htmx_nav/debug-swaps.css' %}">
-```
-
-### How It Works
-
-When `HTMX_NAV_DEBUG_SWAPS` is enabled, `Swap` instances targeting a `target_id` automatically append an inline script to the fragment:
-
-```html
-"<script>
-    (function(){"
-        f"var el=document.getElementById({json.dumps(target_id)});"
-        "if(!el)return;"
-        "el.classList.remove('hn-swap');void el.offsetWidth;"
-        "el.classList.add('hn-swap');"
-    "})();
-</script>"
-```
-
-The script applies the `.hn-swap` CSS class to the target element and forces a reflow. The `debug-swaps.css` stylesheet triggers a brief background color flash animation on the updated element whenever an HTMX swap occurs:
-
-```css
-[data-hn-debug-swaps] .hn-swap {
-  animation: hn-flash-pulse 900ms ease-out;
-}
-
-@keyframes hn-flash-pulse {
-  from { background-color: #fef08a; }
-  to   { background-color: transparent; }
-}
-```
-
-This visual feedback makes it immediate and obvious during development which DOM elements were swapped out-of-band.

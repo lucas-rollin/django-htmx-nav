@@ -3,6 +3,7 @@
  *
  * Requires the partial to use the class "hn-swap" at the root element.
  * Effect can be toggled by toggling the "data-hn-debug-swaps" attribute on body.
+ * Requires "HTMX_NAV_DEBUG_SWAPS" setting to be enabled.
  */
 
 [data-hn-debug-swaps] .hn-swap {

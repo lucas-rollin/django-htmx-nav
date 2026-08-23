@@ -38,6 +38,9 @@ INSTALLED_APPS = [
     "htmx_nav",
     "core",
     "mpa",
+    "vanilla_htmx_composite",
+    "vanilla_htmx_atomic",
+    "htmx_nav_demo",
 ]
 
 MIDDLEWARE = [

@@ -1,0 +1,18 @@
+{% load htmx_extras %}
+<div id="sidebar" hx-swap-oob="innerHTML">{% include "core/components/_sidebar_menu.html" %}</div>
+<div id="breadcrumbs" hx-swap-oob="innerHTML">{% include "core/components/_breadcrumbs.html" %}</div>
+{% if request|hx_target:"subtab-content" %}
+  <div id="tabs" hx-swap-oob="innerHTML">{% include "core/components/_tabs.html" %}</div>
+  <div id="subtabs" hx-swap-oob="innerHTML">{% include "core/pages/project.html#settings_subtabs" %}</div>
+  {% include "core/pages/project.html#settings-"|add:active_subtab %}
+{% elif request|hx_target:"tab-content" %}
+  <div id="tabs" hx-swap-oob="innerHTML">{% include "core/components/_tabs.html" %}</div>
+  {% if active_tab == "board" %}
+    {% include "core/pages/_board.html" %}
+  {% else %}
+    {% include "core/pages/project.html#"|add:active_tab %}
+  {% endif %}
+{% else %}
+  {% include "core/pages/project.html#content" %}
+{% endif %}
+<title>{{ title }}</title>

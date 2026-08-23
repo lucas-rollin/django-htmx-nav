@@ -9,7 +9,9 @@
 :caption: Contents
 
 quickstart
+glossary
 testing
+debugging
 example_project
 nav_context_patterns
 api
