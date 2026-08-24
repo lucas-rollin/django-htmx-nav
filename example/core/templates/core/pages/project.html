@@ -1,5 +1,6 @@
 {% extends "core/base.html" %}
 {% block title %}{{ project.name }} · {{ org.name }}{% endblock %}
+{% load variant_extras %}
 {% block content %}
   {% partialdef content inline %}
     <div class="p-6 max-w-6xl mx-auto">
@@ -172,8 +173,8 @@
           <div id="subtabs">
             {% partialdef settings_subtabs inline %}
               <ul class="menu w-48 shrink-0 bg-base-100 rounded-box border border-base-300 h-fit"
-                  {% if "subtabs" in active_variant.component_swaps %}hx-target="#subtab-content" {% endif %}
-                  {% if active_variant.namespace == "hx_select" %}hx-select="#subtab-content" hx-select-oob="#sidebar, #breadcrumbs, #tabs, #subtabs"{% endif %}>
+                  {% if "subtabs" in active_variant.component_swaps or active_variant.uses_hx_select %}hx-target="#subtab-content" {% endif %}
+                  {% hx_select_attrs "subtab-content" %} {% morph_attrs "subtab-content" %}>
                 <li>
                   <a href="{% url request.resolver_match.namespaces|last|add:':project_settings' org.id project.id %}"
                      class="{% if active_subtab == 'general' %}menu-active{% endif %}">General</a>

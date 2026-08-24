@@ -6,7 +6,11 @@
 
 ```python
 # settings.py
-INSTALLED_APPS = [..., "htmx_nav", ...]  # needed for static files + {% htmx_nav_debug_marker %}
+INSTALLED_APPS = [
+    ...,
+    "htmx_nav",
+    ...,
+]  # needed for static files + {% htmx_nav_debug_marker %}
 ```
 
 ```python

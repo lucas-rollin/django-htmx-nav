@@ -268,8 +268,7 @@ def ticket_move_status(request: HttpRequest, ticket_id: str) -> HttpResponse:
                 project_id=ticket.project.id, status=status
             ).count()
             html += (
-                f'<div id="column-count-{status}" hx-swap-oob="innerHTML">'
-                f"{count}</div>"
+                f'<div id="column-count-{status}" hx-swap-oob="innerHTML">{count}</div>'
             )
 
     response = HttpResponse(html)
@@ -418,7 +417,10 @@ def ticket_comments(request: HttpRequest, ticket_id: str) -> HttpResponse:
                 project.name,
                 reverse(f"{NAMESPACE}:project_overview", args=[org.id, project.id]),
             ),
-            (f"#{ticket.id[:8]}", reverse(f"{NAMESPACE}:ticket_detail", args=[ticket.id])),
+            (
+                f"#{ticket.id[:8]}",
+                reverse(f"{NAMESPACE}:ticket_detail", args=[ticket.id]),
+            ),
             ("Comments", None),
         ),
         **_ticket_tabs(request, ticket, active="comments"),
@@ -446,7 +448,10 @@ def ticket_activity(request: HttpRequest, ticket_id: str) -> HttpResponse:
                 project.name,
                 reverse(f"{NAMESPACE}:project_overview", args=[org.id, project.id]),
             ),
-            (f"#{ticket.id[:8]}", reverse(f"{NAMESPACE}:ticket_detail", args=[ticket.id])),
+            (
+                f"#{ticket.id[:8]}",
+                reverse(f"{NAMESPACE}:ticket_detail", args=[ticket.id]),
+            ),
             ("Activity", None),
         ),
         **_ticket_tabs(request, ticket, active="activity"),
@@ -475,7 +480,10 @@ def ticket_attachments(request: HttpRequest, ticket_id: str) -> HttpResponse:
                 project.name,
                 reverse(f"{NAMESPACE}:project_overview", args=[org.id, project.id]),
             ),
-            (f"#{ticket.id[:8]}", reverse(f"{NAMESPACE}:ticket_detail", args=[ticket.id])),
+            (
+                f"#{ticket.id[:8]}",
+                reverse(f"{NAMESPACE}:ticket_detail", args=[ticket.id]),
+            ),
             ("Attachments", None),
         ),
         **_ticket_tabs(request, ticket, active="attachments"),
@@ -520,7 +528,7 @@ def ticket_wizard_step(
             messages.add_message(
                 request, messages.SUCCESS, "Ticket submitted! (Not really ;~;)"
             )
-            
+
             target_url = reverse(
                 f"{NAMESPACE}:ticket_detail",
                 kwargs={"ticket_id": fake_new_ticket.id if fake_new_ticket else None},

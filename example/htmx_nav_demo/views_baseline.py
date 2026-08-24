@@ -24,10 +24,12 @@ NAMESPACE = "htmx_nav_baseline"
 TICKET_PAGE_SIZE = 6
 
 
-render_shell = make_shell_renderer([
-    Swap("core/components/_sidebar_menu.html", target_id="sidebar"),
-    Swap("core/components/_breadcrumbs.html", target_id="breadcrumbs"),
-])
+render_shell = make_shell_renderer(
+    [
+        Swap("core/components/_sidebar_menu.html", target_id="sidebar"),
+        Swap("core/components/_breadcrumbs.html", target_id="breadcrumbs"),
+    ]
+)
 
 # ---------------------------------------------------------------------------
 # Sidebar & Breadcrumbs Helpers

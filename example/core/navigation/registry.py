@@ -9,8 +9,8 @@ VARIANTS = {
         url_prefix="mpa/",
         app_name="mpa",
     ),
-    "hx_boost": Variant(
-        namespace="hx_boost",
+    "pure_hx_boost": Variant(
+        namespace="pure_hx_boost",
         label="HX-Boost (unaware views)",
         group="vanilla",
         views_module="mpa.views",
@@ -18,15 +18,15 @@ VARIANTS = {
         app_name="mpa",
         uses_htmx=True,
     ),
-    "hx_select": Variant(
-        namespace="hx_select",
+    "pure_hx_select": Variant(
+        namespace="pure_hx_select",
         label="HX-Select (client-side fragment)",
         group="vanilla",
         views_module="mpa.views",
         url_prefix="hx-select/",
         app_name="mpa",
-        component_swaps=["sidebar", "breadcrumbs", "tabs", "subtabs", "steps"],
         uses_htmx=True,
+        uses_hx_select=True,
     ),
     "vanilla_htmx_composite": Variant(
         namespace="vanilla_htmx_composite",

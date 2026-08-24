@@ -714,6 +714,7 @@ def _wizard_steps_swap(step: str) -> Swap:
         include_if=targeting("steps-content"),
     )
 
+
 def _wizard_data(
     request: HttpRequest, org_id: str, project_id: str
 ) -> tuple[str, dict]:

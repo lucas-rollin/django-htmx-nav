@@ -362,7 +362,7 @@ def build_shell_swaps(request: HttpRequest) -> list[Swap]:
                 "core/components/_tabs.html",
                 _resolve_tabs(entry, request),
                 target_id="tabs",
-                include_if=targeting("tab-content")
+                include_if=targeting("tab-content"),
             )
         )
 

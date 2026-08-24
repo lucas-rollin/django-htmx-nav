@@ -1,4 +1,5 @@
 {% load static %}
+{% load variant_extras %}
 <!DOCTYPE html>
 <html lang="en-US" data-theme="light">
   <head>
@@ -22,17 +23,22 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script defer src="{% static 'core/js/theme.js' %}"></script>
     {% if active_variant.uses_htmx %}
-      <!--<script src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.0-beta6/dist/htmx.min.js"></script>-->
+      <link rel="stylesheet" href="{% static 'htmx_nav/debug-swaps.css' %}">
       <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js"
               integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V"
               crossorigin="anonymous"></script>
-      <link rel="stylesheet" href="{% static 'htmx_nav/debug-swaps.css' %}">
+    {% endif %}
+    {% if active_variant.uses_morph %}
+      <script src="https://unpkg.com/idiomorph@0.7.4/dist/idiomorph-ext.min.js"
+              integrity="sha384-SsScJKzATF/w6suEEdLbgYGsYFLzeKfOA6PY+/C5ZPxOSuA+ARquqtz/BZz9JWU8"
+              crossorigin="anonymous"></script>
     {% endif %}
   </head>
   <body data-demo-mode="{{ demo_mode }}" 
-    {% if active_variant.uses_htmx %}hx-boost="true" data-hn-debug-swaps {% endif %}
-    {% if "sidebar" in active_variant.component_swaps and "breadcrumbs" in active_variant.component_swaps %}hx-target="#main-content" {% endif %}
-    {% if active_variant.namespace == "hx_select" %}hx-select="#main-content" hx-select-oob="#sidebar, #breadcrumbs"{% endif %}>
+        {% if active_variant.uses_morph %}hx-ext="morph" {% endif %}
+        {% if active_variant.uses_htmx %}hx-boost="true" {% endif %}
+        {% if "sidebar" in active_variant.component_swaps and "breadcrumbs" in active_variant.component_swaps or active_variant.uses_hx_select %}hx-target="#main-content" {% endif %}
+        {% hx_select_attrs "main-content" %} {% morph_attrs "main-content" %}>
     {% partialdef body inline %}
       <div class="drawer lg:drawer-open">
         <input id="my-drawer" type="checkbox" class="drawer-toggle" />

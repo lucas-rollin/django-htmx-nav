@@ -3,7 +3,6 @@ Swap: an out-of-band or <hx-partial> fragment rendered alongside the main
 content of an HTMX response.
 """
 
-import json
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any, Literal, TypeAlias
