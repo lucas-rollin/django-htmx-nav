@@ -65,13 +65,17 @@ def overview(request: HttpRequest) -> HttpResponse:
     """Displays the primary helpdesk dashboard and high-level summary metrics."""
     context = {
         **_sidebar_context(active_page="overview"),
+        "org_count": Organization.objects.count(),
+        "project_count": Project.objects.count(),
+        "open_ticket_count": Ticket.objects.filter(status=Ticket.Status.OPEN).count(),
+        "employee_count": Employee.objects.count(),
     }
 
     return render_shell(
         request,
         "core/pages/overview.html",
         context,
-        title="Organizations · Helpdesk",
+        title="Django-htmx-nav Example",
     )
 
 

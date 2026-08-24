@@ -12,7 +12,7 @@ pytestmark = pytest.mark.urls(__name__)
 # -- Setup for parity tests ---------------
 
 render_shell = make_shell_renderer(
-    lambda request: Swap(
+    Swap(
         "tests/_shell_nav.html",
         {
             "nav": {

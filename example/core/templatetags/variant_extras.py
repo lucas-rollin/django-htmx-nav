@@ -31,8 +31,4 @@ def morph_attrs(context, target_id: str) -> str:
     variant = context["active_variant"]
     if not variant.uses_morph:
         return ""
-    attrs = ['hx-swap="morph"']
-    if leftover := oob_components(target_id, variant.component_swaps):
-        selectors = ", ".join(f"#{c}" for c in leftover)
-        attrs.append(f'hx-swap-oob="morph:{selectors}"')
-    return mark_safe(" ".join(attrs))
+    return mark_safe('hx-swap="morph:innerHTML"')

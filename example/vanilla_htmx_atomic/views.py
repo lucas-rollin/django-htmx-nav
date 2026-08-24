@@ -114,7 +114,11 @@ def overview(request: HttpRequest) -> HttpResponse:
     context = {
         **_sidebar_context(active_page="overview"),
         **_breadcrumbs(("helpdesk", None)),
-        "title": "Organizations · Helpdesk",
+        "org_count": Organization.objects.count(),
+        "project_count": Project.objects.count(),
+        "open_ticket_count": Ticket.objects.filter(status=Ticket.Status.OPEN).count(),
+        "employee_count": Employee.objects.count(),
+        "title": "Django-htmx-nav Example",
     }
     return render(request, get_template(request, "core/pages/overview.html"), context)
 

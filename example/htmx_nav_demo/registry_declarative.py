@@ -175,7 +175,7 @@ _ticket_crumbs = (
 NAV_ENTRIES: dict[str, NavEntry] = {
     "overview": NavEntry(
         breadcrumbs=(Crumb("helpdesk"),),
-        title="Organizations · Helpdesk",
+        title="Django-htmx-nav Example",
     ),
     "staff_list": NavEntry(
         breadcrumbs=(Crumb("helpdesk"),),

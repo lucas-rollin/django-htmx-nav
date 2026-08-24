@@ -1,7 +1,46 @@
 {% extends "core/base.html" %}
-{% block title %}Organizations · Helpdesk{% endblock %}
+{% load nav_extras %}
 {% block content %}
-  {% partialdef content inline %}
-    uwu
-  {% endpartialdef %}
+{% partialdef content inline %}
+<div class="p-6 max-w-4xl mx-auto space-y-6">
+
+  <div class="card bg-{{ active_variant.color }}/5 border border-{{ active_variant.color }}/30">
+    <div class="card-body gap-2">
+      <div class="flex items-center gap-2">
+        <span class="badge badge-{{ active_variant.color }}">{{ active_variant.family_label }}</span>
+        {% if active_variant.axis_badge %}
+          <span class="badge badge-outline">{{ active_variant.axis_badge }}</span>
+        {% endif %}
+      </div>
+      <p class="text-sm">{{ active_variant.family_description }}</p>
+      <ul class="text-sm text-base-content/70 list-disc list-inside">
+        <li>Server-synced regions: {{ active_variant.component_swaps|join:", "|default:"none" }}</li>
+        {% if active_variant.uses_hx_select %}<li>Remaining regions synced via <code>hx-select-oob</code></li>{% endif %}
+        {% if active_variant.uses_morph %}<li>DOM updates use idiomorph instead of full replace</li>{% endif %}
+      </ul>
+    </div>
+  </div>
+
+  {# --- actual helpdesk overview content --- #}
+  <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+    <div class="stat bg-base-100 border border-base-300 rounded-box">
+      <div class="stat-title">Organizations</div>
+      <div class="stat-value">{{ org_count }}</div>
+    </div>
+    <div class="stat bg-base-100 border border-base-300 rounded-box">
+      <div class="stat-title">Projects</div>
+      <div class="stat-value">{{ project_count }}</div>
+    </div>
+    <div class="stat bg-base-100 border border-base-300 rounded-box">
+      <div class="stat-title">Open tickets</div>
+      <div class="stat-value">{{ open_ticket_count }}</div>
+    </div>
+    <div class="stat bg-base-100 border border-base-300 rounded-box">
+      <div class="stat-title">Staff</div>
+      <div class="stat-value">{{ employee_count }}</div>
+    </div>
+  </div>
+
+</div>
+{% endpartialdef %}
 {% endblock %}

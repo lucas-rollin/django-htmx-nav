@@ -63,5 +63,5 @@ example/
 ## Planned Work & Future Experiments
 
 - [x] Add vanilla HTMX variant views (`example/vanilla_htmx/`) to explicitly benchmark code lines and maintenance complexity against `django-htmx-nav`.
-- [ ] Add interactive toggle in the UI header to seamlessly switch execution modes between MPA, Vanilla HTMX, and `django-htmx-nav`.
+- [x] Add interactive toggle in the UI header to seamlessly switch execution modes between MPA, Vanilla HTMX, and `django-htmx-nav`.
 - [ ] Expand E2E test suites comparing client-side performance and network payload sizes across all three architectural variants.

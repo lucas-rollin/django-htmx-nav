@@ -101,14 +101,21 @@ def _tab_content_partial(request: HttpRequest, partial_name: str) -> str:
 
 def overview(request: HttpRequest) -> HttpResponse:
     """Display the main helpdesk overview dashboard."""
+    context = {
+        "org_count": Organization.objects.count(),
+        "project_count": Project.objects.count(),
+        "open_ticket_count": Ticket.objects.filter(status=Ticket.Status.OPEN).count(),
+        "employee_count": Employee.objects.count(),
+    }
     return render_nav(
         request,
         "core/pages/overview.html",
+        context,
         swaps=[
             _sidebar_swap(active_page="overview"),
             _breadcrumb_swap(("helpdesk", None)),
         ],
-        title="Organizations · Helpdesk",
+        title="Django-htmx-nav Example",
     )
 
 

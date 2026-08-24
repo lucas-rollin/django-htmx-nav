@@ -106,8 +106,6 @@ def test_evaluates_all_checks_even_after_one_fails():
                 "second": tracking_check("second"),
             },
         )
-    # NOTE: this currently fails fast on "first" and never runs "second".
-    # See discussion — may want to change to collect-all-failures behavior.
 
 
 def test_returns_responses_for_further_assertions():

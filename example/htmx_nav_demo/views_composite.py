@@ -20,7 +20,6 @@ from htmx_nav import (
     make_shell_view_mixin,
     render_nav,
     render_with_swaps,
-    targeting,
 )
 
 NAMESPACE = "htmx_nav_composite"
@@ -80,14 +79,21 @@ def _breadcrumb_swap(*crumbs: tuple[str, str | None]) -> Swap:
 
 def overview(request: HttpRequest) -> HttpResponse:
     """Display the main helpdesk overview dashboard."""
+    context = {
+        "org_count": Organization.objects.count(),
+        "project_count": Project.objects.count(),
+        "open_ticket_count": Ticket.objects.filter(status=Ticket.Status.OPEN).count(),
+        "employee_count": Employee.objects.count(),
+    }
     return render_nav(
         request,
         "core/pages/overview.html",
+        context,
         swaps=[
             _sidebar_swap(active_page="overview"),
             _breadcrumb_swap(("helpdesk", None)),
         ],
-        title="Organizations · Helpdesk",
+        title="Django-htmx-nav Example",
     )
 
 
@@ -338,7 +344,6 @@ def kanban_board(request: HttpRequest, org_id: str, project_id: str) -> HttpResp
         request,
         "core/pages/project.html",
         context,
-        partial={"core/pages/_board.html": targeting("tab-content"), "#content": True},
         swaps=[
             _sidebar_swap(active_org_id=org_id, active_project_id=project_id),
             _breadcrumb_swap(
