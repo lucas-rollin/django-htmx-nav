@@ -97,6 +97,7 @@ def staff_list(request: HttpRequest) -> HttpResponse:
         request,
         "core/pages/staff_list.html",
         context,
+        partial="core/pages/_staff_list.html",
         title="Staff · Helpdesk",
     )
 

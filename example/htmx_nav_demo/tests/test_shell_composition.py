@@ -53,7 +53,8 @@ def test_project_overview_coarse_swap_is_target_agnostic(variant, org_project):
     main = client.get(url, **HX_HEADERS_MAIN)
     tab = client.get(url, **HX_HEADERS_TAB)
     assert_html_equal(
-        main.content, tab.content,
+        main.content,
+        tab.content,
         label_a="HX-Target=main-content response",
         label_b="HX-Target=tab-content response",
     )
