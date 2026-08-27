@@ -1,0 +1,7 @@
+{% partialdef tab_body %}<p>Tab body</p>{% endpartialdef %}
+{% partialdef content %}<nav>Section nav</nav><div id="tab-content">{% partial tab_body %}</div>{% endpartialdef %}
+<html><body>
+<div id="sidebar">{% include "tests/_shell_nav.html" %}</div>
+<div id="breadcrumbs">{% include "tests/_notification.html" with message="hi" %}</div>
+<div id="page-content">{% partial content %}</div>
+</body></html>

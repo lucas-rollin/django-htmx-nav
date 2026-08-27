@@ -10,7 +10,8 @@ def variants(request):
         families.setdefault(variant.family, []).append(variant)
 
     variant_families = [
-        {"label": items[0].family_label, "variants": items} for items in families.values()
+        {"label": items[0].family_label, "variants": items}
+        for items in families.values()
     ]
 
     return {

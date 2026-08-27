@@ -5,7 +5,8 @@
   {% partialdef content inline %}
     <div class="p-6 max-w-2xl mx-auto"
          {% if "steps" in active_variant.component_swaps or active_variant.uses_hx_select %}hx-target="#steps-content" {% endif %}
-         {% hx_select_attrs "steps-content" %} {% morph_attrs "steps-content" %}>
+         {% hx_select_attrs "steps-content" %}
+         {% morph_attrs "steps-content" %}>
       <h1 class="text-2xl font-bold mb-1">New ticket</h1>
       <p class="text-base-content/60 mb-6">{{ project.name }} · {{ org.name }}</p>
       {# ================================== #}

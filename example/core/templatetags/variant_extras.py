@@ -9,7 +9,7 @@ register = template.Library()
 @register.simple_tag(takes_context=True)
 def hx_select_attrs(context, target_id: str) -> str:
     """Client-side sync for whatever component_swaps doesn't already cover.
-    
+
     Composable with uses_htmx_nav, e.g. htmx_nav_composite covers only
     sidebar/breadcrumbs via Python Swaps, leaving tabs/subtabs as a real
     gap this can fill. No-op when component_swaps already covers

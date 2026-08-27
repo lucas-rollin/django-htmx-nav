@@ -2,8 +2,8 @@
 Variant configuration for the MPA / vanilla HTMX / django-htmx-nav comparison.
 
 A "family" is one implementation approach (e.g. "vanilla HTMX,
-composite OOB swaps"); its Python views and templates are fixed. 
-Each family can additionally be explored along two independent, 
+composite OOB swaps"); its Python views and templates are fixed.
+Each family can additionally be explored along two independent,
 orthogonalUI-sync axes that only change HTML attributes, never Python:
 
     - hx_select: client-side fragment extraction instead of
