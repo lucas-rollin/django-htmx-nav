@@ -1,7 +1,7 @@
 """
 Shared fixtures for cross-variant tests to assert behaviour parity.
 
-Spans *every* registered variant: MPA, vanilla HTMX (composite/atomic), 
+Spans *every* registered variant: MPA, vanilla HTMX (composite/atomic),
 and django-htmx-nav (baseline/composite/atomic/declarative).
 
 This is meant to support experiments comparing the variants so it's

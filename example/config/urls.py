@@ -37,5 +37,6 @@ def _variant_mounts():
 
 urlpatterns = [
     path("", RedirectView.as_view(url="/mpa/", permanent=True)),
+    path("benchmarks/", include("benchmarks.urls")),
     *_variant_mounts(),
 ]

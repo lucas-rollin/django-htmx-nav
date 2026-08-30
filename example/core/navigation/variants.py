@@ -100,6 +100,18 @@ class Variant:
         return "+".join(bits)
 
 
+def _get_label(family_label, uses_hx_select, uses_hx_morph):
+
+    if uses_hx_select and uses_hx_morph:
+        return f"{family_label} (hx_select + morph)"
+    elif uses_hx_select:
+        return f"{family_label} (hx_select)"
+    elif uses_hx_morph:
+        return f"{family_label} (morph)"
+    else:
+        return family_label
+
+
 def make_family(
     *,
     key: str,
@@ -129,7 +141,7 @@ def make_family(
         namespace = f"{key}{suffix}"
         variants[namespace] = Variant(
             namespace=namespace,
-            label=label,
+            label=_get_label(label, hx_select, morph),
             group=group,
             views_module=views_module,
             url_prefix=f"{prefix}{suffix.replace('_', '-')}/",

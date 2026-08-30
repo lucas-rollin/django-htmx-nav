@@ -1,0 +1,23 @@
+{% extends "benchmarks/base.html" %}
+{% block content %}
+  {% partialdef content inline %}
+    <div class="p-6 max-w-7xl mx-auto">
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold">Overview</h1>
+        <p class="text-base-content/60">
+          Hand-picked, cross-category charts will live here. TODO.
+        </p>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {% for placeholder in overview_placeholders %}
+          <div class="card bg-base-100 border border-base-300">
+            <div class="card-body">
+              <h2 class="card-title text-sm text-base-content/60">{{ placeholder }}</h2>
+              <div class="skeleton h-56 w-full mt-2"></div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endpartialdef %}
+{% endblock %}

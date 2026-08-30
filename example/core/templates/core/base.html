@@ -25,14 +25,22 @@
     <script defer src="{% static 'core/js/variant-switch.js' %}"></script>
     {% if active_variant.uses_htmx %}
       <link rel="stylesheet" href="{% static 'htmx_nav/debug-swaps.css' %}">
-      <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js"
-              integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V"
-              crossorigin="anonymous"></script>
+      {% if benchmark_local_assets %}
+        <script src="{% static 'core/js/vendor/htmx.min.js' %}"></script>
+      {% else %}
+        <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js"
+                integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V"
+                crossorigin="anonymous"></script>
+      {% endif %}
     {% endif %}
     {% if active_variant.uses_morph %}
-      <script src="https://unpkg.com/idiomorph@0.7.4/dist/idiomorph-ext.min.js"
-              integrity="sha384-SsScJKzATF/w6suEEdLbgYGsYFLzeKfOA6PY+/C5ZPxOSuA+ARquqtz/BZz9JWU8"
-              crossorigin="anonymous"></script>
+      {% if benchmark_local_assets %}
+        <script src="{% static 'core/js/vendor/idiomorph-ext.min.js' %}"></script>
+      {% else %}
+        <script src="https://unpkg.com/idiomorph@0.7.4/dist/idiomorph-ext.min.js"
+                integrity="sha384-SsScJKzATF/w6suEEdLbgYGsYFLzeKfOA6PY+/C5ZPxOSuA+ARquqtz/BZz9JWU8"
+                crossorigin="anonymous"></script>
+      {% endif %}
     {% endif %}
   </head>
   <body data-demo-mode="{{ demo_mode }}"
@@ -120,6 +128,7 @@
                   </summary>
                   <ul class="menu dropdown-content bg-base-100 rounded-box z-1 w-80 p-2 shadow-sm gap-1"
                       {% if active_variant.uses_htmx %}hx-boost="false"{% endif %}>
+                    <li><a href="{% url 'benchmarks:overview' %}">Benchmarks</a></li>
                     {% for family in variant_families %}
                       <li class="menu-title pb-0">{{ family.label }}</li>
                       <li>
@@ -134,7 +143,6 @@
                         </div>
                       </li>
                     {% endfor %}
-                    <li><a href="https://github.com/your-org/django-htmx-nav">Source code diffs</a></li>
                   </ul>
                 </details>
               </div>

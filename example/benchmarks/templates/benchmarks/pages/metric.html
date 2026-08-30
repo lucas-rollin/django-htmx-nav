@@ -1,0 +1,120 @@
+{% extends "benchmarks/base.html" %}
+{% block content %}
+  {% partialdef content inline %}
+    <div class="p-6 max-w-7xl mx-auto" x-data="metricDashboard('chart-data', 'table-data', 'descriptions-data')">
+      <div class="flex items-center justify-between flex-wrap gap-2 mb-1">
+        <h1 class="text-2xl font-bold">{{ page_title }}</h1>
+        {% if run_file %}
+          <span class="badge badge-ghost badge-sm font-mono">{{ run_file }}</span>
+        {% endif %}
+      </div>
+      <p class="text-base-content/60 mb-6">
+        Auto-generated from the latest collection run. Averaged across scenarios per variant.
+      </p>
+
+      {{ charts|json_script:"chart-data" }}
+      {{ table|json_script:"table-data" }}
+      {{ descriptions|json_script:"descriptions-data" }}
+
+      {% if not metrics %}
+        <div class="alert alert-warning">
+          <span>
+            No data yet for this category. Run the matching
+            <code>collect_*_metrics</code> management command, see
+            <code>example/benchmarks/README.md</code>.
+          </span>
+        </div>
+      {% else %}
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-8">
+          <div class="card bg-base-100 border border-base-300">
+            <div class="card-body p-4">
+              <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+                <h2 class="card-title text-sm">Metric Explorer</h2>
+                <div class="flex gap-2 items-center">
+                  <select class="select select-xs" x-model="scatterX" @change="renderScatter"
+                          :title="describeFor(scatterX)">
+                    <template x-for="m in metrics" :key="'x-'+m">
+                      <option :value="m" x-text="labelFor(m)" :title="describeFor(m)"></option>
+                    </template>
+                  </select>
+                  <span class="self-center text-xs opacity-50">vs</span>
+                  <select class="select select-xs" x-model="scatterY" @change="renderScatter"
+                          :title="describeFor(scatterY)">
+                    <template x-for="m in metrics" :key="'y-'+m">
+                      <option :value="m" x-text="labelFor(m)" :title="describeFor(m)"></option>
+                    </template>
+                  </select>
+                </div>
+              </div>
+              <div class="h-80" x-ref="scatterEl"></div>
+            </div>
+          </div>
+
+          <div class="card bg-base-100 border border-base-300">
+            <div class="card-body p-4">
+              <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+                <h2 class="card-title text-sm">Ranked Comparison</h2>
+                <select class="select select-xs" x-model="rankedMetric" @change="renderRanked"
+                        :title="describeFor(rankedMetric)">
+                  <template x-for="m in metrics" :key="'r-'+m">
+                    <option :value="m" x-text="labelFor(m)" :title="describeFor(m)"></option>
+                  </template>
+                </select>
+              </div>
+              <div class="h-80" x-ref="rankedEl"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card bg-base-100 border border-base-300 overflow-x-auto">
+          <table class="table table-sm table-zebra">
+            <thead>
+              <tr>
+                <template x-for="col in columns" :key="col">
+                  <th class="whitespace-nowrap">
+                    <template x-if="hasDescription(col)">
+                      <div class="tooltip tooltip-bottom" :data-tip="describeFor(col)">
+                        <span class="cursor-pointer select-none inline-flex items-center gap-1"
+                              @click="sortBy(col)">
+                          <span x-text="labelFor(col)"></span>
+                          <span class="text-xs opacity-60" x-text="sortIndicator(col)"></span>
+                          <span class="text-[10px] opacity-40 border border-current rounded-full w-3.5 h-3.5 inline-flex items-center justify-center leading-none">?</span>
+                        </span>
+                      </div>
+                    </template>
+                    <template x-if="!hasDescription(col)">
+                      <span class="cursor-pointer select-none" @click="sortBy(col)">
+                        <span x-text="labelFor(col)"></span>
+                        <span class="text-xs opacity-60" x-text="sortIndicator(col)"></span>
+                      </span>
+                    </template>
+                  </th>
+                </template>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="row in sortedRows" :key="row.variant">
+                <tr class="hover">
+                  <template x-for="col in columns" :key="col">
+                    <td class="p-0">
+                      <template x-if="isNumericColumn(col)">
+                        <div class="relative h-full min-w-[7rem] px-2 py-1.5">
+                          <div class="absolute inset-y-1 left-0 bg-primary/15 rounded-sm"
+                               :style="barStyle(col, row[col])"></div>
+                          <span class="relative text-right block tabular-nums" x-text="fmt(row[col])"></span>
+                        </div>
+                      </template>
+                      <template x-if="!isNumericColumn(col)">
+                        <div class="px-2 py-1.5" x-text="fmt(row[col])"></div>
+                      </template>
+                    </td>
+                  </template>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    </div>
+  {% endpartialdef %}
+{% endblock %}

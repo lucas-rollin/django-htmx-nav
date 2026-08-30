@@ -581,7 +581,10 @@ def ticket_attachments(request: HttpRequest, ticket_id: str) -> HttpResponse:
     project = ticket.project
     org = project.organization
 
-    context = {"ticket": ticket, **_ticket_tabs(request, ticket, active="attachments"),}
+    context = {
+        "ticket": ticket,
+        **_ticket_tabs(request, ticket, active="attachments"),
+    }
 
     return render_nav(
         request,

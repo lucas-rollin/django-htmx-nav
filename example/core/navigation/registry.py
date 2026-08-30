@@ -8,13 +8,14 @@ VARIANTS: dict[str, Variant] = {
         views_module="mpa.views",
         url_prefix="mpa/",
         app_name="mpa",
+        uses_htmx=False,
         family="mpa",
         family_label="Pure MPA",
         family_description="A traditional Multi Page Application.",
     ),
     **make_family(
         key="pure_htmx",
-        label="Pure HTMX (hx-boost, unaware views)",
+        label="Vanilla HTMX unaware views",
         description="HTMX unaware views that do full render while being wrapped only in hx-boost.",
         group="vanilla",
         views_module="mpa.views",
@@ -24,7 +25,7 @@ VARIANTS: dict[str, Variant] = {
     ),
     **make_family(
         key="vanilla_htmx_composite",
-        label="Vanilla HTMX (composite OOB)",
+        label="Vanilla HTMX Composite OOB",
         description="Hand-written OOB swaps, but only for sidebar/breadcrumbs.",
         group="vanilla",
         views_module="vanilla_htmx_composite.views",
@@ -35,7 +36,7 @@ VARIANTS: dict[str, Variant] = {
     ),
     **make_family(
         key="vanilla_htmx_atomic",
-        label="Vanilla HTMX (atomic OOB)",
+        label="Vanilla HTMX Atomic OOB",
         description="Hand-written OOB swaps for all components, needs additional conditionals logic on the template.",
         group="vanilla",
         views_module="vanilla_htmx_atomic.views",

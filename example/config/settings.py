@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,7 +26,7 @@ SECRET_KEY = "django-insecure-s-+#0r9wl_6j4t8e$ffdg#=&i$@*+gwt=!*q7wmx43%!6l9)p^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS: list[str] = []
+ALLOWED_HOSTS: list[str] = ["127.0.0.1", "testserver"]
 
 
 # Application definition
@@ -41,9 +42,11 @@ INSTALLED_APPS = [
     "vanilla_htmx_composite",
     "vanilla_htmx_atomic",
     "htmx_nav_demo",
+    "benchmarks",
 ]
 
 MIDDLEWARE = [
+    "django.middleware.gzip.GZipMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -64,6 +67,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.messages.context_processors.messages",
                 "config.context_processors.variants",
+                "config.context_processors.benchmark",
             ],
         },
     },
@@ -125,4 +129,6 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
-HTMX_NAV_DEBUG_SWAPS = True
+HTMX_NAV_DEBUG_SWAPS = os.environ.get("HTMX_NAV_BENCHMARK") != "1"
+
+HTMX_NAV_BENCHMARK_LOCAL_ASSETS = os.environ.get("HTMX_NAV_BENCHMARK") == "1"

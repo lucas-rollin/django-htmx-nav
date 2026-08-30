@@ -1,7 +1,7 @@
 """
 Context parity tests across variants.
 
-Every check here relies on the same property, documented on `Swap.context` 
+Every check here relies on the same property, documented on `Swap.context`
 (see src/htmx_nav/swaps.py): a Swap's context is merged into the *page*
 context as a fallback, unconditionally. MPA and vanilla-HTMX variants
 get the same parity "for free" since they just build one flat context
