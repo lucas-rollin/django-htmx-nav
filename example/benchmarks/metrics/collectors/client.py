@@ -51,14 +51,14 @@ HTMX_ONLY_METRICS = (
 )
 
 # Arms instrumentation for exactly one measured interaction: tracks
-# htmx:beforeRequest -> htmx:beforeSwap -> htmx:afterSettle timestamps,
+# htmx:beforeRequest -> htmx:beforeSwap -> htmx:afterSwap timestamps,
 # plus a MutationObserver counting records and element-node adds/
-# removes, settling on __bench.done after a post-settle double-rAF
+# removes, settling on __bench.done after a post-swap double-rAF
 # boundary (approximating "visually painted").
 ARM_HTMX_JS = """
 () => {
   window.__bench = {
-    beforeRequest: null, beforeSwap: null, afterSettle: null, paint: null,
+    beforeRequest: null, beforeSwap: null, afterSwap: null, afterSettle: null, paint: null,
     mutationRecords: 0, nodesAdded: 0, nodesRemoved: 0, done: false,
   };
 
@@ -77,23 +77,37 @@ ARM_HTMX_JS = """
   });
   observer.observe(document.body, { childList: true, subtree: true, attributes: true });
 
-  const onBeforeRequest = () => { if (!window.__bench.beforeRequest) window.__bench.beforeRequest = performance.now(); };
-  const onBeforeSwap = () => { if (!window.__bench.beforeSwap) window.__bench.beforeSwap = performance.now(); };
+  const onBeforeRequest = () => {
+    if (!window.__bench.beforeRequest) window.__bench.beforeRequest = performance.now();
+  };
+  const onBeforeSwap = () => {
+    if (!window.__bench.beforeSwap) window.__bench.beforeSwap = performance.now();
+  };
   const onAfterSettle = () => {
-    if (!window.__bench.afterSettle) window.__bench.afterSettle = performance.now();
+    window.__bench.afterSettle = performance.now();
+  };
+
+  const cleanup = () => {
+    ['htmx:beforeRequest', 'htmx:before:request'].forEach(e => document.body.removeEventListener(e, onBeforeRequest));
+    ['htmx:beforeSwap', 'htmx:before:swap'].forEach(e => document.body.removeEventListener(e, onBeforeSwap));
+    ['htmx:afterSettle', 'htmx:after:settle'].forEach(e => document.body.removeEventListener(e, onAfterSettle));
+    ['htmx:afterSwap', 'htmx:after:swap'].forEach(e => document.body.removeEventListener(e, onAfterSwap));
+  };
+
+  const onAfterSwap = () => {
+    window.__bench.afterSwap = performance.now();
     requestAnimationFrame(() => requestAnimationFrame(() => {
       window.__bench.paint = performance.now();
       window.__bench.done = true;
       observer.disconnect();
-      ['htmx:beforeRequest', 'htmx:before:request'].forEach(e => document.body.removeEventListener(e, onBeforeRequest));
-      ['htmx:beforeSwap', 'htmx:before:swap'].forEach(e => document.body.removeEventListener(e, onBeforeSwap));
-      ['htmx:afterSettle', 'htmx:after:settle'].forEach(e => document.body.removeEventListener(e, onAfterSettle));
+      cleanup();
     }));
   };
 
   ['htmx:beforeRequest', 'htmx:before:request'].forEach(e => document.body.addEventListener(e, onBeforeRequest));
   ['htmx:beforeSwap', 'htmx:before:swap'].forEach(e => document.body.addEventListener(e, onBeforeSwap));
   ['htmx:afterSettle', 'htmx:after:settle'].forEach(e => document.body.addEventListener(e, onAfterSettle));
+  ['htmx:afterSwap', 'htmx:after:swap'].forEach(e => document.body.addEventListener(e, onAfterSwap));
 }
 """
 
@@ -214,7 +228,7 @@ def _run_scenario_htmx(page, PWTimeoutError, landing, variant, scenario, cctx, r
                 result["paint"] - result["beforeRequest"]
             )
             samples[Metric.HTMX_PROCESSING_MS].append(
-                result["afterSettle"] - result["beforeSwap"]
+                (result.get("afterSwap") or result["afterSettle"]) - result["beforeSwap"]
             )
             samples[Metric.DOM_MUTATIONS].append(result["mutationRecords"])
             samples[Metric.DOM_NODES_ADDED].append(result["nodesAdded"])

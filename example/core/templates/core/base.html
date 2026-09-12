@@ -119,7 +119,7 @@
                   </summary>
                   <ul class="menu dropdown-content bg-base-100 rounded-box z-1 w-80 p-2 shadow-sm gap-1"
                       {% if active_variant.uses_htmx %}hx-boost="false"{% endif %}>
-                    <li><a href="{% url 'benchmarks:overview' %}">Benchmarks</a></li>
+                    <li><a class="outline" href="{% url 'benchmarks:overview' %}">Benchmarks</a></li>
                     {% for family in variant_families %}
                       <li class="menu-title pb-0">{{ family.label }}</li>
                       <li>

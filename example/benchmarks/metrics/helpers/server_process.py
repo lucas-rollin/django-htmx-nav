@@ -8,8 +8,10 @@ HTTP (payload, client) rather than the in-process Django test client
 """
 
 import os
+import socket
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -25,10 +27,9 @@ class DevServer:
         self.port = port
         self.base_url = f"http://127.0.0.1:{port}"
         self._proc: subprocess.Popen | None = None
+        self._err_file = None
 
     def __enter__(self) -> "DevServer":
-        import socket
-
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             if s.connect_ex(("127.0.0.1", self.port)) == 0:
                 raise RuntimeError(
@@ -40,6 +41,7 @@ class DevServer:
         # Disables the debug-swap marker script and switches to vendored
         # local htmx/idiomorph assets if present (see vendor_client_assets).
         env.setdefault("HTMX_NAV_BENCHMARK", "1")
+        self._err_file = tempfile.NamedTemporaryFile(mode="w+", delete=False)
         self._proc = subprocess.Popen(
             [
                 sys.executable,
@@ -50,7 +52,7 @@ class DevServer:
             ],
             env=env,
             stdout=subprocess.DEVNULL,
-            stderr=subprocess.PIPE,
+            stderr=self._err_file,
             text=True,
         )
         self._wait_ready()
@@ -63,12 +65,21 @@ class DevServer:
                 self._proc.wait(timeout=10)
             except subprocess.TimeoutExpired:
                 self._proc.kill()
+        if self._err_file:
+            self._err_file.close()
+            try:
+                os.unlink(self._err_file.name)
+            except OSError:
+                pass
 
     def _wait_ready(self, timeout: int = 15) -> None:
         deadline = time.time() + timeout
         while time.time() < deadline:
             if self._proc and self._proc.poll() is not None:
-                err = self._proc.stderr.read() if self._proc.stderr else ""
+                err = ""
+                if self._err_file:
+                    self._err_file.seek(0)
+                    err = self._err_file.read()
                 raise RuntimeError(
                     f"Dev server on port {self.port} exited prematurely with return code {self._proc.returncode}.\n{err}"
                 )
@@ -78,3 +89,4 @@ class DevServer:
             except requests.exceptions.ConnectionError:
                 time.sleep(0.3)
         raise RuntimeError(f"Dev server on port {self.port} did not start in time.")
+
