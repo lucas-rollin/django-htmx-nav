@@ -13,7 +13,5 @@ services:
         value: ".onrender.com,localhost,127.0.0.1"
       - key: CSRF_TRUSTED_ORIGINS
         value: "https://*.onrender.com"
-      - key: HTMX_NAV_BENCHMARK
-        value: "1"
       - key: SECRET_KEY
         generateValue: true

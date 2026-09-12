@@ -63,8 +63,7 @@ WORKDIR /workspace/example
 
 # Collect static files into STATIC_ROOT during build
 ENV DJANGO_SETTINGS_MODULE=config.settings \
-    STATIC_ROOT=/workspace/example/staticfiles \
-    HTMX_NAV_BENCHMARK=1
+    STATIC_ROOT=/workspace/example/staticfiles
 
 USER app
 RUN python manage.py collectstatic --noinput

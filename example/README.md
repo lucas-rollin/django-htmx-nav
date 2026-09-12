@@ -103,7 +103,6 @@ Click the button below to deploy the application instantly using the repository'
    - `DEBUG`: `False`
    - `ALLOWED_HOSTS`: `.onrender.com,localhost,127.0.0.1`
    - `CSRF_TRUSTED_ORIGINS`: `https://*.onrender.com`
-   - `HTMX_NAV_BENCHMARK`: `1`
    - `SECRET_KEY`: *(Click "Generate" to generate a secure random value)*
 6. Click **Create Web Service**. Render will automatically build the `production` Docker stage and provide a live URL (`https://<service-name>.onrender.com`).
 
@@ -118,7 +117,6 @@ Click the button below to deploy the application instantly using the repository'
 | `SECRET_KEY` | *(insecure dev key)* | Secret key for Django cryptographic signing. |
 | `ALLOWED_HOSTS` | `127.0.0.1,testserver,localhost` | Comma-separated list of valid hostnames/domains (e.g. `.onrender.com`). |
 | `CSRF_TRUSTED_ORIGINS` | `""` | Comma-separated trusted origins (e.g. `https://*.onrender.com`). |
-| `HTMX_NAV_BENCHMARK` | `0` | Set to `1` to serve benchmark overview/metric charts and hide debug visual swap outlines. |
 | `STATIC_ROOT` | `<BASE_DIR>/staticfiles` | Directory where `collectstatic` outputs assets. |
 | `PORT` | `8000` | Port for Gunicorn to listen on (Render automatically provides `PORT=10000`). |
 

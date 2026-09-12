@@ -5,6 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{{ title|default:"Benchmarks · django-htmx-nav" }}{% endblock %}</title>
+    <meta name="description"
+          content="{% block meta_description %}Empirical performance benchmarks comparing network payload, server render time, and DOM churn across MPA, Vanilla HTMX, and django-htmx-nav.{% endblock %}">
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{% block og_title %}{{ title|default:'Benchmarks · django-htmx-nav' }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Empirical performance benchmarks comparing network payload, server render time, and DOM churn across MPA, Vanilla HTMX, and django-htmx-nav.{% endblock %}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:site_name" content="django-htmx-nav">
+    <meta name="twitter:card" content="summary_large_image">
     <script>
     (function () {
       const saved = localStorage.getItem("theme");
@@ -13,6 +22,7 @@
       document.documentElement.setAttribute("data-theme", theme);
     })();
     </script>
+    <link rel="icon" type="image/svg+xml" href="{% static "core/img/favicon.svg" %}">
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5"
           rel="stylesheet"
           type="text/css" />
@@ -102,9 +112,26 @@
                     </path>
                   </svg>
                 </summary>
-                <ul class="menu dropdown-content bg-base-100 rounded-box z-1 w-80 p-2 shadow-sm gap-1"
+                <ul class="menu dropdown-content bg-base-100 rounded-box z-50 w-80 p-2 shadow-lg border border-base-200 gap-1"
                     hx-boost="false">
-                  <li><a class="menu-active" href="{% url 'benchmarks:overview' %}">Benchmarks</a></li>
+                  <li>
+                    <a class="flex items-center gap-2 font-semibold text-primary" href="{% url 'landing' %}">
+                      <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                      </svg>
+                      Overview Landing Page
+                    </a>
+                  </li>
+                  <li>
+                    <a class="flex items-center gap-2 font-semibold menu-active" href="{% url 'benchmarks:overview' %}">
+                      <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                      </svg>
+                      Benchmarks Dashboard
+                    </a>
+                  </li>
+                  <li class="divider my-1"></li>
+                  <li class="menu-title pb-0">Switch Implementation</li>
                   {% for family in variant_families %}
                     <li class="menu-title pb-0">{{ family.label }}</li>
                     <li>
