@@ -1,6 +1,6 @@
 # Visual Swap Debugging
 
-`HTMX_NAV_DEBUG_SWAPS` highlights DOM elements as they're updated by out-of-band HTMX swaps — useful for seeing at a glance what actually changed.
+`HTMX_NAV_DEBUG_SWAPS` highlights DOM elements as they're updated by out-of-band HTMX swaps, useful for seeing at a glance what actually changed.
 
 ## Enable
 

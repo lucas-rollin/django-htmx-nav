@@ -32,7 +32,7 @@ The DOM element id a `Swap` is delivered to. The `id="..."` /
 ## HX-Target / htmx_target_is() / targeting()
 
 `HX-Target` is the *request* header attribute HTMX sends and specifies
-which DOM element will receive the partial. `htmx_target_is(request, "foo")` 
+which DOM element will receive the partial. `htmx_target_is(request, "foo")`
 / `targeting("foo")` read *that* header.
 
 ## shell / shell renderer
@@ -45,6 +45,6 @@ not any single template file.
 ## variant
 
 Example-project-only term: one of the three (or more) full
-implementations under `example/` being compared, `mpa`, `vanilla_htmx` and 
+implementations under `example/` being compared, `mpa`, `vanilla_htmx` and
 `htmx_nav_*`. Not used anywhere in the `htmx_nav` package
 itself.

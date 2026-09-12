@@ -103,12 +103,36 @@ document.addEventListener('alpine:init', () => {
 
     _groupedBarOption(c) {
       return {
-        grid: { left: 48, right: 16, top: 32, bottom: 64 },
-        tooltip: { trigger: 'axis' },
-        legend: { top: 0, textStyle: { fontSize: 10 } },
+        grid: { left: 52, right: 16, top: 32, bottom: 64 },
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: { type: 'shadow' },
+          formatter: (params) => {
+            if (!params || !params.length) return '';
+            let res = `<div class="font-bold text-xs mb-1">${params[0].axisValue}</div>`;
+            params.forEach((p) => {
+              if (p.value === null || p.value === undefined) return;
+              const val = typeof p.value === 'number'
+                ? (Number.isInteger(p.value) ? p.value : p.value.toFixed(1))
+                : p.value;
+              res += `<div class="flex items-center justify-between gap-4 text-xs">
+                <span>${p.marker} ${p.seriesName}</span>
+                <span class="font-mono font-semibold">${val} ${c.y_name || ''}</span>
+              </div>`;
+            });
+            return res;
+          },
+        },
+        legend: { type: 'scroll', top: 0, textStyle: { fontSize: 10 } },
         xAxis: { type: 'category', data: c.labels, axisLabel: { fontSize: 10, rotate: 20 } },
         yAxis: { type: 'value', name: c.y_name, nameLocation: 'middle', nameGap: 40 },
-        series: c.series.map((s) => ({ type: 'bar', name: s.name, data: s.data })),
+        series: c.series.map((s) => ({
+          type: 'bar',
+          name: s.name,
+          data: s.data,
+          stack: s.stack,
+          emphasis: { focus: 'series' },
+        })),
       };
     },
 
@@ -138,9 +162,9 @@ document.addEventListener('alpine:init', () => {
 
     _barLineOption(c) {
       return {
-        grid: { left: 48, right: 48, top: 24, bottom: 64 },
-        tooltip: { trigger: 'axis' },
-        legend: { bottom: 0, textStyle: { fontSize: 10 } },
+        grid: { left: 52, right: 48, top: 32, bottom: 64 },
+        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+        legend: { type: 'scroll', top: 0, textStyle: { fontSize: 10 } },
         xAxis: { type: 'category', data: c.labels, axisLabel: { fontSize: 10, rotate: 20 } },
         yAxis: [
           { type: 'value', name: c.bar_name, nameLocation: 'middle', nameGap: 36 },

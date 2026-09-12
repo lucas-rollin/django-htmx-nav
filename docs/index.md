@@ -1,64 +1,115 @@
-# django-htmx-nav
+# django-htmx-nav Documentation
 
 **Server-driven, SPA-like user experiences with MPA simplicity in Django.**
 
-`django-htmx-nav` provides lightweight helpers for handling HTMX partial renders, out-of-band (OOB) updates, shell layout rendering, and HTMX-safe redirects in Django projects.
-
-This site documents the package itself — installation, `render_nav`,
-`Swap`, `make_shell_renderer`, testing utilities, and so on. The
-repository as a whole is broader than the package: it's a comparison of
-several ways to solve **stale navigation regions** (a sidebar,
-breadcrumbs, or tab bar that doesn't reflect the page HTMX just swapped
-in), of which `django-htmx-nav` is one — the most developed one, but not
-the only one shown. See [Example Project](example_project.md) for the
-full comparison and [Benchmarks](benchmarks.md) for what each approach
-actually costs, in code and at runtime.
-
-```{toctree}
-:maxdepth: 2
-:caption: Contents
-
-quickstart
-glossary
-testing
-debugging
-example_project
-benchmarks
-nav_context_patterns
-api
-```
-
----
-
-## Overview
-
-Django 6 introduced native template partials (`{% partialdef %}`), allowing a single template to define both the full page layout and specific fragments swapped in by HTMX:
+`django-htmx-nav` is a lightweight Python helper library designed to streamline partial rendering, out-of-band (OOB) swap construction, reusable shell layout rendering, and HTMX-safe redirects in Django projects.
 
 ```html
+<!-- templates/app/project_list.html -->
 {% extends 'base.html' %}
 
 {% block content %}
 {% partialdef content inline %}
-  <div>My page content!</div>
-{% endpartial %}
+  {% for project in projects %}
+    <div>{{ project.name }}</div>
+  {% endfor %}
+{% endpartialdef %}
 {% endblock %}
+
 ```
 
-While partials solve single-fragment swapping, real-world web applications often face additional challenges:
+## The Problem: Stale Navigation Regions
 
-1. **Header & Sidebar Synchronization:** Swapping `#content` leaves sidebars, breadcrumbs, and active navigation indicators out of sync unless out-of-band (OOB) fragments are rendered alongside.
-2. **Browser History Management:** HTMX swaps should properly push URLs (`HX-Push-Url`) and set appropriate HTTP cache headers (`Vary: HX-Request`).
-3. **HTMX Redirect Handling:** Standard HTTP 302 redirects cause HTMX to swap the target page into the DOM element instead of navigating the browser.
+When an HTMX request updates a single target container (like `#main-content`), regions *outside* that container, such as active sidebar items, breadcrumb trails, tab indicators, or progress bars, do not update automatically.
 
-`django-htmx-nav` addresses these exact issues without adding heavy dependencies or requiring custom Django app registration. It isn't the only way to address them, though — a traditional multi-page app sidesteps the problem entirely by never partially swapping anything, and hand-written HTMX with manual OOB swaps addresses it without any package at all. The [example project](example_project.md) implements all three side by side, specifically so the trade-off is visible rather than asserted.
+```plaintext
+┌─────────────────────────────────────────────────────────────┐
+│ Header / Breadcrumbs (Stale: Page 1)                        │
+├──────────────┬──────────────────────────────────────────────┤
+│              │                                              │
+│ Sidebar      │  Main Content (Updated: Page 2)              │
+│ (Stale:      │                                              │
+│  Item 1)     │  Targeted element swapped successfully.      │
+│              │  Surrounding navigation controls did not.    │
+│              │                                              │
+└──────────────┴──────────────────────────────────────────────┘
+```
 
----
+This repository is both package documentation and an empirical study. It explores solutions to stale navigation regions across **8 distinct architectural strategies**, ranging from unassisted Vanilla HTMX and hand-written OOB swaps to declarative registries and baseline MPAs.
+
+- **Live Example Project Showcase:** Compare implementations, template structures, and UI behaviors side-by-side.
+- **Benchmark Analysis:** Review exact metrics regarding payload compression (~32% savings), rendering overhead (<0.5 ms), and request-scoped database performance (~4.5 avg queries).
 
 ## Core Capabilities
 
-- **`render_nav`**: Renders requested template partial blocks on HTMX requests, manages active navigation state, patches `Vary: HX-Request`, and appends extra OOB `Swap` fragments seamlessly.
-- **`render_with_swaps`**: Renderer for views that need out-of-band swaps without partial/block resolution logic.
-- **`Swap` (`Swap.delete`, `Swap.text`)**: Out-of-band fragment specification supporting template rendering, direct text content, and DOM element deletion (`hx-swap-oob="delete"`).
-- **`make_shell_renderer`**: Encapsulates common page layouts (sidebar, header, breadcrumbs) into a clean renderer function so view functions remain uncluttered.
-- **`make_shell_view_mixin`**: Class-Based View (CBV) integration for Django generic views (`DetailView`, `ListView`, `FormView`).
-- **`assert_shell_parity` & `assert_shell_composition`**: Automated test utilities to verify navigation state consistency and HTML composition across full loads and HTMX swaps in CI.
+```plaintext
++-----------------------------------------------------------------------+
+|                         django-htmx-nav                               |
++-----------------------------------+-----------------------------------+
+| View Helpers & Partial Resolution | Out-of-Band & Shell Orchestration |
+|  - render_nav                     |  - Swap / Swap.delete / Swap.text |
+|  - render_with_swaps              |  - make_shell_renderer            |
+|  - targeting                      |  - make_shell_view_mixin          |
++-----------------------------------+-----------------------------------+
+| Quality Assurance & Verification  | Architecture & Patterns           |
+|  - assert_shell_parity            |  - nav_context_patterns           |
+|  - assert_shell_composition       |  - HTMX-safe redirects & caching  |
++-----------------------------------+-----------------------------------+
+```
+
+- **Selective Partial Rendering (`render_nav`)**: Integrates with Django 6 template partials (`{% partialdef %}`) to automatically serve isolated fragments on HTMX requests and full layouts on direct browser loads, setting proper `Vary: HX-Request` headers.
+- **Explicit OOB Swapping (`Swap`)**: Append secondary DOM updates, raw HTML strings, or deletion directives (`hx-swap-oob="delete"`) alongside primary target responses.
+- **Reusable Shell Renderers (`make_shell_renderer` & Mixins)**: Encapsulate shared layout dependencies (sidebars, breadcrumbs, header counters) into a single reusable rendering pipeline for Function-Based and Class-Based Views.
+- **Target-Aware Branching (`targeting`)**: Dynamically select template partials based on incoming `HX-Target` headers.
+- **Automated Parity Testing (`assert_shell_parity`)**: Test harness tools to enforce DOM consistency between full reloads and HTMX partial swaps in CI/CD pipelines.
+
+## Documentation Index
+
+```{toctree}
+:maxdepth: 2
+:caption: Getting Started & Guides
+
+quickstart
+example_project
+nav_context_patterns
+```
+
+```{toctree}
+:maxdepth: 2
+:caption: Operations & Testing
+
+testing
+debugging
+```
+
+```{toctree}
+:maxdepth: 2
+:caption: Reference
+
+api
+glossary
+```
+
+## Quick Example
+
+```python
+from htmx_nav import Swap, make_shell_renderer
+
+# 1. Define reusable shell context
+render_shell = make_shell_renderer(
+    shell_template="base.html",
+    context_builder=lambda request: {"user_nav": get_user_nav(request)},
+)
+
+# 2. Render view with automatic OOB/hx_partial sync
+def project_detail(request, pk):
+    project = get_object_or_404(Project, pk=pk)
+    return render_shell(
+        request,
+        "app/project_detail.html",
+        {"project": project},
+        extra_swaps=[
+            Swap("app/_breadcrumbs.html", {"project": project}, target_id="breadcrumbs")
+        ],
+    )
+```

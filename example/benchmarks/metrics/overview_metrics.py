@@ -50,8 +50,8 @@ def build_panels() -> list[Panel]:
     client_rows = _load("client")
 
     candidates = [
-        _nav_concern_vs_render_time(static_rows, server_rows),
         _views_loc(static_rows),
+        _server_latency(server_rows),
         _transfer_bytes(payload_rows),
         _queries_vs_swaps(server_rows),
         _htmx_processing(client_rows),
@@ -101,48 +101,70 @@ def _ordered(values: dict[str, float]) -> tuple[list[str], list[float]]:
 # --- individual panels --------------------------------------------------
 
 
-def _nav_concern_vs_render_time(static_rows, server_rows) -> Panel | None:
-    nav_loc = _averaged_base(static_rows, "total_nav_concern_loc")
-    render_ms = _averaged_base(server_rows, "render_time_ms_median")
-    variants = [v for v in FAMILY_ORDER if v in nav_loc and v in render_ms]
+def _views_loc(static_rows) -> Panel | None:
+    views = _averaged_base(static_rows, "views_loc")
+    attrs = _averaged_base(static_rows, "total_template_hx_attributes")
+    variants = [v for v in FAMILY_ORDER if v in views and v in attrs]
     if not variants:
         return None
 
-    points = [
-        {"name": _label(v), "value": [nav_loc[v], render_ms[v]]} for v in variants
-    ]
+    labels = [_label(v) for v in variants]
     return Panel(
-        key="nav_concern_vs_render_time",
-        title="Nav-sync Python cost vs. server render time",
+        key="views_loc",
+        title="Code complexity: Views vs. template maintenance",
         caption=(
-            "Extra Python for navigation sync buys <b>near-zero render time</b>. "
-            "The <b>htmx_nav</b> variants add 21–44 lines of nav-concern code "
-            "for a render spread under <b>0.5 ms</b> (well within normal test noise)."
+            "<b>htmx_nav_declarative</b> achieves the lowest Python view footprint "
+            "(<b>305 LOC</b>, ~<b>30% fewer lines</b> than plain MPA) by offloading context and swap "
+            "logic to a declarative navigation file. In contrast, while Vanilla Unaware views appear identical "
+            "to plain MPA in Python LOC (434), pairing them with <code>hx-select</code> pushes "
+            "routing plumbing into HTML, quadrupling manual <code>hx-*</code> attributes from 6 "
+            "up to <b>27</b>."
         ),
         chart={
-            "type": "scatter",
-            "points": points,
-            "x_name": "nav-concern LOC",
-            "y_name": "render time median (ms)",
+            "type": "bar_line",
+            "labels": labels,
+            "bar_values": [views[v] for v in variants],
+            "bar_name": "views LOC (Python)",
+            "line_values": [attrs[v] for v in variants],
+            "line_name": "template hx-* attributes",
         },
     )
 
 
-def _views_loc(static_rows) -> Panel | None:
-    values = _averaged_base(static_rows, "views_loc")
-    labels, series = _ordered(values)
-    if not labels:
+def _server_latency(server_rows) -> Panel | None:
+    p50_map = _averaged_base(server_rows, "render_time_ms_median")
+    p95_map = _averaged_base(server_rows, "render_time_ms_p95")
+    variants = [v for v in FAMILY_ORDER if v in p50_map and v in p95_map]
+    if not variants:
         return None
+
+    labels = [_label(v) for v in variants]
+    series = [
+        {
+            "name": "Median (P50)",
+            "data": [p50_map[v] for v in variants],
+        },
+        {
+            "name": "Tail Latency (P95)",
+            "data": [p95_map[v] for v in variants],
+        },
+    ]
+
     return Panel(
-        key="views_loc",
-        title="Views LOC by approach",
+        key="server_latency",
+        title="Server render time: Median (P50) vs. tail (P95) latency",
         caption=(
-            "<b>htmx_nav_declarative</b> beats the plain MPA baseline in code size "
-            "despite syncing full navigation components. <b>htmx_nav_atomic</b> uses "
-            "explicit, inline swaps per view to highlight the structural savings "
-            "of the declarative approach."
+            "Server-side navigation synchronization in <b>htmx_nav</b> adds <b>near-zero CPU overhead</b> "
+            "(~<b>7.0 ms</b> median across all approaches). Furthermore, partial rendering tightens tail "
+            "latency: full-shell rendering under load spikes to <b>11.9 ms</b> (P95) in Vanilla Unaware, "
+            "while partial and declarative swaps stay consistently below <b>8.2 ms</b>."
         ),
-        chart={"type": "bar", "labels": labels, "values": series, "y_name": "lines"},
+        chart={
+            "type": "grouped_bar",
+            "labels": labels,
+            "series": series,
+            "y_name": "ms",
+        },
     )
 
 
@@ -224,18 +246,48 @@ def _queries_vs_swaps(server_rows) -> Panel | None:
 
 
 def _htmx_processing(client_rows) -> Panel | None:
-    values = _averaged_base(client_rows, "htmx_processing_ms")
-    labels, series = _ordered(values)
-    if not labels:
-        return None
+    htmx_families = [f for f in FAMILY_ORDER if f != "mpa"]
+
+    series_defs = [
+        ("Base (innerHTML)", lambda r: not r.get("uses_hx_select") and not r.get("uses_morph")),
+        ("+hx-select", lambda r: r.get("uses_hx_select") and not r.get("uses_morph")),
+        ("+Idiomorph", lambda r: not r.get("uses_hx_select") and r.get("uses_morph")),
+        ("+hx-select + Morph", lambda r: r.get("uses_hx_select") and r.get("uses_morph")),
+    ]
+
+    series = []
+    for name, pred in series_defs:
+        data = []
+        for fam in htmx_families:
+            matching = [
+                r["value"]
+                for r in client_rows
+                if r["metric"] == "htmx_processing_ms"
+                and (
+                    r["family"] == fam
+                    or (fam == "vanilla_htmx_unaware_views" and r["family"] in ("vanilla_htmx_unaware_view", "vanilla_htmx_unaware_views"))
+                )
+                and pred(r)
+            ]
+            data.append(round(mean(matching), 1) if matching else None)
+        series.append({"name": name, "data": data})
+
+    labels = [_label(f) for f in htmx_families]
+
     return Panel(
         key="htmx_processing_ms",
-        title="Client-side htmx processing time",
+        title="Client DOM processing across extensions (hx-select vs. morph)",
         caption=(
-            "Measures DOM swap/settle duration (<b>htmx:beforeSwap</b> to "
-            "<b>htmx:afterSettle</b>). <b>mpa</b> is omitted as it fires no htmx "
-            "events. <i>Note: Treat relative ordering as the primary signal, "
-            "as absolute milliseconds are hardware-dependent.</i>"
+            "Using <code>hx-select</code> delivers a <b>50-63% reduction</b> in client DOM processing "
+            "time (dropping to ~<b>12.7 ms</b> in HTMX-Nav) because the browser only parses the matching subtree. "
+            "In contrast, <b>Idiomorph</b> adds ~<b>5-10 ms</b> of JavaScript DOM diffing on full page shells "
+            "(Vanilla Unaware jumps to <b>53.5 ms</b>). Combining <code>+hx-select</code> with Idiomorph "
+            "provides a balance of morphing state preservation without the large-tree diffing cost."
         ),
-        chart={"type": "bar", "labels": labels, "values": series, "y_name": "ms"},
+        chart={
+            "type": "grouped_bar",
+            "labels": labels,
+            "series": series,
+            "y_name": "ms",
+        },
     )

@@ -167,7 +167,7 @@ def build_nav_context(request: HttpRequest) -> dict:
     return cache_on_request(request, "_yourapp_nav", _build)
 ```
 
-### Wiring it up
+### Wiring up Pattern A
 
 ```python
 # yourapp/render.py
@@ -192,7 +192,7 @@ def project_detail(request, pk):
     return render_shell(request, "yourapp/project_detail.html", {"project": project})
 ```
 
-### Testing
+### Testing Pattern A
 
 Because the registry returns plain dicts, you can assert against them
 directly, without rendering templates:
@@ -339,7 +339,7 @@ TEMPLATES = [{
 }]
 ```
 
-### Wiring it up
+### Wiring up pattern B
 
 Note `context_builder` is optional here. If template tags and context
 processors cover everything, `make_shell_renderer` needs nothing more
@@ -356,7 +356,7 @@ def project_detail(request, pk):
     return render_shell(request, "yourapp/project_detail.html", {"project": project})
 ```
 
-### Testing
+### Testing pattern B
 
 Parity here is verified by rendering, not by asserting against plain
 data:
@@ -372,7 +372,7 @@ def test_navigation_parity(client):
 ## Choosing between them
 
 | | Registry (A) | Template tags (B) |
-|---|---|---|
+| --- | --- | --- |
 | Nav structure lives in | Python dataclasses | HTML/templates |
 | `context_builder` needed? | Yes, always | Often not at all |
 | Scales to many views | Well, one file to audit | Poorly, logic spreads across templates |
