@@ -6,35 +6,35 @@
 document.addEventListener('alpine:init', () => {
   const chartRegistry = new Set();
 
-  // Official ECharts default palettes
-  const LIGHT_PALETTE = ['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc'];
-  const DARK_PALETTE = ['#4992ff', '#7cffb2', '#fddd60', '#ff6e76', '#58d9f9', '#f05b72', '#24cbe5', '#61a0a8', '#efa18d'];
-
   window.addEventListener('resize', () => {
     chartRegistry.forEach((chart) => {
       if (!chart.isDisposed()) chart.resize();
     });
   });
 
-  document.body.addEventListener('htmx:beforeCleanupElement', (evt) => {
-    const root = evt.target;
-    if (!root.querySelectorAll) return;
-    [root, ...root.querySelectorAll('*')].forEach((el) => {
-      const instance = echarts.getInstanceByDom?.(el);
-      if (instance) {
-        chartRegistry.delete(instance);
-        instance.dispose();
-      }
+  ['htmx:beforeCleanupElement', 'htmx:before:cleanup'].forEach((evtName) => {
+    document.body.addEventListener(evtName, (evt) => {
+      const root = evt.target;
+      if (!root.querySelectorAll) return;
+      [root, ...root.querySelectorAll('*')].forEach((el) => {
+        const instance = echarts.getInstanceByDom?.(el);
+        if (instance) {
+          chartRegistry.delete(instance);
+          instance.dispose();
+        }
+      });
     });
   });
 
   Alpine.data('overviewDashboard', (panelsDataId) => ({
     panels: [],
     _instances: [], // [{ el, chart, panel, index }]
+    _panelPalettes: [],
     _onThemeChange: null,
 
     init() {
       this.panels = JSON.parse(document.getElementById(panelsDataId).textContent);
+      this._computePanelPalettes();
       this._onThemeChange = (themeName) => this._rebuildAll(themeName);
       this.$nextTick(() => {
         chartTheme.onChange(this._onThemeChange);
@@ -45,13 +45,29 @@ document.addEventListener('alpine:init', () => {
       if (this._onThemeChange) chartTheme.offChange(this._onThemeChange);
     },
 
+    _seriesCountFor(c) {
+      if (!c) return 1;
+      if (c.type === 'grouped_bar' || c.series) return c.series ? c.series.length : 1;
+      if (c.type === 'bar_line') return 2;
+      return 1;
+    },
+
+    _computePanelPalettes() {
+      const cursor = chartTheme.createPaletteCursor();
+      this._panelPalettes = this.panels.map((p) => {
+        const seriesCount = this._seriesCountFor(p.chart);
+        return cursor.nextPalette(seriesCount);
+      });
+    },
+
     /** Called via x-init="mount($el, panel, index)" on each panel's chart div. */
     mount(el, panel, index = 0) {
       const chart = echarts.init(el, chartTheme.themeName(), { renderer: 'canvas' });
       chartRegistry.add(chart);
       this._instances.push({ el, chart, panel, index });
-      
-      chart.setOption(this._optionFor(panel, index));
+
+      const palette = (this._panelPalettes && this._panelPalettes[index]) || chartTheme.palette();
+      chart.setOption({ ...this._optionFor(panel), color: palette });
 
       requestAnimationFrame(() => {
         if (!chart.isDisposed()) chart.resize();
@@ -59,6 +75,7 @@ document.addEventListener('alpine:init', () => {
     },
 
     _rebuildAll(themeName) {
+      this._computePanelPalettes();
       for (const entry of this._instances) {
         if (!entry.chart.isDisposed()) {
           chartRegistry.delete(entry.chart);
@@ -66,8 +83,9 @@ document.addEventListener('alpine:init', () => {
         }
         entry.chart = echarts.init(entry.el, themeName, { renderer: 'canvas' });
         chartRegistry.add(entry.chart);
-        
-        entry.chart.setOption(this._optionFor(entry.panel, entry.index));
+
+        const palette = (this._panelPalettes && this._panelPalettes[entry.index]) || chartTheme.palette();
+        entry.chart.setOption({ ...this._optionFor(entry.panel), color: palette });
 
         requestAnimationFrame(() => {
           if (!entry.chart.isDisposed()) entry.chart.resize();
@@ -75,21 +93,23 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
-    _optionFor(panel, index) {
+    _optionFor(panel) {
       const c = panel.chart;
-      let baseOption;
-      if (c.type === 'scatter') baseOption = this._scatterOption(c);
-      else if (c.type === 'bar_line') baseOption = this._barLineOption(c);
-      else baseOption = this._barOption(c);
+      if (c.type === 'scatter') return this._scatterOption(c);
+      if (c.type === 'bar_line') return this._barLineOption(c);
+      if (c.type === 'grouped_bar' || c.series) return this._groupedBarOption(c);
+      return this._barOption(c);
+    },
 
-      // Select the palette based on the current theme mode
-      const basePalette = chartTheme.isDark() ? DARK_PALETTE : LIGHT_PALETTE;
-      
-      // Rotate the palette so each chart gets a unique starting color sequence
-      const offset = index % basePalette.length;
-      const rotatedPalette = [...basePalette.slice(offset), ...basePalette.slice(0, offset)];
-
-      return { ...baseOption, color: rotatedPalette };
+    _groupedBarOption(c) {
+      return {
+        grid: { left: 48, right: 16, top: 32, bottom: 64 },
+        tooltip: { trigger: 'axis' },
+        legend: { top: 0, textStyle: { fontSize: 10 } },
+        xAxis: { type: 'category', data: c.labels, axisLabel: { fontSize: 10, rotate: 20 } },
+        yAxis: { type: 'value', name: c.y_name, nameLocation: 'middle', nameGap: 40 },
+        series: c.series.map((s) => ({ type: 'bar', name: s.name, data: s.data })),
+      };
     },
 
     _barOption(c) {

@@ -15,13 +15,19 @@ from .jsonl import read_jsonl, reference_jsonl
 
 FAMILY_ORDER = [
     "mpa",
-    "pure_htmx",
+    "vanilla_htmx_unaware_views",
     "vanilla_htmx_composite",
     "vanilla_htmx_atomic",
     "htmx_nav_baseline",
     "htmx_nav_composite",
     "htmx_nav_declarative",
     "htmx_nav_atomic",
+]
+
+SCENARIOS_PAYLOAD = [
+    ("project_overview_main_swap", "Main Content"),
+    ("project_team_tab_swap", "Tab Swap"),
+    ("project_settings_subtab_swap", "Subtab Swap"),
 ]
 
 
@@ -77,7 +83,10 @@ def _averaged_base(rows: list[dict], metric: str) -> dict[str, float]:
             continue
         if row["uses_hx_select"] or row["uses_morph"]:
             continue
-        grouped.setdefault(row["variant"], []).append(row["value"])
+        v = row["variant"]
+        if v == "vanilla_htmx_unaware_view":
+            v = "vanilla_htmx_unaware_views"
+        grouped.setdefault(v, []).append(row["value"])
     return {variant: round(mean(values), 3) for variant, values in grouped.items()}
 
 
@@ -138,20 +147,51 @@ def _views_loc(static_rows) -> Panel | None:
 
 
 def _transfer_bytes(payload_rows) -> Panel | None:
-    values = _averaged_base(payload_rows, "transfer_bytes")
-    labels, series = _ordered(values)
-    if not labels:
+    data_by_scenario: dict[str, dict[str, float]] = {sc[0]: {} for sc in SCENARIOS_PAYLOAD}
+    for row in payload_rows:
+        if row["metric"] != "transfer_bytes":
+            continue
+        if row["uses_hx_select"] or row["uses_morph"]:
+            continue
+        sc = row.get("scenario")
+        if sc in data_by_scenario:
+            v = row["variant"]
+            if v == "vanilla_htmx_unaware_view":
+                v = "vanilla_htmx_unaware_views"
+            data_by_scenario[sc][v] = row["value"]
+
+    present_families = [
+        f
+        for f in FAMILY_ORDER
+        if all(f in data_by_scenario[sc[0]] for sc in SCENARIOS_PAYLOAD)
+    ]
+    if not present_families:
         return None
+
+    labels = [_label(f) for f in present_families]
+    series = [
+        {
+            "name": display_name,
+            "data": [data_by_scenario[sc_key][f] for f in present_families],
+        }
+        for sc_key, display_name in SCENARIOS_PAYLOAD
+    ]
+
     return Panel(
         key="transfer_bytes",
-        title="On-wire payload (gzip)",
+        title="On-wire payload by swap level (gzip)",
         caption=(
-            "A ~<b>32%</b> payload drop separates full-page approaches (<b>mpa</b>, "
-            "<b>pure_htmx</b>) from partial rendering. While hand-written vanilla "
-            "OOB swaps match this efficiency, <b>htmx_nav</b> automates the win "
-            "without manual OOB boilerplates per view."
+            "Across <b>Main</b>, <b>Tab</b>, and <b>Subtab</b> content swaps, partial rendering "
+            "consistently cuts wire transfer in half (~<b>3.0-3.3 KB</b> vs ~<b>6.1-6.3 KB</b> in Pure MPA & Vanilla Unaware). "
+            "In deeply nested subtab swaps, <b>Atomic</b> and <b>Declarative</b> strategies achieve the lowest payload "
+            "(&lt;<b>3.0 KB</b>) by swapping only the leaf container."
         ),
-        chart={"type": "bar", "labels": labels, "values": series, "y_name": "bytes"},
+        chart={
+            "type": "grouped_bar",
+            "labels": labels,
+            "series": series,
+            "y_name": "bytes",
+        },
     )
 
 

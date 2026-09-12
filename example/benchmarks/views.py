@@ -56,6 +56,15 @@ def overview(request: HttpRequest) -> HttpResponse:
     )
 
 
+FEATURED_SCENARIOS: dict[str, list[tuple[str, str]]] = {
+    "payload": [
+        ("project_overview_main_swap", "Main Content Swap"),
+        ("project_team_tab_swap", "Tab Swap"),
+        ("project_settings_subtab_swap", "Subtab Swap"),
+    ],
+}
+
+
 def metric_page(request: HttpRequest, prefix: str) -> HttpResponse:
     """Auto generated, interactive metric dashboards.
 
@@ -80,6 +89,26 @@ def metric_page(request: HttpRequest, prefix: str) -> HttpResponse:
             "lower_is_better": info.lower_is_better,
         }
 
+    featured = FEATURED_SCENARIOS.get(prefix, [])
+    scenario_views = {}
+    if featured and rows:
+        scenario_views["all"] = {
+            "key": "all",
+            "label": "All Scenarios (Average)",
+            "charts": pivoted["charts"],
+            "table": pivoted["table"],
+        }
+        for sc_key, sc_label in featured:
+            sc_rows = [r for r in rows if r.get("scenario") == sc_key]
+            if sc_rows:
+                sc_pivoted = pivot_rows(sc_rows)
+                scenario_views[sc_key] = {
+                    "key": sc_key,
+                    "label": sc_label,
+                    "charts": sc_pivoted["charts"],
+                    "table": sc_pivoted["table"],
+                }
+
     context = {
         "page_title": page_title,
         "run_file": path.name if path else None,
@@ -87,6 +116,7 @@ def metric_page(request: HttpRequest, prefix: str) -> HttpResponse:
         "charts": pivoted["charts"],
         "table": pivoted["table"],
         "descriptions": descriptions,
+        "scenario_views": scenario_views if scenario_views else None,
     }
     return render_shell(
         request,
