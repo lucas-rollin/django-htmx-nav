@@ -12,6 +12,27 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /workspace
 
 # ==========================================
+# Testing & Benchmarking Stage (With Playwright)
+# ==========================================
+FROM python-base AS test
+
+WORKDIR /workspace
+
+# Install Playwright browser & system dependencies first
+RUN pip install playwright \
+    && playwright install --with-deps chromium
+
+COPY pyproject.toml README.md ./
+COPY src/ ./src/
+
+# Install project with test, benchmark, and lint extras
+RUN pip install -e .[example,test,bench,lint]
+
+COPY . /workspace/
+
+CMD ["pytest"]
+
+# ==========================================
 # Builder Stage: Install Deps & Build Wheels
 # ==========================================
 FROM python-base AS builder
@@ -52,35 +73,15 @@ EXPOSE 8000
 
 # Healthcheck to verify app responds
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/').read()" || exit 1
+  CMD python -c "import urllib.request, os; port = os.environ.get('PORT', '8000'); urllib.request.urlopen(f'http://127.0.0.1:{port}/').read()" || exit 1
 
-CMD ["gunicorn", "config.wsgi:application", \
-     "--bind", "0.0.0.0:8000", \
-     "--workers", "2", \
-     "--threads", "2", \
-     "--worker-class", "gthread", \
-     "--max-requests", "1000", \
-     "--max-requests-jitter", "50", \
-     "--access-logfile", "-", \
-     "--error-logfile", "-"]
+CMD ["sh", "-c", "exec gunicorn config.wsgi:application \
+     --bind 0.0.0.0:${PORT:-8000} \
+     --workers 2 \
+     --threads 2 \
+     --worker-class gthread \
+     --max-requests 1000 \
+     --max-requests-jitter 50 \
+     --access-logfile - \
+     --error-logfile -"]
 
-# ==========================================
-# Testing & Benchmarking Stage (With Playwright)
-# ==========================================
-FROM python-base AS test
-
-WORKDIR /workspace
-
-# Install Playwright browser & system dependencies first
-RUN pip install playwright \
-    && playwright install --with-deps chromium
-
-COPY pyproject.toml README.md ./
-COPY src/ ./src/
-
-# Install project with test, benchmark, and lint extras
-RUN pip install -e .[example,test,bench,lint]
-
-COPY . /workspace/
-
-CMD ["pytest"]

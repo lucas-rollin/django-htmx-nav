@@ -71,15 +71,44 @@ Runs the full metric collection suite with pre-installed Chromium and system dep
 docker compose run --rm bench
 ```
 
----
-
 ## Production Deployment Guide
 
-The containerized example application is engineered for cheap, single-container deployments (e.g. Fly.io, Railway, Render, Koyeb, or a minimal VPS) with an idle footprint under 120MB RAM:
+The containerized example application is engineered for cheap, single-container deployments with an idle footprint under 60MB RAM:
 
 - **Static Files**: Assets are served directly via `whitenoise` with compression (`CompressedStaticFilesStorage`), removing the need for external S3 buckets or Nginx.
 - **Application Server**: Gunicorn runs with `gthread` workers, request limits, and stdout/stderr logging.
 - **Security**: Container runs as a non-privileged user (`app:app` UID 1000).
+
+### Deploy to Render (100% Free Web Service)
+
+[Render](https://render.com) provides a generous free tier for Web Services (512MB RAM, shared CPU, 750 free instance hours/month) with native Docker support and free automatic SSL certificates.
+
+#### Option 1: 1-Click Deploy (Render Blueprint)
+
+Click the button below to deploy the application instantly using the repository's [`render.yaml`](../render.yaml) Blueprint:
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/lucas-rollin/django-htmx-nav)
+
+#### Option 2: Render Dashboard (Manual Web Service)
+
+1. Sign up or log in at [render.com](https://render.com) using GitHub.
+2. Click **New +** -> **Web Service**.
+3. Connect your repository: `lucas-rollin/django-htmx-nav`.
+4. Configure service settings:
+   - **Language / Runtime**: `Docker`
+   - **Branch**: `main`
+   - **Region**: Any preferred region (e.g. *Oregon (US West)* or *Frankfurt (EU)*)
+   - **Instance Type**: `Free`
+5. Configure Environment Variables:
+   - `DEBUG`: `False`
+   - `ALLOWED_HOSTS`: `.onrender.com,localhost,127.0.0.1`
+   - `CSRF_TRUSTED_ORIGINS`: `https://*.onrender.com`
+   - `HTMX_NAV_BENCHMARK`: `1`
+   - `SECRET_KEY`: *(Click "Generate" to generate a secure random value)*
+6. Click **Create Web Service**. Render will automatically build the `production` Docker stage and provide a live URL (`https://<service-name>.onrender.com`).
+
+> [!NOTE]
+> **Free Tier Sleep Behavior:** Render's free services spin down after 15 minutes of inactivity. When a new request arrives, it wakes up with a ~30–50 second cold start. To keep the demo continuously warm without costs, you can add a free uptime monitor pinging the root URL every 10 minutes using [UptimeRobot](https://uptimerobot.com) or [cron-job.org](https://cron-job.org).
 
 ### Environment Variables
 
@@ -87,9 +116,11 @@ The containerized example application is engineered for cheap, single-container 
 | :--- | :--- | :--- |
 | `DEBUG` | `True` | Set to `False` in production. |
 | `SECRET_KEY` | *(insecure dev key)* | Secret key for Django cryptographic signing. |
-| `ALLOWED_HOSTS` | `127.0.0.1,testserver,localhost` | Comma-separated list of valid hostnames/domains (e.g. `example.com,app.fly.dev`). |
-| `CSRF_TRUSTED_ORIGINS` | `""` | Comma-separated trusted origins (e.g. `https://example.com`). |
+| `ALLOWED_HOSTS` | `127.0.0.1,testserver,localhost` | Comma-separated list of valid hostnames/domains (e.g. `.onrender.com`). |
+| `CSRF_TRUSTED_ORIGINS` | `""` | Comma-separated trusted origins (e.g. `https://*.onrender.com`). |
+| `HTMX_NAV_BENCHMARK` | `0` | Set to `1` to serve benchmark overview/metric charts and hide debug visual swap outlines. |
 | `STATIC_ROOT` | `<BASE_DIR>/staticfiles` | Directory where `collectstatic` outputs assets. |
+| `PORT` | `8000` | Port for Gunicorn to listen on (Render automatically provides `PORT=10000`). |
 
 ## Project Structure
 

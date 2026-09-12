@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: django-htmx-nav
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com,localhost,127.0.0.1"
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "https://*.onrender.com"
+      - key: HTMX_NAV_BENCHMARK
+        value: "1"
+      - key: SECRET_KEY
+        generateValue: true
