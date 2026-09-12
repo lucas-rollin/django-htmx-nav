@@ -1,22 +1,118 @@
 {% extends "benchmarks/base.html" %}
 {% block content %}
   {% partialdef content inline %}
-    <div class="p-6 max-w-7xl mx-auto">
-      <div class="mb-6">
-        <h1 class="text-2xl font-bold">Overview</h1>
-        <p class="text-base-content/60">
-          Hand-picked, cross-category charts will live here. TODO.
+    <div class="p-6 max-w-7xl mx-auto"
+         x-data="overviewDashboard('panels-data')">
+      <!-- Header / Intro -->
+      <div class="mb-8 max-w-4xl">
+        <h1 class="text-3xl font-extrabold tracking-tight mb-3">Benchmark Overview</h1>
+        <p class="text-base text-base-content/80 leading-relaxed">
+          This benchmark evaluates architectural strategies for maintaining synchronized UI navigation state
+          (<b>sidebar</b>, <b>breadcrumbs</b>, <b>tabs</b>, <b>subtabs</b>, and <b>step indicators</b>) during HTMX partial updates.
+          It compares traditional full-page rendering against manual out-of-band (OOB) swapping and automated
+          <code>django-htmx-nav</code> strategies.
+        </p>
+        <p class="text-sm text-base-content/70 mt-2">
+          For code patterns and detailed framework design, refer to
+          <a href="https://lucas-rollin.github.io/django-htmx-nav/example_project.html"
+             target="_blank"
+             rel="noopener noreferrer"
+             class="link link-primary font-medium">the official documentation </a>.
         </p>
       </div>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {% for placeholder in overview_placeholders %}
-          <div class="card bg-base-100 border border-base-300">
-            <div class="card-body">
-              <h2 class="card-title text-sm text-base-content/60">{{ placeholder }}</h2>
-              <div class="skeleton h-56 w-full mt-2"></div>
-            </div>
+      <!-- Variant Descriptions / Implementation Approaches -->
+      <div class="mb-10">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-bold tracking-tight">Implementation Approaches</h2>
+          <span class="text-xs text-base-content/60 font-mono">{{ families|length }} Families Evaluated</span>
+        </div>
+        <div class="bg-base-200/50 border border-base-300 rounded-lg p-3 text-xs text-base-content/70 mb-6 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="font-semibold text-base-content">Chart Legend & Suffixes:</span>
+            <span>Charts display shortened variant labels (e.g., <code>HTMX-Nav-Decl</code>).</span>
           </div>
-        {% endfor %}
+          <div class="flex items-center gap-3">
+            <span><code class="font-bold text-primary">+HS</code> = <code>hx-select</code> enabled</span>
+            <span><code class="font-bold text-secondary">+M</code> = <code>idiomorph</code> morphing enabled</span>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {% for family in families %}
+            <div class="card bg-base-100 border border-base-300 shadow-sm hover:shadow-md transition-shadow">
+              <div class="card-body p-4 flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center justify-between gap-1 mb-2">
+                    <span class="badge badge-{{ family.color }} badge-sm font-semibold uppercase text-[10px] tracking-wider">
+                      {{ family.group }}
+                    </span>
+                    {% if family.uses_htmx_nav %}
+                      <span class="badge badge-ghost badge-sm text-[10px] font-mono">htmx-nav</span>
+                    {% endif %}
+                  </div>
+                  <h3 class="font-bold text-sm text-base-content mb-1">{{ family.family_label }}</h3>
+                  <p class="text-xs text-base-content/70 leading-normal">{{ family.family_description }}</p>
+                </div>
+                <div class="mt-3 pt-2 border-t border-base-200 text-[11px] text-base-content/60 space-y-1">
+                  <div class="flex justify-between items-center">
+                    <span>Chart Label:</span>
+                    <code class="font-mono text-xs">{{ family.label }}</code>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      {{ panels_json|json_script:"panels-data" }}
+      <!-- Benchmark Panels -->
+      <div class="mb-10">
+        <div class="mb-4">
+          <h2 class="text-xl font-bold tracking-tight">Benchmark Highlights</h2>
+          <p class="text-xs text-base-content/60 mt-1">Hand-picked findings from a pinned reference benchmark run.</p>
+        </div>
+        {% if not panels %}
+          <div class="alert alert-warning shadow-sm">
+            <span>
+              No reference data found. Populate
+              <code>example/benchmarks/data/reference_*.jsonl</code> — see
+              <code>data/README.md</code> — or run
+              <code>collect_all_metrics</code> to generate benchmark data.
+            </span>
+          </div>
+        {% else %}
+          <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+            <template x-for="(panel, index) in panels" :key="panel.key">
+              <div class="card bg-base-100 border border-base-300 shadow-sm">
+                <div class="card-body p-5">
+                  <h3 class="card-title text-base font-semibold" x-text="panel.title"></h3>
+                  <div class="h-72 mt-2" x-init="mount($el, panel, index)"></div>
+                  <p class="text-xs md:text-sm text-base-content/80 mt-3 leading-relaxed bg-base-200/50 p-3 rounded-lg border border-base-200"
+                     x-html="panel.caption"></p>
+                </div>
+              </div>
+            </template>
+          </div>
+        {% endif %}
+      </div>
+      <!-- Raw Data Links -->
+      <div class="divider my-8 text-xs font-semibold uppercase tracking-wider text-base-content/50">Explore Raw Metrics</div>
+      <div class="flex flex-wrap items-center justify-center gap-3">
+        <a href="{% url 'benchmarks:static' %}"
+           class="btn btn-sm btn-outline gap-2">
+          <span>Code Complexity / DX</span>
+        </a>
+        <a href="{% url 'benchmarks:server' %}"
+           class="btn btn-sm btn-outline gap-2">
+          <span>Server Performance</span>
+        </a>
+        <a href="{% url 'benchmarks:payload' %}"
+           class="btn btn-sm btn-outline gap-2">
+          <span>Payload Size</span>
+        </a>
+        <a href="{% url 'benchmarks:client' %}"
+           class="btn btn-sm btn-outline gap-2">
+          <span>Client Performance</span>
+        </a>
       </div>
     </div>
   {% endpartialdef %}

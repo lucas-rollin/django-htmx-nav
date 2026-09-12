@@ -1,0 +1,54 @@
+services:
+  # Production Simulation / Standalone Deployment
+  web:
+    image: django-htmx-nav:prod
+    build:
+      context: .
+      target: production
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=False
+      - SECRET_KEY=production-demo-secret-key-change-for-live-deployment
+      - ALLOWED_HOSTS=*
+      - CSRF_TRUSTED_ORIGINS=http://localhost:8000,http://127.0.0.1:8000
+    restart: unless-stopped
+
+  # Local Development with hot reload
+  dev:
+    image: django-htmx-nav:test
+    build:
+      context: .
+      target: test
+    working_dir: /workspace/example
+    command: python manage.py runserver 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/workspace
+    environment:
+      - DEBUG=True
+      - HTMX_NAV_DEBUG_SWAPS=1
+
+  # Hermetic Test Runner (Unit & Integration tests)
+  test:
+    image: django-htmx-nav:test
+    build:
+      context: .
+      target: test
+    command: pytest example/
+    volumes:
+      - .:/workspace
+
+  # Benchmark & Metrics Collector (Playwright + Payload + Static + Server metrics)
+  bench:
+    image: django-htmx-nav:test
+    build:
+      context: .
+      target: test
+    working_dir: /workspace/example
+    command: python manage.py collect_all_metrics
+    volumes:
+      - ./example/benchmarks/data:/workspace/example/benchmarks/data
+    environment:
+      - HTMX_NAV_BENCHMARK=1

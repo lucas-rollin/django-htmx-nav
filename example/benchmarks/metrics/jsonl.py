@@ -11,6 +11,9 @@ from typing import Any
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
+# Filename prefix for the pinned, committed reference snapshot
+REFERENCE_PREFIX = "reference"
+
 
 @dataclass
 class MetricSample:
@@ -52,5 +55,19 @@ def read_jsonl(path: Path) -> list[dict[str, Any]]:
 
 
 def latest_jsonl(prefix: str) -> Path | None:
+    """Freshest local collection run for `prefix` (e.g. "static"), by
+    filename timestamp."""
     candidates = sorted(DATA_DIR.glob(f"{prefix}_*.jsonl"))
     return candidates[-1] if candidates else None
+
+
+def reference_jsonl(prefix: str) -> Path | None:
+    """The pinned, committed snapshot for `prefix`."""
+    path = DATA_DIR / f"{REFERENCE_PREFIX}_{prefix}.jsonl"
+    return path if path.exists() else None
+
+
+def latest_or_reference_jsonl(prefix: str) -> Path | None:
+    """Freshest local collection run if one exists, else the pinned
+    reference snapshot."""
+    return latest_jsonl(prefix) or reference_jsonl(prefix)

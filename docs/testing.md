@@ -7,6 +7,7 @@
 ## 1. Verifying Navigation Parity (`assert_shell_parity`)
 
 In applications using shell layouts (sidebars, breadcrumbs, headers), a single page URL can often be reached in multiple ways:
+
 1. **Full Page Reload:** Initial browser navigation or page refresh.
 2. **Page Shell Swap:** HTMX navigation into the page targeting the main container.
 3. **Tab/Component Swap:** HTMX interaction within the page targeting a partial container.
@@ -69,6 +70,7 @@ def test_project_detail_html_composition(client: Client, project):
 ```
 
 > **Note:** `assert_shell_composition` requires `beautifulsoup4`. Install it via:
+>
 > ```bash
 > pip install beautifulsoup4
 > ```

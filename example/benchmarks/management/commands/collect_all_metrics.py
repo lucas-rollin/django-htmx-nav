@@ -14,14 +14,14 @@ instead of a one-line summary. Use --skip to omit slow categories
 from core.navigation.registry import VARIANTS
 from django.core.management.base import BaseCommand
 
-from example.benchmarks.metrics.collectors import (
+from benchmarks.metrics.collectors import (
     client,
     payload,
     server,
     static,
 )
-from example.benchmarks.metrics.helpers.variant_filter import resolve_variants
-from example.benchmarks.metrics.jsonl import DATA_DIR, new_run_id, write_jsonl
+from benchmarks.metrics.helpers.variant_filter import resolve_variants
+from benchmarks.metrics.jsonl import DATA_DIR, new_run_id, write_jsonl
 
 # Registering a new category here is the only wiring collect_all_metrics
 # needs — see README.md "Collector contract" for what a category module

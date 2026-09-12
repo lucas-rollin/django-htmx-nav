@@ -2,7 +2,11 @@ __pycache__
 
 site/
 build/
+_build/
 *.egg-info
 dist/
 output.css
 off_*
+example/benchmarks/data/*.jsonl
+!example/benchmarks/data/reference_*.jsonl
+vendor/

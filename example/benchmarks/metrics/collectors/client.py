@@ -77,23 +77,23 @@ ARM_HTMX_JS = """
   });
   observer.observe(document.body, { childList: true, subtree: true, attributes: true });
 
-  const onBeforeRequest = () => { window.__bench.beforeRequest = performance.now(); };
-  const onBeforeSwap = () => { window.__bench.beforeSwap = performance.now(); };
+  const onBeforeRequest = () => { if (!window.__bench.beforeRequest) window.__bench.beforeRequest = performance.now(); };
+  const onBeforeSwap = () => { if (!window.__bench.beforeSwap) window.__bench.beforeSwap = performance.now(); };
   const onAfterSettle = () => {
-    window.__bench.afterSettle = performance.now();
+    if (!window.__bench.afterSettle) window.__bench.afterSettle = performance.now();
     requestAnimationFrame(() => requestAnimationFrame(() => {
       window.__bench.paint = performance.now();
       window.__bench.done = true;
       observer.disconnect();
-      document.body.removeEventListener('htmx:beforeRequest', onBeforeRequest);
-      document.body.removeEventListener('htmx:beforeSwap', onBeforeSwap);
-      document.body.removeEventListener('htmx:afterSettle', onAfterSettle);
+      ['htmx:beforeRequest', 'htmx:before:request'].forEach(e => document.body.removeEventListener(e, onBeforeRequest));
+      ['htmx:beforeSwap', 'htmx:before:swap'].forEach(e => document.body.removeEventListener(e, onBeforeSwap));
+      ['htmx:afterSettle', 'htmx:after:settle'].forEach(e => document.body.removeEventListener(e, onAfterSettle));
     }));
   };
 
-  document.body.addEventListener('htmx:beforeRequest', onBeforeRequest);
-  document.body.addEventListener('htmx:beforeSwap', onBeforeSwap);
-  document.body.addEventListener('htmx:afterSettle', onAfterSettle);
+  ['htmx:beforeRequest', 'htmx:before:request'].forEach(e => document.body.addEventListener(e, onBeforeRequest));
+  ['htmx:beforeSwap', 'htmx:before:swap'].forEach(e => document.body.addEventListener(e, onBeforeSwap));
+  ['htmx:afterSettle', 'htmx:after:settle'].forEach(e => document.body.addEventListener(e, onAfterSettle));
 }
 """
 
@@ -219,8 +219,10 @@ def _run_scenario_htmx(page, PWTimeoutError, landing, variant, scenario, cctx, r
             samples[Metric.DOM_MUTATIONS].append(result["mutationRecords"])
             samples[Metric.DOM_NODES_ADDED].append(result["nodesAdded"])
             samples[Metric.DOM_NODES_REMOVED].append(result["nodesRemoved"])
-        except PWTimeoutError:
+        except PWTimeoutError as exc:
             failures += 1
+            if cctx.debug:
+                cctx.stderr(f"    [debug] repeat timed out: {exc}")
 
     if failures:
         cctx.stderr(
@@ -265,8 +267,10 @@ def _run_scenario_fallback(
             else:
                 timing = page.evaluate("() => performance.timing")
                 timings.append(timing["loadEventEnd"] - timing["navigationStart"])
-        except PWTimeoutError:
+        except PWTimeoutError as exc:
             failures += 1
+            if cctx.debug:
+                cctx.stderr(f"    [debug] fallback repeat timed out: {exc}")
 
     if failures:
         cctx.stderr(

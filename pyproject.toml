@@ -30,6 +30,14 @@ docs = [
 ]
 example = [
     "Faker==40.36.0",
+    "gunicorn>=22.0.0",
+    "whitenoise>=6.6.0",
+]
+bench = [
+    "playwright",
+    "radon>=6.0",
+    "beautifulsoup4>=4.12",
+    "requests",
 ]
 lint = [
     "ruff==0.16.2",

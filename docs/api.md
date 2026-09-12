@@ -4,7 +4,6 @@ This page provides the API reference generated automatically from docstrings in 
 
 ## `htmx_nav.swaps`
 
-
 ```{eval-rst}
 .. automodule:: htmx_nav.swaps
    :members:
@@ -14,7 +13,6 @@ This page provides the API reference generated automatically from docstrings in 
 ```
 
 ## `htmx_nav.shortcuts`
-
 
 ```{eval-rst}
 .. automodule:: htmx_nav.shortcuts

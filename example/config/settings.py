@@ -21,12 +21,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-s-+#0r9wl_6j4t8e$ffdg#=&i$@*+gwt=!*q7wmx43%!6l9)p^"
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY",
+    "django-insecure-s-+#0r9wl_6j4t8e$ffdg#=&i$@*+gwt=!*q7wmx43%!6l9)p^",
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "True").lower() in ("true", "1", "yes")
 
-ALLOWED_HOSTS: list[str] = ["127.0.0.1", "testserver"]
+_allowed_hosts = os.environ.get("ALLOWED_HOSTS", "127.0.0.1,testserver,localhost")
+ALLOWED_HOSTS: list[str] = [h.strip() for h in _allowed_hosts.split(",") if h.strip()]
+
+_csrf_origins = os.environ.get("CSRF_TRUSTED_ORIGINS", "")
+CSRF_TRUSTED_ORIGINS: list[str] = [
+    o.strip() for o in _csrf_origins.split(",") if o.strip()
+]
 
 
 # Application definition
@@ -125,9 +134,24 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = "static/"
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
+STATIC_ROOT = Path(os.environ.get("STATIC_ROOT", BASE_DIR / "staticfiles"))
+STATICFILES_DIRS = [p for p in [BASE_DIR / "static"] if p.is_dir()]
+
+try:
+    import whitenoise  # noqa: F401
+
+    if not DEBUG or STATIC_ROOT.is_dir():
+        MIDDLEWARE.insert(2, "whitenoise.middleware.WhiteNoiseMiddleware")
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        },
+    }
+except ImportError:
+    pass
 
 HTMX_NAV_DEBUG_SWAPS = os.environ.get("HTMX_NAV_BENCHMARK") != "1"
 

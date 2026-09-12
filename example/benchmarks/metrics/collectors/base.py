@@ -10,8 +10,8 @@ Every category (static/server/payload/client/...) exposes a top-level
     ) -> list[MetricSample]
 
 with this exact signature, even if a given category ignores some of the
-kwargs, the uniform signature is what lets collect_all_metrics.py call 
-every category generically, and lets every collect_<name>_metrics.py 
+kwargs, the uniform signature is what lets collect_all_metrics.py call
+every category generically, and lets every collect_<name>_metrics.py
 command stay a thin wrapper.
 
 Internally, `collect()` should delegate the per-variant loop to
@@ -54,9 +54,9 @@ def run_collector(
     ctx: CollectorContext,
 ) -> list[MetricSample]:
     """Runs collector over every variant printing progress.
-    
-    Isolates per-variant failures so one broken variant never aborts 
-    the whole run. `ctx.debug` controls whether a failure prints a full 
+
+    Isolates per-variant failures so one broken variant never aborts
+    the whole run. `ctx.debug` controls whether a failure prints a full
     traceback or a one-line summary, pass --debug on any collect_*_metrics
     command (or collect_all_metrics) to see the traceback.
     """

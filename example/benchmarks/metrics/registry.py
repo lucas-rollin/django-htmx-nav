@@ -193,11 +193,11 @@ assert set(Metric) == set(METRICS), (
 
 
 def describe(metric: str) -> MetricInfo:
-    """Looks up presentation metadata for a metric identifier. 
-    
-    Accepts a plain string (as read back from JSONL, where enum members 
-    serialize to their .value) as well as a Metric member directly. Falls 
-    back to a generic, non-directional description for any identifier not 
+    """Looks up presentation metadata for a metric identifier.
+
+    Accepts a plain string (as read back from JSONL, where enum members
+    serialize to their .value) as well as a Metric member directly. Falls
+    back to a generic, non-directional description for any identifier not
     (yet) registered, e.g. a metric a collector just started emitting, so
     rendering never breaks, it just degrades to a plain label."""
     try:

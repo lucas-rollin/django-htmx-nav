@@ -1,9 +1,9 @@
 from core.navigation.registry import VARIANTS
 from django.core.management.base import BaseCommand
 
-from example.benchmarks.metrics.collectors import payload
-from example.benchmarks.metrics.helpers.variant_filter import resolve_variants
-from example.benchmarks.metrics.jsonl import DATA_DIR, new_run_id, write_jsonl
+from benchmarks.metrics.collectors import payload
+from benchmarks.metrics.helpers.variant_filter import resolve_variants
+from benchmarks.metrics.jsonl import DATA_DIR, new_run_id, write_jsonl
 
 
 class Command(BaseCommand):

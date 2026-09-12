@@ -17,13 +17,15 @@
           rel="stylesheet"
           type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js"
-            integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V"
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.0/dist/htmx.min.js"
+            integrity="sha384-BvJpBiO8Kh31EqtJe5DRIeWrHWnCGkwytKs9NKFi86Hhw96dEqdEMzZDeK9iEGTc"
             crossorigin="anonymous"></script>
+    <script>htmx.config.implicitInheritance = true;</script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
     <script defer src="{% static 'core/js/theme.js' %}"></script>
     <script defer src="{% static 'benchmarks/js/chart-theme.js' %}"></script>
     <script defer src="{% static 'benchmarks/js/dashboard.js' %}"></script>
+    <script defer src="{% static 'benchmarks/js/overview.js' %}"></script>
     <script defer
             src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   </head>

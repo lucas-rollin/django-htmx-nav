@@ -2,10 +2,12 @@
 Benchmarks dashboard views.
 """
 
+from core.navigation.registry import VARIANTS
 from django.http import Http404, HttpRequest, HttpResponse
 
 from .metrics.helpers.pivot import pivot_rows
-from .metrics.jsonl import latest_jsonl, read_jsonl
+from .metrics.jsonl import latest_or_reference_jsonl, read_jsonl
+from .metrics.overview_metrics import build_panels
 from .metrics.registry import describe
 from .render import render_shell
 
@@ -16,31 +18,55 @@ CATEGORIES = {
     "client": "Client Performance",
 }
 
-OVERVIEW_PLACEHOLDERS = [
-    "Server render time vs. swap-render count",
-    "Payload size (gzip) by axis: hx-select vs. morph vs. base",
-    "Code complexity vs. correctness pass rate",
-    "Files touched per page, by family",
-]
-
 
 def overview(request: HttpRequest) -> HttpResponse:
-    """Hand picked charts and experiment overview."""
+    """Hand-picked charts + the experiment's headline takeaways.
+
+    Reads only from the pinned example/benchmarks/data/reference_*.jsonl
+    snapshot rather than the what's freshest in data/, so these captions never
+    drift out of sync with the charts they're describing.
+    """
+    panels = build_panels()
+    panels_json = [
+        {"key": p.key, "title": p.title, "caption": p.caption, "chart": p.chart}
+        for p in panels
+    ]
+
+    # Extract unique base implementation families (excluding +HS / +M suffix variants)
+    families = []
+    seen = set()
+    for variant in VARIANTS.values():
+        if (
+            variant.family not in seen
+            and not variant.uses_hx_select
+            and not variant.uses_morph
+        ):
+            seen.add(variant.family)
+            families.append(variant)
+
     return render_shell(
         request,
         "benchmarks/pages/overview.html",
-        {"overview_placeholders": OVERVIEW_PLACEHOLDERS},
+        {
+            "panels": panels,
+            "panels_json": panels_json,
+            "families": families,
+        },
         title="Overview · Benchmarks",
     )
 
 
 def metric_page(request: HttpRequest, prefix: str) -> HttpResponse:
-    """Auto generated metric dashboards."""
+    """Auto generated, interactive metric dashboards.
+
+    Shows the freshest local collection run if one exists in data/, else
+    falls back to the same pinned reference_*.jsonl snapshot the overview.
+    """
     if prefix not in CATEGORIES:
         raise Http404(f"Unknown benchmark category: {prefix!r}")
 
     page_title = CATEGORIES[prefix]
-    path = latest_jsonl(prefix)
+    path = latest_or_reference_jsonl(prefix)
     rows = read_jsonl(path) if path else []
     pivoted = pivot_rows(rows)
 

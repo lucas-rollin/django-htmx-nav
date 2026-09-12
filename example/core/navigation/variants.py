@@ -100,16 +100,34 @@ class Variant:
         return "+".join(bits)
 
 
-def _get_label(family_label, uses_hx_select, uses_hx_morph):
+SHORT_NAMES = {
+    "mpa": "MPA",
+    "vanilla_htmx_unaware_views": "Vanilla",
+    "vanilla_htmx_composite": "Vanilla-Comp",
+    "vanilla_htmx_atomic": "Vanilla-Atom",
+    "htmx_nav_baseline": "HTMX-Nav-Base",
+    "htmx_nav_composite": "HTMX-Nav-Comp",
+    "htmx_nav_atomic": "HTMX-Nav-Atom",
+    "htmx_nav_declarative": "HTMX-Nav-Decl",
+}
 
-    if uses_hx_select and uses_hx_morph:
-        return f"{family_label} (hx_select + morph)"
-    elif uses_hx_select:
-        return f"{family_label} (hx_select)"
-    elif uses_hx_morph:
-        return f"{family_label} (morph)"
-    else:
-        return family_label
+
+def _get_label(key: str, uses_hx_select: bool, uses_morph: bool) -> str:
+    # Transform key: replace underscores with spaces and title-case, or keep as is
+    base = key.replace(
+        "_", " "
+    ).title()  # e.g. "vanilla_htmx_composite" -> "Vanilla Htmx Composite"
+    # Or use a custom mapping if you want even shorter codes:
+    base = SHORT_NAMES.get(key, key)
+
+    suffixes = []
+    if uses_hx_select:
+        suffixes.append("HS")
+    if uses_morph:
+        suffixes.append("M")
+    if suffixes:
+        return f"{base} +{'+'.join(suffixes)}"
+    return base
 
 
 def make_family(
@@ -141,7 +159,7 @@ def make_family(
         namespace = f"{key}{suffix}"
         variants[namespace] = Variant(
             namespace=namespace,
-            label=_get_label(label, hx_select, morph),
+            label=_get_label(key, hx_select, morph),
             group=group,
             views_module=views_module,
             url_prefix=f"{prefix}{suffix.replace('_', '-')}/",

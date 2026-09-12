@@ -19,8 +19,8 @@ VENDOR_DIR = (
 )
 
 ASSETS = {
-    "htmx.min.js": "https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js",
-    "idiomorph-ext.min.js": "https://unpkg.com/idiomorph@0.7.4/dist/idiomorph-ext.min.js",
+    "htmx.min.js": "https://cdn.jsdelivr.net/npm/htmx.org@4.0.0/dist/htmx.min.js",
+    # "idiomorph-ext.min.js": "https://unpkg.com/idiomorph@0.7.4/dist/idiomorph-ext.min.js",
 }
 
 

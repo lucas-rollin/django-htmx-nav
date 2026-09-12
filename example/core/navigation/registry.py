@@ -11,12 +11,12 @@ VARIANTS: dict[str, Variant] = {
         uses_htmx=False,
         family="mpa",
         family_label="Pure MPA",
-        family_description="A traditional Multi Page Application.",
+        family_description="Standard Multi-Page Application performing full page reloads on every navigation.",
     ),
     **make_family(
-        key="pure_htmx",
+        key="vanilla_htmx_unaware_views",
         label="Vanilla HTMX unaware views",
-        description="HTMX unaware views that do full render while being wrapped only in hx-boost.",
+        description="HTMX-unaware full page views wrapped in hx-boost, returning full HTML shells on partial requests.",
         group="vanilla",
         views_module="mpa.views",
         url_prefix="htmx/",
@@ -26,7 +26,7 @@ VARIANTS: dict[str, Variant] = {
     **make_family(
         key="vanilla_htmx_composite",
         label="Vanilla HTMX Composite OOB",
-        description="Hand-written OOB swaps, but only for sidebar/breadcrumbs.",
+        description="Manual out-of-band (OOB) swaps in Python views for coarse navigation components (sidebar and breadcrumbs).",
         group="vanilla",
         views_module="vanilla_htmx_composite.views",
         url_prefix="vanilla-htmx/composite/",
@@ -37,7 +37,7 @@ VARIANTS: dict[str, Variant] = {
     **make_family(
         key="vanilla_htmx_atomic",
         label="Vanilla HTMX Atomic OOB",
-        description="Hand-written OOB swaps for all components, needs additional conditionals logic on the template.",
+        description="Manual out-of-band (OOB) swaps for all navigation components, requiring conditional template rendering.",
         group="vanilla",
         views_module="vanilla_htmx_atomic.views",
         url_prefix="vanilla-htmx/atomic/",
@@ -48,7 +48,7 @@ VARIANTS: dict[str, Variant] = {
     **make_family(
         key="htmx_nav_baseline",
         label="HTMX Nav Baseline",
-        description="Reference implementation of HTMX Nav. render_shell with fixed Swaps, default partial.",
+        description="Basic django-htmx-nav implementation using render_shell with static OOB swaps and default partials.",
         group="package",
         views_module="htmx_nav_demo.views_baseline",
         url_prefix="htmx-nav/baseline/",
@@ -60,7 +60,7 @@ VARIANTS: dict[str, Variant] = {
     **make_family(
         key="htmx_nav_composite",
         label="HTMX Nav Composite",
-        description="render_nav used to add Swaps for sidebar and breadcrumbs.",
+        description="Uses render_nav to dynamically attach OOB swaps for sidebar and breadcrumbs.",
         group="package",
         views_module="htmx_nav_demo.views_composite",
         url_prefix="htmx-nav/composite/",
@@ -72,7 +72,7 @@ VARIANTS: dict[str, Variant] = {
     **make_family(
         key="htmx_nav_atomic",
         label="HTMX Nav Atomic",
-        description="render_nav use to add Swaps for all navigation components.",
+        description="Uses render_nav to target all individual navigation components for precise OOB updates.",
         group="package",
         views_module="htmx_nav_demo.views_atomic",
         url_prefix="htmx-nav/atomic/",
@@ -84,7 +84,7 @@ VARIANTS: dict[str, Variant] = {
     **make_family(
         key="htmx_nav_declarative",
         label="HTMX Nav Declarative",
-        description="Adds a registry as a declarative system to create a render_shell. Makes the views thin.",
+        description="Declarative navigation registry system that automatically handles render_shell, keeping views thin.",
         group="package",
         views_module="htmx_nav_demo.views_declarative",
         url_prefix="htmx-nav/declarative/",

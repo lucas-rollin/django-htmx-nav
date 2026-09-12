@@ -67,9 +67,14 @@ these summarized guidelines:
 
       ```python
       def collect(
-          variants: list, run_id: str, *,
-          repeats: int = 10, timeout_ms: int = 8000, debug: bool = False,
-          stdout=print, stderr=print,
+          variants: list,
+          run_id: str,
+          *,
+          repeats: int = 10,
+          timeout_ms: int = 8000,
+          debug: bool = False,
+          stdout=print,
+          stderr=print,
       ) -> list[MetricSample]: ...
       ```
 

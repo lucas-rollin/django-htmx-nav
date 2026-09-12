@@ -1,70 +1,97 @@
-# django-htmx-nav
+# Stale Navigation in HTMX & `django-htmx-nav`
 
-[![Docs](https://img.shields.io/badge/docs-furo-blue)](https://lucas-rollin.github.io/django-htmx-nav/)
+A reference repository and lightweight helper library exploring solutions for **stale navigation regions** in HTMX-driven Django applications.
 
-Django 6 added native template partials, so a single file can define
-both the full page and the fragment HTMX swaps into:
+## The Problem
 
-```html
-{% extends 'base.html' %}
+When an HTMX request updates a single target container (like `#main-content`), regions *outside* that container, such as active sidebar items, breadcrumb trails, tab indicators, or multi-step progress bars, do not update automatically.
 
-{% block content %}
-{% partialdef content inline %}
-  <div>My page!</div>
-{% endpartialdef %}
-{% endblock %}
+This creates UI state drift: the main content updates, but surrounding navigation elements still reflect the previous route. HTMX targets and swaps single elements by default, leaving multi-region layout updates to the developer.
+
+```plaintext
+┌─────────────────────────────────────────────────────────────┐
+│ Header / Breadcrumbs (Stale: Page 1)                        │
+├──────────────┬──────────────────────────────────────────────┤
+│              │                                              │
+│ Sidebar      │  Main Content (Updated: Page 2)              │
+│ (Stale:      │                                              │
+│  Item 1)     │  Targeted element swapped successfully.      │
+│              │  Surrounding navigation controls did not.    │
+│              │                                              │
+└──────────────┴──────────────────────────────────────────────┘
 ```
 
-That's most of what you need for server-driven, SPA-like UX with MPA
-simplicity: the URL stays the source of truth, and a full load vs. an
-HTMX swap render the same fragment. What's still missing is the
-boilerplate around it: detecting HTMX, picking the partial, and
-doing HTMX-safe redirects. And, once your page has more
-than one region (a sidebar, breadcrumbs), keeping those regions from
-drifting out of sync depending on how the page was reached.
+## Solutions & Benchmark Comparison
 
-`django-htmx-nav` provides lightweight helpers for that. Not a Django app, nothing
-to add to `INSTALLED_APPS`.
+There is no single "correct" way to handle multi-region updates. The right approach depends on application complexity, payload constraints, and developer ergonomics.
+
+The accompanying [example project](https://lucas-rollin.github.io/django-htmx-nav/example_project.html) and [benchmark suite](https://lucas-rollin.github.io/django-htmx-nav/benchmarks.html) evaluate **8 distinct strategies** across the same demo application:
+
+| Category | Method / Strategy | Live Demo Route | Description |
+| --- | --- | --- | --- |
+| **Baseline** | Plain MPA | `/mpa/` | Standard multi-page app with full reloads. |
+| **Vanilla HTMX** | `hx-boost` Only | `/htmx/` | Full HTML shells returned on every boosted request. |
+| **Vanilla HTMX** | Hand-Written OOB (Partial) | `/vanilla-htmx/composite/` | Views manually build `hx-swap-oob` fragments for core regions. |
+| **Vanilla HTMX** | Hand-Written OOB (Full) | `/vanilla-htmx/atomic/` | Explicit OOB updates for all regions with template branching. |
+| **Package** | Baseline Shell | `/htmx-nav/baseline/` | Static shell rendering using `make_shell_renderer`. |
+| **Package** | Per-View Swaps | `/htmx-nav/composite/` | Dynamic `Swap` lists attached per view. |
+| **Package** | Explicit Atomic | `/htmx-nav/atomic/` | Granular per-region swaps attached in views. |
+| **Package** | Declarative Registry | `/htmx-nav/declarative/` | Route-aware central registry resolving swaps automatically. |
+
+> **Client-Side Variants:** Many HTMX strategy in the demo can also be toggled to evaluate **`hx-select`** (extracting regions client-side) and **Idiomorph** (DOM morphing instead of inner/outer HTML swapping).
+
+## Benchmark Highlights
+
+Key observations from reference benchmark runs:
+
+- **Payload Savings:** Partial updates reduce on-wire transfer size by **~32%** compared to full-page reloads, whether implemented via vanilla OOB fragments or `django-htmx-nav`.
+- **Server Overhead:** Building multi-region OOB updates via `django-htmx-nav` adds **<0.5 ms** of server-side rendering time over base views.
+- **Database Performance:** Request-scoped caching (`cache_on_request`) keeps database query counts flat (**~4.5 avg**) regardless of how many OOB fragments are generated per request.
+
+## What is `django-htmx-nav`?
+
+`django-htmx-nav` is an optional, lightweight Python helper designed to streamline out-of-band (OOB) swap construction and partial resolution in Django views without forcing a rigid architecture.
 
 ```bash
 pip install django-htmx-nav
 ```
 
-## `render_nav`: partial rendering, done
+### 1. Basic Partial Rendering (`render_nav`)
 
-```python
-from htmx_nav import render_nav
-
-
-def project_list(request):
-    return render_nav(
-        request, "app/project_list.html", {"projects": Project.objects.all()}
-    )
-```
+Native Django partials allow a single template to serve both full-page requests and partial HTMX swaps:
 
 ```html
+<!-- templates/app/project_list.html -->
 {% extends 'base.html' %}
+
 {% block content %}
 {% partialdef content inline %}
-  {% for project in projects %}<div>{{ project.name }}</div>{% endfor %}
+  {% for project in projects %}
+    <div>{{ project.name }}</div>
+  {% endfor %}
 {% endpartialdef %}
 {% endblock %}
 ```
 
-Full page load → renders the whole template. HTMX request → renders
-only the `content` partial and sets `Vary: HX-Request`
-so caches never serve one variant to the other kind of request.
+`render_nav` inspects incoming headers to render either the full shell (on direct loads) or the isolated `content` partial (on HTMX requests), while setting appropriate `Vary: HX-Request` headers:
 
-## But you likely need to update your sidebar too
+```python
+from htmx_nav import render_nav
 
-A tab click swaps `#content`, but if the sidebar shows an active-item
-highlight, or breadcrumbs, those live outside `#content` and won't
-update on their own. HTMX's out-of-band swaps solve this: render extra
-fragments alongside the main one, each targeting its own DOM id.
+def project_list(request):
+    return render_nav(
+        request, 
+        "app/project_list.html", 
+        {"projects": Project.objects.all()}
+    )
+```
+
+### 2. Manual OOB Swaps (`Swap`)
+
+When a sub-region (such as `#content`) changes, you can append specific OOB swaps for surrounding navigation elements:
 
 ```python
 from htmx_nav import Swap, render_nav
-
 
 def project_detail(request, pk):
     project = get_object_or_404(Project, pk=pk)
@@ -73,48 +100,35 @@ def project_detail(request, pk):
         "app/project_detail.html",
         {"project": project},
         swaps=[
-            Swap("app/_sidebar.html", {"active": project.pk}, target_id="sidebar"),
-            Swap(
-                "app/_breadcrumbs.html", {"project": project}, target_id="breadcrumbs"
-            ),
+            Swap("app/_sidebar.html", {"active_pk": project.pk}, target_id="sidebar"),
+            Swap("app/_breadcrumbs.html", {"project": project}, target_id="breadcrumbs"),
         ],
     )
 ```
 
-This works, but every view that touches the sidebar now needs to
-rebuild the same nav context and remember to pass the same `Swap`s,
-easy to forget in view #12.
+### 3. Reusable Shell Rendering (`make_shell_renderer`)
 
-## `make_shell_renderer`: the shell, abstracted away
-
-`make_shell_renderer` bakes a shell template + its context into a
-`render_shell` function, so call sites go back to looking like a plain
-view — the shell just always comes along for free:
+To avoid repeating OOB swap lists across every view, `make_shell_renderer` abstracts common shell and navigation context into a reusable render function:
 
 ```python
 from htmx_nav import make_shell_renderer
 
 render_shell = make_shell_renderer(
-    shell_template="app/_shell.html",  # renders sidebar + breadcrumbs together
+    shell_template="app/_shell.html",
     context_builder=lambda request: {"nav": build_nav_context(request)},
 )
 
-
 def project_detail(request, pk):
     project = get_object_or_404(Project, pk=pk)
+    # Automatically attaches shell-level OOB swaps derived from build_nav_context
     return render_shell(request, "app/project_detail.html", {"project": project})
 ```
 
-Every HTMX response from `render_shell` includes the shell as an
-out-of-band swap, built from the same `build_nav_context` a full page
-load would use, so the sidebar can never show one thing on first load
-and another after an HTMX swap. `render_shell` accepts the same
-keyword arguments as `render_nav` (`extra_swaps`, `partial` ...),
-so it's a drop-in.
+---
 
-## Target-aware partial resolution
+### 4. Target-Aware Resolution (`targeting`)
 
-Views can resolve different partial blocks dynamically based on `HX-Target` headers using target specifications:
+Views can dynamically adjust rendered partials based on the incoming `HX-Target` header:
 
 ```python
 from htmx_nav import Swap, make_shell_renderer, targeting
@@ -123,7 +137,6 @@ render_project = make_shell_renderer(
     "app/_shell.html",
     context_builder=lambda request: {"nav": build_nav_context(request)},
 )
-
 
 def project_tab(request, pk):
     project = get_object_or_404(Project, pk=pk)
@@ -136,13 +149,8 @@ def project_tab(request, pk):
             "#main_content": targeting("main-content"),
             "#content": True,
         },
-        extra_swaps=[Swap("app/_tabs.html", {"active": "overview"}, target_id="tabs")],
+        extra_swaps=[
+            Swap("app/_tabs.html", {"active": "overview"}, target_id="tabs")
+        ],
     )
 ```
-
-The view stays focused on what's actually tab-specific; partial selection and out-of-band shell delivery are handled cleanly by `render_project`.
-
----
-
-**⚠️ This package is young. The API (function signatures, keyword
-argument names, module layout) may still change between releases.**

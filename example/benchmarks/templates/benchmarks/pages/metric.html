@@ -1,7 +1,8 @@
 {% extends "benchmarks/base.html" %}
 {% block content %}
   {% partialdef content inline %}
-    <div class="p-6 max-w-7xl mx-auto" x-data="metricDashboard('chart-data', 'table-data', 'descriptions-data')">
+    <div class="p-6 max-w-7xl mx-auto"
+         x-data="metricDashboard('chart-data', 'table-data', 'descriptions-data')">
       <div class="flex items-center justify-between flex-wrap gap-2 mb-1">
         <h1 class="text-2xl font-bold">{{ page_title }}</h1>
         {% if run_file %}
@@ -11,11 +12,9 @@
       <p class="text-base-content/60 mb-6">
         Auto-generated from the latest collection run. Averaged across scenarios per variant.
       </p>
-
       {{ charts|json_script:"chart-data" }}
       {{ table|json_script:"table-data" }}
       {{ descriptions|json_script:"descriptions-data" }}
-
       {% if not metrics %}
         <div class="alert alert-warning">
           <span>
@@ -31,14 +30,18 @@
               <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
                 <h2 class="card-title text-sm">Metric Explorer</h2>
                 <div class="flex gap-2 items-center">
-                  <select class="select select-xs" x-model="scatterX" @change="renderScatter"
+                  <select class="select select-xs"
+                          x-model="scatterX"
+                          @change="renderScatter"
                           :title="describeFor(scatterX)">
                     <template x-for="m in metrics" :key="'x-'+m">
                       <option :value="m" x-text="labelFor(m)" :title="describeFor(m)"></option>
                     </template>
                   </select>
                   <span class="self-center text-xs opacity-50">vs</span>
-                  <select class="select select-xs" x-model="scatterY" @change="renderScatter"
+                  <select class="select select-xs"
+                          x-model="scatterY"
+                          @change="renderScatter"
                           :title="describeFor(scatterY)">
                     <template x-for="m in metrics" :key="'y-'+m">
                       <option :value="m" x-text="labelFor(m)" :title="describeFor(m)"></option>
@@ -49,12 +52,13 @@
               <div class="h-80" x-ref="scatterEl"></div>
             </div>
           </div>
-
           <div class="card bg-base-100 border border-base-300">
             <div class="card-body p-4">
               <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
                 <h2 class="card-title text-sm">Ranked Comparison</h2>
-                <select class="select select-xs" x-model="rankedMetric" @change="renderRanked"
+                <select class="select select-xs"
+                        x-model="rankedMetric"
+                        @change="renderRanked"
                         :title="describeFor(rankedMetric)">
                   <template x-for="m in metrics" :key="'r-'+m">
                     <option :value="m" x-text="labelFor(m)" :title="describeFor(m)"></option>
@@ -65,7 +69,6 @@
             </div>
           </div>
         </div>
-
         <div class="card bg-base-100 border border-base-300 overflow-x-auto">
           <table class="table table-sm table-zebra">
             <thead>
