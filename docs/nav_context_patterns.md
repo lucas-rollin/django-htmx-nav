@@ -81,27 +81,30 @@ from dataclasses import dataclass, field
 from typing import Callable, Optional, Sequence, Union
 
 from django.http import HttpRequest
+from django.urls import reverse
 
-from htmx_nav.helpers import cache_on_request, reverse_maybe
+from htmx_nav.helpers import cache_on_request
 
-DynamicStr = Union[str, Callable[[HttpRequest], str]]
+Resolvable = Union[str, Callable[[HttpRequest], str]]
 
 
-def _label(value: DynamicStr, request: HttpRequest) -> str:
+def _resolve(value: Optional[Resolvable], request: HttpRequest) -> Optional[str]:
+    if value is None:
+        return None
     return value(request) if callable(value) else value
 
 
 @dataclass(frozen=True)
 class Link:
-    label: DynamicStr
+    label: Resolvable
     view_name: str
     icon: str = ""
 
 
 @dataclass(frozen=True)
 class Crumb:
-    label: DynamicStr
-    view_name: Optional[str] = None  # None = current page, not linked
+    label: Resolvable
+    url: Optional[Resolvable] = None  # None = current page, not linked
 
 
 @dataclass(frozen=True)
@@ -129,7 +132,7 @@ NAV_STATES: dict[str, NavState] = {
     "app:project_detail": NavState(
         active_link="app:project_list",
         breadcrumbs=[
-            Crumb("Projects", "app:project_list"),
+            Crumb("Projects", lambda r: reverse("app:project_list")),
             Crumb(lambda r: r.project.name),
         ],
     ),
@@ -144,8 +147,8 @@ def build_nav_context(request: HttpRequest) -> dict:
 
         sidebar = [
             {
-                "label": _label(link.label, request),
-                "url": reverse_maybe(link.view_name),
+                "label": _resolve(link.label, request),
+                "url": reverse(link.view_name),
                 "icon": link.icon,
                 "active": link.view_name == state.active_link,
             }
@@ -153,12 +156,8 @@ def build_nav_context(request: HttpRequest) -> dict:
         ]
         breadcrumbs = [
             {
-                "label": _label(crumb.label, request),
-                "url": reverse_maybe(
-                    crumb.view_name, match.kwargs if match else {}, strict=False
-                )
-                if crumb.view_name
-                else None,
+                "label": _resolve(crumb.label, request),
+                "url": _resolve(crumb.url, request),
             }
             for crumb in state.breadcrumbs
         ]
@@ -227,13 +226,13 @@ The registry doesn't have to own *every* view's breadcrumbs. A view
 that doesn't fit the general shape can just pass its own:
 
 ```python
-from htmx_nav.helpers import reverse_maybe
+from django.urls import reverse
 
 
 def project_detail(request, pk):
     project = get_object_or_404(Project, pk=pk)
     breadcrumbs = [
-        {"label": "Projects", "url": reverse_maybe("app:project_list")},
+        {"label": "Projects", "url": reverse("app:project_list")},
         {"label": project.name, "url": None},
     ]
     return render_shell(
@@ -255,8 +254,7 @@ indirection.
 ```python
 # yourapp/templatetags/nav_tags.py
 from django import template
-
-from htmx_nav.helpers import reverse_maybe
+from django.urls import reverse
 
 register = template.Library()
 
@@ -265,21 +263,16 @@ register = template.Library()
 def nav_link(context, view_name, label, css_class="nav-link"):
     request = context["request"]
     is_active = request.resolver_match and request.resolver_match.view_name == view_name
-    url = reverse_maybe(view_name)
+    url = reverse(view_name)
     active_class = f" {css_class}--active" if is_active else ""
     return f'<a href="{url}" class="{css_class}{active_class}">{label}</a>'
 
 
 @register.simple_tag(takes_context=True)
-def nav_crumb(context, label, view_name=None):
-    request = context["request"]
+def nav_crumb(context, label, view_name=None, *args, **kwargs):
     if not view_name:
         return f'<span class="crumb crumb--current">{label}</span>'
-    url = reverse_maybe(
-        view_name,
-        request.resolver_match.kwargs if request.resolver_match else {},
-        strict=False,
-    )
+    url = reverse(view_name, args=args, kwargs=kwargs)
     return f'<a href="{url}" class="crumb">{label}</a>'
 ```
 
