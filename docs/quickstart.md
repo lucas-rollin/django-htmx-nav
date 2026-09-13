@@ -1,25 +1,28 @@
 # Quickstart Guide
 
-This guide will walk you through installing `django-htmx-nav` and implementing partial rendering, out-of-band updates, shell renderers, and testing.
-
----
+This guide walks you through installing `django-htmx-nav` and implementing partial rendering, out-of-band updates, reusable shell renderers, and visual debugging in Django.
 
 ## 1. Installation
 
-Install `django-htmx-nav` via `pip`:
+Install `django-htmx-nav` from PyPI:
 
 ```bash
 pip install django-htmx-nav
 ```
 
----
+Optionally, add `django-htmx` if you use its middleware or header helpers:
+
+```bash
+pip install "django-htmx-nav[htmx]"
+```
 
 ## 2. Basic Partial Rendering (`render_nav`)
 
-Use `render_nav` in your view functions instead of standard Django `render`.
+Use `render_nav` in your view functions as a drop-in replacement for Django's standard `render()`:
 
 ```python
 # views.py
+from django.shortcuts import get_object_or_404
 from htmx_nav import render_nav
 from .models import Project
 
@@ -29,7 +32,7 @@ def project_list(request):
     return render_nav(request, "app/project_list.html", {"projects": projects})
 ```
 
-In your HTML template, mark the partial block using Django 6 inline partials:
+In your HTML template, define the partial block using native Django 6 inline partials (`{% partialdef %}`):
 
 ```html
 <!-- app/templates/app/project_list.html -->
@@ -37,28 +40,30 @@ In your HTML template, mark the partial block using Django 6 inline partials:
 
 {% block content %}
 {% partialdef content inline %}
-  <div id="project-list">
+  <div id="project-list" class="space-y-4">
     {% for project in projects %}
-      <div class="card">{{ project.name }}</div>
+      <div class="card p-4 border rounded">{{ project.name }}</div>
     {% endfor %}
   </div>
 {% endpartialdef %}
 {% endblock %}
 ```
 
-### Behavior
+### Behavior Under the Hood
 
-- **Full Page Load:** Renders the full template including `base.html`.
-- **HTMX Request:** Renders only the `content` partial, resolves active partials, and patches `Vary: HX-Request` for correct HTTP caching.
-
----
+- **Direct Browser Navigation (GET):** Renders the entire document including `base.html`.
+- **HTMX Partial Request (`HX-Request: true`):** Extracts and renders only the targeted partial block, setting `Vary: HX-Request` for correct HTTP caching.
 
 ## 3. Out-of-Band Swaps (`Swap`)
 
-When navigating between pages, components outside the main content area (such as sidebars or breadcrumbs) may also need updating. Use `Swap` to append out-of-band fragments:
+When navigating within an application shell, updating only the center container causes surrounding controls (sidebars, breadcrumbs, counter badges) to go stale.
+
+Use `Swap` to append synchronized out-of-band updates alongside your response:
 
 ```python
-from htmx_nav import Swap, render_nav
+from django.shortcuts import get_object_or_404
+from htmx_nav import Swap, render_nav, has_messages
+from .models import Project
 
 
 def project_detail(request, pk):
@@ -68,78 +73,109 @@ def project_detail(request, pk):
         "app/project_detail.html",
         {"project": project},
         swaps=[
+            # Auto-wrapped template swap:
             Swap("app/_sidebar.html", {"active_pk": project.pk}, target_id="sidebar"),
-            Swap(
-                "app/_breadcrumbs.html", {"project": project}, target_id="breadcrumbs"
-            ),
-            Swap.text("notification-badge", "3"),
-            Swap.delete("temporary-alert"),
+            Swap("app/_breadcrumbs.html", {"project": project}, target_id="breadcrumbs"),
+
+            # High-performance raw string update (skips template engine):
+            Swap.text("unread-badge", "3"),
+
+            # Delete directive (removes element from DOM):
+            Swap.delete("flash-notification"),
+
+            # Django messages integration (only sent if messages are pending):
+            Swap("app/_messages.html", target_id="messages", include_if=has_messages),
         ],
     )
 ```
 
-### Ready-made Strings and Deletions
+### Key Advantages of `Swap`
 
-- **`Swap.text(target_id, content)`**: Emits string content directly without template rendering.
-- **`Swap.delete(target_id)`**: Generates an out-of-band delete fragment (`<div id="target_id" hx-swap-oob="delete"></div>`).
+- **Zero-Boilerplate Auto-Wrapping:** Your partial templates (`_sidebar.html`) remain 100% clean HTML. `Swap` automatically wraps them into `<div id="sidebar" hx-swap-oob="innerHTML">...</div>` or `<hx-partial>` at render time.
+- **Pythonic Conditionals (`include_if`):** Use `targeting(...)`, `not_targeting(...)`, `has_messages`, or custom lambdas instead of fragile `{% if request.htmx ... %}` blocks in templates.
 
----
+## 4. Reusable Shell Rendering (`make_shell_renderer`)
 
-## 4. Shell Rendering (`make_shell_renderer`)
-
-To avoid repeating shell swap definitions across every view, use `make_shell_renderer` to create a reusable `render_shell` helper:
+To avoid declaring the same sidebar and breadcrumb `Swap`s repeatedly across dozens of views, encapsulate them into a reusable `render_shell` helper:
 
 ```python
 # renderers.py
-from htmx_nav import make_shell_renderer
+from htmx_nav import Swap, make_shell_renderer
 
-render_shell = make_shell_renderer(
-    shell_template="app/_shell.html",
-    context_builder=lambda request: {"nav_user": request.user},
-)
+
+def build_shell_swaps(request):
+    return [
+        Swap("app/_sidebar.html", {"user": request.user}, target_id="sidebar"),
+        Swap("app/_breadcrumbs.html", target_id="breadcrumbs"),
+    ]
+
+
+render_shell = make_shell_renderer(build_shell_swaps)
 ```
 
-Now views can simply call `render_shell`:
+Now any view in your application calls `render_shell` directly:
 
 ```python
 # views.py
+from django.shortcuts import get_object_or_404
+from htmx_nav import Swap
+from .models import Project
 from .renderers import render_shell
 
 
 def project_detail(request, pk):
     project = get_object_or_404(Project, pk=pk)
-    return render_shell(request, "app/project_detail.html", {"project": project})
+    return render_shell(
+        request,
+        "app/project_detail.html",
+        {"project": project},
+        # Per-view extra swaps attach automatically alongside shell swaps:
+        extra_swaps=[
+            Swap("app/_tabs.html", {"active": "overview"}, target_id="project-tabs"),
+        ],
+    )
 ```
 
----
+## 5. Class-Based View Integration (`make_shell_view_mixin`)
 
-## 5. Class-Based View Integration
-
-If you prefer Django Class-Based Views (CBVs), use `make_shell_view_mixin`:
+For projects utilizing Django generic Class-Based Views (`DetailView`, `ListView`, `CreateView`), generate a mixin with `make_shell_view_mixin`:
 
 ```python
+# views.py
 from django.views.generic import DetailView
-from htmx_nav.views import make_shell_view_mixin
+from htmx_nav import Swap, make_shell_view_mixin
+from .models import Project
 from .renderers import render_shell
 
-ShellViewMixin = make_shell_view_mixin(render_shell)
+ProjectShellMixin = make_shell_view_mixin(render_shell)
 
 
-class ProjectDetailView(ShellViewMixin, DetailView):
+class ProjectDetailView(ProjectShellMixin, DetailView):
     model = Project
     template_name = "app/project_detail.html"
+
+    def get_extra_swaps(self):
+        # Access self.object and self.request dynamically
+        return [
+            Swap("app/_tabs.html", {"active": "overview"}, target_id="project-tabs"),
+        ]
 ```
 
----
+## 6. Visual Swap Debugging
 
-## 6. Testing & Visual Debugging
+Catching stale state or verifying which regions swap during development is trivial. Add one setting in `settings.py`:
 
-For testing navigation context parity, HTML composition, and using visual swap debugging in development, see the standalone [Testing & Visual Debugging Guide](testing.md).
+```python
+# settings.py (development only)
+HTMX_NAV_DEBUG_SWAPS = True
+```
 
----
+Whenever an out-of-band swap arrives in the browser, `django-htmx-nav` injects a micro-script that momentarily flashes the targeted DOM element with an animated highlight outline (`.hn-swap`).
 
 ## Next Steps
 
-- Check out the [API Reference / Docstrings](api.md) for full function signatures.
-- Learn about [Testing & Visual Debugging](testing.md).
-- Explore [Architectural Navigation Patterns](nav_context_patterns.md)
+- Explore the deployed {demo}`Live Demo Testbed <htmx-nav/baseline/>` and compare all 8 architectural variants.
+- Check out the {live}`Interactive Benchmark Suite <benchmarks/>` for payload and latency metrics.
+- Read the [Architectural Navigation Patterns Guide](nav_context_patterns.md).
+- Learn about automated parity verification in the [Testing Guide](testing.md).
+- Reference full signatures in the [API Reference](api.md).

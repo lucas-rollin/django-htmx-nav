@@ -138,16 +138,16 @@
         <div class="card-body p-6">
           <div class="flex items-center justify-between mb-3">
             <span class="badge badge-neutral badge-sm uppercase font-semibold">Baseline</span>
-            <span class="text-xs font-mono text-base-content/60">No JS</span>
+            <span class="text-xs font-mono text-base-content/60">Full reload</span>
           </div>
           <h3 class="text-xl font-bold">Pure Multi-Page App (MPA)</h3>
           <p class="text-sm text-base-content/75 mt-2 leading-relaxed">
             Traditional full-page reloads on every navigation. Simplest conceptual model with zero client-side coordination, but transfers full layout HTML on every click.
           </p>
-          <ul class="text-xs text-base-content/70 space-y-1.5 mt-4 border-t border-base-200 pt-3">
-            <li>✓ Native browser navigation</li>
-            <li>✓ Zero client state sync logic</li>
-            <li>✗ Highest network payload (~32% larger)</li>
+          <ul class="text-xs text-base-content/70 space-y-1.5 border-t border-base-200 pt-3">
+            <li>✓ Native browser navigation, nothing to learn</li>
+            <li>✓ Zero client state to keep in sync</li>
+            <li>✗ ~32% more bytes on the wire per navigation</li>
           </ul>
         </div>
         <div class="p-6 pt-0">
@@ -168,16 +168,16 @@
         <div class="card-body p-6">
           <div class="flex items-center justify-between mb-3">
             <span class="badge badge-secondary badge-sm uppercase font-semibold">Manual HTMX</span>
-            <span class="text-xs font-mono text-base-content/60">Ad-Hoc OOB</span>
+            <span class="text-xs font-mono text-base-content/60">Hand-rolled OOB</span>
           </div>
-          <h3 class="text-xl font-bold">Vanilla HTMX (Composite / Atomic)</h3>
+          <h3 class="text-xl font-bold">Vanilla HTMX</h3>
           <p class="text-sm text-base-content/75 mt-2 leading-relaxed">
-            Uses standard HTMX with hand-written <code>hx-swap-oob</code> fragments. Views manually inspect <code>request.htmx</code> and assemble layout partials.
+            Standard HTMX with hand-written <em>out-of-band</em> fragments. Every view checks <code>HX-Target</code> itself and assembles the right partials. Complex swaps may require branching logic inside django templating.
           </p>
-          <ul class="text-xs text-base-content/70 space-y-1.5 mt-4 border-t border-base-200 pt-3">
-            <li>✓ Fast partial updates on wire</li>
+          <ul class="text-xs text-base-content/70 space-y-1.5 border-t border-base-200 pt-3">
+            <li>✓ Fast partial updates on the wire</li>
             <li>✗ Verbose template branching and string joining</li>
-            <li>✗ Duplicate query risks without request caching</li>
+            <li>✗ Hard to know pinpoint swaps work properly</li>
           </ul>
         </div>
         <div class="p-6 pt-0">
@@ -205,12 +205,12 @@
           </div>
           <h3 class="text-xl font-bold">django-htmx-nav</h3>
           <p class="text-sm text-base-content/75 mt-2 leading-relaxed">
-            Declarative partial specifications with <code>render_nav</code>, reusable shell composers, and request-scoped caching. Eliminates boilerplate while preserving URL truth.
+            One primitive, <code>Swap</code>, wraps your existing, ordinary templates for OOB delivery. <code>render_nav</code> resolves full-page vs. partial for you.
           </p>
-          <ul class="text-xs text-base-content/70 space-y-1.5 mt-4 border-t border-base-200 pt-3">
-            <li>✓ ~32% payload reduction matching manual OOB</li>
+          <ul class="text-xs text-base-content/70 space-y-1.5 border-t border-base-200 pt-3">
+            <li>✓ Same ~32% payload reduction as hand-written OOB</li>
             <li>✓ Clean, declarative view code</li>
-            <li>✓ Automatic cache-on-request prevents duplicate DB queries</li>
+            <li>✓ Testing and visual debugger helpers</li>
           </ul>
         </div>
         <div class="p-6 pt-0">
@@ -263,14 +263,34 @@
     </div>
   </section>
   <!-- View Code Snippet Section -->
-  <section class="py-16 px-4 sm:px-6 max-w-5xl mx-auto">
-    <div class="text-center mb-10">
+  <section class="py-16 px-4 sm:px-6 max-w-5xl mx-auto" x-data="{ pattern: 'render_nav' }">
+    <div class="text-center mb-8">
       <h2 class="text-2xl sm:text-3xl font-black tracking-tight">How It Looks in Your Views</h2>
       <p class="text-base-content/75 text-sm sm:text-base mt-2">
         No custom middleware required. Just a concise, expressive wrapper around Django's standard rendering pipeline.
       </p>
     </div>
-    <div class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
+
+    <!-- Pattern toggle -->
+    <div class="flex justify-center mb-4">
+      <div class="tabs tabs-boxed bg-base-200 inline-flex rounded-lg">
+        <button type="button"
+                class="tab"
+                :class="pattern === 'render_nav' && 'tab-active'"
+                @click="pattern = 'render_nav'">
+          One-off view
+        </button>
+        <button type="button"
+                class="tab"
+                :class="pattern === 'shell' && 'tab-active'"
+                @click="pattern = 'shell'">
+          Shared shell
+        </button>
+      </div>
+    </div>
+
+    <!-- render_nav sample -->
+    <div x-show="pattern === 'render_nav'" x-cloak class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
       <pre data-prefix="1"><code><span class="text-primary font-bold">from</span> django.shortcuts <span class="text-primary font-bold">import</span> get_object_or_404</code></pre>
       <pre data-prefix="2"><code><span class="text-primary font-bold">from</span> htmx_nav <span class="text-primary font-bold">import</span> Swap, render_nav</code></pre>
       <pre data-prefix="3"><code></code></pre>
@@ -278,17 +298,35 @@
       <pre data-prefix="5"><code>    project = get_object_or_404(Project, id=project_id)</code></pre>
       <pre data-prefix="6"><code>    context = {"project": project, "tickets": project.tickets.all()}</code></pre>
       <pre data-prefix="7"><code></code></pre>
-      <pre data-prefix="8"><code>    <span class="text-success"># Automatically serves full page for initial/direct visits,</span></code></pre>
-      <pre data-prefix="9"><code>    <span class="text-success"># or partial + OOB swaps for boosted/HTMX navigations:</span></code></pre>
-      <pre data-prefix="10"><code>    <span class="text-primary font-bold">return</span> render_nav(</code></pre>
-      <pre data-prefix="11"><code>        request,</code></pre>
-      <pre data-prefix="12"><code>        <span class="text-warning">"pages/board.html"</span>,</code></pre>
-      <pre data-prefix="13"><code>        context,</code></pre>
-      <pre data-prefix="14"><code>        swaps=[</code></pre>
-      <pre data-prefix="15"><code>            Swap(<span class="text-warning">"components/_sidebar.html"</span>, target_id=<span class="text-warning">"sidebar"</span>),</code></pre>
-      <pre data-prefix="16"><code>            Swap(<span class="text-warning">"components/_breadcrumbs.html"</span>, target_id=<span class="text-warning">"breadcrumbs"</span>),</code></pre>
-      <pre data-prefix="17"><code>        ],</code></pre>
-      <pre data-prefix="18"><code>    )</code></pre>
+      <pre data-prefix="8"><code>    <span class="text-success"># Full page for direct visits, partial + OOB swaps for HTMX:</span></code></pre>
+      <pre data-prefix="9"><code>    <span class="text-primary font-bold">return</span> render_nav(</code></pre>
+      <pre data-prefix="10"><code>        request,</code></pre>
+      <pre data-prefix="11"><code>        <span class="text-warning">"pages/board.html"</span>,</code></pre>
+      <pre data-prefix="12"><code>        context,</code></pre>
+      <pre data-prefix="13"><code>        swaps=[</code></pre>
+      <pre data-prefix="14"><code>            Swap(<span class="text-warning">"components/_sidebar.html"</span>, target_id=<span class="text-warning">"sidebar"</span>),</code></pre>
+      <pre data-prefix="15"><code>            Swap(<span class="text-warning">"components/_breadcrumbs.html"</span>, target_id=<span class="text-warning">"breadcrumbs"</span>),</code></pre>
+      <pre data-prefix="16"><code>        ],</code></pre>
+      <pre data-prefix="17"><code>    )</code></pre>
+    </div>
+
+    <!-- shell sample -->
+    <div x-show="pattern === 'shell'" x-cloak class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
+      <pre data-prefix="1"><code><span class="text-primary font-bold">from</span> django.shortcuts <span class="text-primary font-bold">import</span> get_object_or_404</code></pre>
+      <pre data-prefix="1"><code><span class="text-primary font-bold">from</span> htmx_nav <span class="text-primary font-bold">import</span> Swap, make_shell_renderer</code></pre>
+      <pre data-prefix="2"><code></code></pre>
+      <pre data-prefix="3"><code><span class="text-success"># Defined once, reused by every view in the app:</span></code></pre>
+      <pre data-prefix="4"><code>render_shell = make_shell_renderer(<span class="text-primary font-bold">lambda</span> request: [</code></pre>
+      <pre data-prefix="5"><code>    Swap(<span class="text-warning">"components/_sidebar.html"</span>, sidebar_ctx(request), target_id=<span class="text-warning">"sidebar"</span>),</code></pre>
+      <pre data-prefix="6"><code>    Swap(<span class="text-warning">"components/_breadcrumbs.html"</span>, crumbs_ctx(request), target_id=<span class="text-warning">"breadcrumbs"</span>),</code></pre>
+      <pre data-prefix="7"><code>])</code></pre>
+      <pre data-prefix="8"><code></code></pre>
+      <pre data-prefix="9"><code><span class="text-secondary font-bold">def</span> project_board(request, org_id, project_id):</code></pre>
+      <pre data-prefix="10"><code>    project = get_object_or_404(Project, id=project_id)</code></pre>
+      <pre data-prefix="11"><code>    context = {"project": project, "tickets": project.tickets.all()}</code></pre>
+      <pre data-prefix="12"><code></code></pre>
+      <pre data-prefix="13"><code>    <span class="text-success"># Sidebar & breadcrumbs come along for free, every time:</span></code></pre>
+      <pre data-prefix="14"><code>    <span class="text-primary font-bold">return</span> render_shell(request, <span class="text-warning">"pages/board.html"</span>, context)</code></pre>
     </div>
   </section>
 {% endblock %}

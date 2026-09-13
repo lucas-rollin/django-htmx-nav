@@ -1,13 +1,13 @@
 # Navigation Patterns
 
-*Supplying `context_builder` to `make_shell_renderer`.*
+*Supplying a `swaps` builder to `make_shell_renderer`.*
 
 `make_shell_renderer` exists to stop every view from re-declaring the same
-sidebar/breadcrumb `Swap`s. It does this by baking a `context_builder`
+sidebar/breadcrumb `Swap`s. It does this by baking a `swaps` builder
 function into a `render_shell` closure, so each view just calls
 `render_shell(...)` and the nav data comes along for free.
 
-This page is about *how to write that `context_builder`* — the two
+This page is about *how to construct those shell swaps* — the two
 patterns below (a Python registry, or Django's own template-tag system)
 are the two ends of the spectrum, and most projects land on one or a
 blend of both.
@@ -42,7 +42,7 @@ about repetition: every view that touches shared nav has to remember to
 build and pass those `Swap`s itself, and if you forget on view #12, its
 sidebar goes stale on HTMX navigation. `make_shell_renderer` exists
 *only* to centralize that so you can't forget it, it trades a small
-amount of upfront structure (a `context_builder`, and possibly one of
+amount of upfront structure (a swaps builder function, and possibly one of
 the two patterns below) for never having to think about it again in a
 view. If your project has two or three views and a static sidebar,
 that trade often isn't worth making, use `render_nav` directly and
@@ -54,18 +54,27 @@ If you do want that centralization, keep reading.
 
 ```python
 render_shell = make_shell_renderer(
-    shell_template="yourapp/_shell.html",
-    context_builder=lambda request: {"nav": build_nav_context(request)},
+    lambda request: [
+        Swap(
+            "yourapp/_sidebar.html",
+            build_sidebar_context(request),
+            target_id="sidebar",
+        ),
+        Swap(
+            "yourapp/_breadcrumbs.html",
+            build_crumbs_context(request),
+            target_id="breadcrumbs",
+        ),
+    ]
 )
 ```
 
-`context_builder` is any `Callable[[HttpRequest], Mapping[str, Any]]`.
-It's called once per request (full load or HTMX) and its return value
-becomes the context for `shell_template`, under the `namespace` key if
-`make_shell_renderer(..., namespace=...)` was given, otherwise merged
-flat alongside the page's own context. Everything below is just advice
-on what `build_nav_context` (or whatever you name it) should look like
-and where the data it returns should live.
+The swaps builder is either a static list of `Swap`s or any
+`Callable[[HttpRequest], Swaps]`. It is evaluated once per request
+(full page load or HTMX), and its returned `Swap` instances accompany
+the shell response. Any per-call `extra_swaps` provided by a specific view
+are merged alongside them. Everything below is advice on what
+nav helpers should look like and where their data should live.
 
 ## Pattern A: Centralized registry
 

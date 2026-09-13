@@ -25,15 +25,26 @@ if not settings.configured:
 project = "django-htmx-nav"
 copyright = "2026, Lucas Rollin Ferreira"
 author = "Lucas Rollin Ferreira"
-release = "0.3.0"
+release = "0.3.1"
 
 extensions = [
     "myst_parser",
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
+    "sphinx.ext.extlinks",
     "sphinx_autodoc_typehints",
 ]
+
+# Mutable domain for live demo deployment
+LIVE_DEMO_DOMAIN = "https://django-htmx-nav.onrender.com"
+
+extlinks = {
+    "demo": (f"{LIVE_DEMO_DOMAIN}/%s", "%s"),
+    "live": (f"{LIVE_DEMO_DOMAIN}/%s", "%s"),
+}
+
+myst_url_schemes = ("http", "https", "mailto", "ftp", "demo", "live")
 
 
 myst_enable_extensions = [

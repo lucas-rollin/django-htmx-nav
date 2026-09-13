@@ -8,7 +8,6 @@
         href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/django.min.js"></script>
   <script>document.addEventListener('DOMContentLoaded', () => { hljs.highlightAll(); });</script>
   <style>
   pre code.hljs {
@@ -216,14 +215,14 @@
         <div id="method-template-oob" class="mt-10 space-y-3">
           <h3 class="text-xl font-bold flex items-center gap-2">
             <span class="w-6 h-6 rounded bg-base-300 text-base-content font-mono text-xs flex items-center justify-center">2.2</span>
-            Pinpoint Swaps via Template Logic (Ad-Hoc OOB)
+            Pinpoint Swaps via Template Logic (Hand written OOB)
           </h3>
           <p class="text-sm text-base-content/80 leading-relaxed">
             Here, the template layer inspects whether the request came from HTMX (via <code>request.htmx</code> or custom headers) and conditionally includes out-of-band (OOB) containers.
           </p>
           <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-3">
             {% verbatim %}
-              <pre><code class="language-django">{# Manual branching inside Django templates #}
+              <pre><code class="language-html">{# Manual branching inside Django templates #}
 {% if request.htmx %}
   &lt;div id="sidebar" hx-swap-oob="innerHTML"&gt;{% include "components/_sidebar.html" %}&lt;/div&gt;
   &lt;div id="breadcrumbs" hx-swap-oob="innerHTML"&gt;{% include "components/_breadcrumbs.html" %}&lt;/div&gt;
@@ -359,43 +358,50 @@ def project_board(request, project_id):
         </div>
 
         <!-- 3.2 Python Versatility (FBVs, Mixins, Shells) -->
-        <div id="swap-orchestration" class="space-y-4 scroll-mt-24">
+        <div id="swap-orchestration" class="space-y-4 scroll-mt-24" x-data="{ pattern: 'fbv' }">
           <h3 class="text-xl font-bold flex items-center gap-2">
             <span class="w-6 h-6 rounded bg-primary/10 text-primary font-mono text-xs flex items-center justify-center font-bold">3.2</span>
             Python-First Versatility: Direct FBVs, Reusable Shells, and CBV Mixins
           </h3>
           <p class="text-sm text-base-content/80 leading-relaxed">
-            Because a <code>Swap</code> is a regular Python object, it can be passed, filtered, composed, and reused anywhere in your Django backend. <code>django-htmx-nav</code> provides three ergonomic integration levels to fit any application architecture:
+            Because a <code>Swap</code> is a regular Python object, it can be passed, filtered, composed, and reused anywhere in your Django backend. Three integration levels cover most apps — pick the tab for the one that matches your situation.
           </p>
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 not-prose my-4">
-            <div class="card bg-base-100 border border-base-300 p-4 rounded-xl">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2 not-prose my-4">
+            <button type="button"
+                    class="card border p-4 rounded-xl text-left transition-colors"
+                    :class="pattern === 'fbv' ? 'border-primary bg-primary/5' : 'border-base-300 bg-base-100 hover:border-primary'"
+                    @click="pattern = 'fbv'">
               <div class="badge badge-primary badge-sm font-mono font-bold mb-2">1. Direct FBVs</div>
               <h4 class="font-bold text-sm font-mono text-base-content">render_nav</h4>
               <p class="text-xs text-base-content/70 mt-1">
-                Drop-in replacement for <code>render()</code>. Attach ad-hoc swaps directly per-endpoint when a view needs one-off auxiliary updates.
+                Drop-in replacement for <code>render()</code>. Attach ad-hoc swaps per-endpoint for one-off updates.
               </p>
-            </div>
-            <div class="card bg-base-100 border border-base-300 p-4 rounded-xl">
+            </button>
+            <button type="button"
+                    class="card border p-4 rounded-xl text-left transition-colors"
+                    :class="pattern === 'shell' ? 'border-primary bg-primary/5' : 'border-base-300 bg-base-100 hover:border-primary'"
+                    @click="pattern = 'shell'">
               <div class="badge badge-secondary badge-sm font-mono font-bold mb-2">2. Reusable Shells</div>
               <h4 class="font-bold text-sm font-mono text-base-content">make_shell_renderer</h4>
               <p class="text-xs text-base-content/70 mt-1">
-                Centralizes recurring shell fragments (sidebar, breadcrumbs, user badge) into a reusable renderer. Supports per-view <code>extra_swaps</code>.
+                Centralizes recurring shell fragments (sidebar, breadcrumbs) into one reusable renderer with per-view <code>extra_swaps</code>.
               </p>
-            </div>
-            <div class="card bg-base-100 border border-base-300 p-4 rounded-xl">
+            </button>
+            <button type="button"
+                    class="card border p-4 rounded-xl text-left transition-colors"
+                    :class="pattern === 'cbv' ? 'border-primary bg-primary/5' : 'border-base-300 bg-base-100 hover:border-primary'"
+                    @click="pattern = 'cbv'">
               <div class="badge badge-accent badge-sm font-mono font-bold mb-2">3. Class-Based Views</div>
               <h4 class="font-bold text-sm font-mono text-base-content">make_shell_view_mixin</h4>
               <p class="text-xs text-base-content/70 mt-1">
-                Integrates into Django's CBV hierarchy (<code>ListView</code>, <code>DetailView</code>). Override <code>get_extra_swaps()</code> with access to <code>self.object</code>.
+                Integrates into <code>ListView</code>, <code>DetailView</code>, etc. Override <code>get_extra_swaps()</code> with access to <code>self.object</code>.
               </p>
-            </div>
+            </button>
           </div>
 
           <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-4">
-            <pre><code class="language-python"># Example: Three ways to leverage the same Swap primitives in Python
-
-# 1. Direct Function-Based View (ad-hoc swaps):
+            <pre x-show="pattern === 'fbv'" x-cloak><code class="language-python"># Direct Function-Based View — ad-hoc swaps, no shared setup:
 from htmx_nav import Swap, render_nav
 
 def quick_status(request, pk):
@@ -405,9 +411,9 @@ def quick_status(request, pk):
         "items/detail.html",
         {"item": item},
         swaps=[Swap("nav/_badge.html", {"item": item}, target_id="item-badge")],
-    )
+    )</code></pre>
 
-# 2. Reusable Shell Renderer (centralized across multiple FBVs):
+            <pre x-show="pattern === 'shell'" x-cloak><code class="language-python"># Reusable Shell Renderer — centralized across every FBV:
 from htmx_nav import Swap, make_shell_renderer
 
 render_shell = make_shell_renderer(lambda request: [
@@ -417,10 +423,10 @@ render_shell = make_shell_renderer(lambda request: [
 
 def project_detail(request, pk):
     project = get_object_or_404(Project, pk=pk)
-    # Renders partial on HTMX, full page on MPA, always attaching sidebar & breadcrumb swaps
-    return render_shell(request, "projects/detail.html", {"project": project})
+    # Renders partial on HTMX, full page on MPA — sidebar & breadcrumbs always attached
+    return render_shell(request, "projects/detail.html", {"project": project})</code></pre>
 
-# 3. Class-Based Views via Mixin:
+            <pre x-show="pattern === 'cbv'" x-cloak><code class="language-python"># Class-Based Views via Mixin — built on the shell renderer above:
 from django.views.generic import DetailView
 from htmx_nav import Swap, make_shell_view_mixin
 
@@ -431,7 +437,7 @@ class ProjectDetailView(ProjectShellMixin, DetailView):
     template_name = "projects/detail.html"
 
     def get_extra_swaps(self):
-        # Dynamically append swaps with full access to self.object and self.request
+        # Full access to self.object and self.request here
         return [
             Swap("projects/_activity_feed.html", {"project": self.object}, target_id="activity-feed"),
         ]</code></pre>
@@ -465,8 +471,8 @@ class ProjectDetailView(ProjectShellMixin, DetailView):
 
             <!-- Swap.delete -->
             <div class="p-4 bg-base-200/50 rounded-xl border border-base-300">
-              <div class="flex items-center gap-2 font-mono text-xs font-bold text-error">
-                <span class="badge badge-xs badge-error">OOB</span>
+              <div class="flex items-center gap-2 font-mono text-xs font-bold text-secondary">
+                <span class="badge badge-xs badge-secondary">OOB</span>
                 Swap.delete(...)
               </div>
               <p class="text-xs text-base-content/75 mt-2">
@@ -479,8 +485,8 @@ class ProjectDetailView(ProjectShellMixin, DetailView):
 
             <!-- has_messages -->
             <div class="p-4 bg-base-200/50 rounded-xl border border-base-300">
-              <div class="flex items-center gap-2 font-mono text-xs font-bold text-success">
-                <span class="badge badge-xs badge-success">Django</span>
+              <div class="flex items-center gap-2 font-mono text-xs font-bold text-accent">
+                <span class="badge badge-xs badge-accent">Django</span>
                 has_messages
               </div>
               <p class="text-xs text-base-content/75 mt-2">
@@ -536,21 +542,20 @@ def delete_ticket(request, ticket_id):
 # Conditionals expressed cleanly in Python:
 swaps = [
     # Match exact target string:
-    Swap("nav/_tabs.html", target_id="subtabs", include_if="project-tabs"),
+    Swap("nav/_tabs.html", include_if="project-tabs"),
 
     # Built-in targeting predicates matching one or multiple DOM IDs:
-    Swap("nav/_breadcrumbs.html", target_id="crumbs", include_if=targeting("main-content", "subtabs")),
+    Swap("nav/_breadcrumbs.html", include_if=targeting("main-content", "subtabs")),
 
     # Inverted targeting (e.g., skip sidebar if user is directly targeting the sidebar itself):
-    Swap("nav/_sidebar.html", target_id="sidebar", include_if=not_targeting("sidebar")),
+    Swap("nav/_sidebar.html", include_if=not_targeting("sidebar")),
 
     # Native message predicate:
-    Swap("nav/_messages.html", target_id="messages", include_if=has_messages),
+    Swap("nav/_messages.html", include_if=has_messages),
 
     # Custom callable / lambda checking permissions, query params, or URL resolvers:
     Swap(
         "nav/_admin_badge.html",
-        target_id="admin-badge",
         include_if=lambda req: req.user.is_staff and not req.htmx.boosted,
     ),
 ]</code></pre>
@@ -894,7 +899,7 @@ def overview(request: HttpRequest) -> HttpResponse:
           <div>
             <h3 class="text-2xl font-black tracking-tight">Ready to eliminate state drift?</h3>
             <p class="text-primary-content/80 text-sm mt-1 max-w-xl">
-              Install <code>django-htmx-nav</code> today or inspect the complete, runnable source code in GitHub.
+              Install <code class="text-base-content">django-htmx-nav</code> today or inspect the complete, runnable source code in GitHub.
             </p>
           </div>
           <div class="flex flex-wrap items-center gap-3">

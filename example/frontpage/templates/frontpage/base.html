@@ -27,6 +27,7 @@
       document.documentElement.setAttribute("data-theme", theme);
     })();
     </script>
+    <style>[x-cloak] { display: none !important; }</style>
     <link rel="icon"
           type="image/svg+xml"
           href="{% static 'core/img/favicon.svg' %}">
@@ -35,6 +36,7 @@
           type="text/css">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script defer src="{% static 'core/js/theme.js' %}"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     {% block head_extra %}{% endblock %}
   </head>
   <body class="{% block body_class %}min-h-screen bg-base-100 text-base-content flex flex-col justify-between selection:bg-primary selection:text-primary-content{% endblock %}"

@@ -1,146 +1,85 @@
-# Example Application & Integration Testbed
+# Example Application & Reference Testbed
 
-This directory contains a complete sample Django application demonstrating `django-htmx-nav` in a realistic web application context.
+This directory contains a complete, runnable Django Helpdesk application designed to demonstrate `django-htmx-nav` patterns in a realistic, multi-region web application.
 
-## Purpose
+## What's in this Example?
 
-The example project is designed for three main purposes:
+The application implements a real-world Helpdesk workspace (Organizations, Projects, Kanban boards, Ticket details with subtabs, Multi-step ticket wizards, and Staff directories) across **8 distinct architectural paradigms**:
 
-1. **Interactive Demo:** Demonstrates real-world UI patterns such as multi-region navigation (sidebars, breadcrumbs, headers), active-state highlighting, multi-step forms/wizards, and nested tabbed workspaces.
-2. **Integration Testbed:** Serves as a full-stack Django environment for validating `django-htmx-nav` behaviors (partial block resolution, OOB swaps, `Vary` headers, redirects) against real browser requests.
-3. **Implementation Playground & Experiment:** Enables side-by-side comparison of three common web application architectural approaches:
-   - **Multi-Page Application (MPA):** Traditional full-page reloads.
-   - **Vanilla HTMX:** Manual `HX-Request` checking, ad-hoc partial rendering, and manual out-of-band swap construction.
-   - **`django-htmx-nav`:** Declarative partial specifications, reusable shell renderers (`make_shell_renderer`), and Class-Based View mixins (`make_shell_view_mixin`).
+1. **`mpa`**: Traditional Django full-page reloads.
+2. **`pure_htmx`**: Full HTML shells rendered on every boosted request.
+3. **`vanilla_htmx_composite`**: Hand-written `hx-swap-oob` fragments for core regions.
+4. **`vanilla_htmx_atomic`**: Hand-written OOB swaps for all regions with template branching.
+5. **`htmx_nav_baseline`**: Minimal boilerplate using `make_shell_renderer`.
+6. **`htmx_nav_composite`**: Direct `render_nav` calls with per-view `swaps=[...]`.
+7. **`htmx_nav_atomic`**: Explicit multi-level swaps across every visual tier.
+8. **`htmx_nav_declarative`**: Route-aware central registry decoupling navigation from views.
 
-## Installation & Running
+Every page includes an **Implementation Switcher** in the top-right navbar, allowing you to jump between these approaches on any screen and observe behavior, payload sizes, and DOM updates in real time.
 
-### 1. Install Dependencies
+## Quick Start (Run Locally in Seconds)
 
-From the repository root, install `django-htmx-nav` in editable mode with the `example` extra dependencies (`Faker`):
+### 1. Install in Editable Mode
+
+From the repository root, install the package and example dependencies:
 
 ```bash
 pip install -e ".[example]"
 ```
 
-### 2. Start the Development Server
+### 2. Run Migrations & Seed Sample Data
 
-Run the Django development server:
+```bash
+python example/manage.py migrate
+python example/manage.py seed_helpdesk
+```
+
+### 3. Start the Development Server
 
 ```bash
 python example/manage.py runserver
 ```
 
-Open your browser and navigate to `http://127.0.0.1:8000/`.
+Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) in your browser.
 
-## Running with Docker & Docker Compose
+> **Prefer Docker?** Run `docker compose up dev` to mount local code with auto-reload enabled.
 
-A multi-stage [`Dockerfile`](../Dockerfile) and [`docker-compose.yml`](../docker-compose.yml) are provided at the repository root for local development, reproducible testing/benchmarking, and production deployment.
+## Where to Look: Exploring Package Patterns
 
-### 1. Production Simulation (Lean Gunicorn + WhiteNoise)
+If you are evaluating `django-htmx-nav` for your own project, explore these key files:
 
-Runs a lean production image with Gunicorn and WhiteNoise compressed static asset serving:
-
-```bash
-docker compose up --build web
-```
-
-Navigate to `http://localhost:8000/`.
-
-### 2. Development with Hot Reloading
-
-Mounts local source code into the container with debug mode enabled and swap markers active:
-
-```bash
-docker compose up dev
-```
-
-### 3. Hermetic Testing (Unit & Parity Tests)
-
-Executes pytest within an isolated container:
-
-```bash
-docker compose run --rm test
-```
-
-### 4. Running Benchmarks & Playwright Metrics
-
-Runs the full metric collection suite with pre-installed Chromium and system dependencies:
-
-```bash
-docker compose run --rm bench
-```
-
-## Production Deployment Guide
-
-The containerized example application is engineered for cheap, single-container deployments with an idle footprint under 60MB RAM:
-
-- **Static Files**: Assets are served directly via `whitenoise` with compression (`CompressedStaticFilesStorage`), removing the need for external S3 buckets or Nginx.
-- **Application Server**: Gunicorn runs with `gthread` workers, request limits, and stdout/stderr logging.
-- **Security**: Container runs as a non-privileged user (`app:app` UID 1000).
-
-### Deploy to Render (100% Free Web Service)
-
-[Render](https://render.com) provides a generous free tier for Web Services (512MB RAM, shared CPU, 750 free instance hours/month) with native Docker support and free automatic SSL certificates.
-
-#### Option 1: 1-Click Deploy (Render Blueprint)
-
-Click the button below to deploy the application instantly using the repository's [`render.yaml`](../render.yaml) Blueprint:
-
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/lucas-rollin/django-htmx-nav)
-
-#### Option 2: Render Dashboard (Manual Web Service)
-
-1. Sign up or log in at [render.com](https://render.com) using GitHub.
-2. Click **New +** -> **Web Service**.
-3. Connect your repository: `lucas-rollin/django-htmx-nav`.
-4. Configure service settings:
-   - **Language / Runtime**: `Docker`
-   - **Branch**: `main`
-   - **Region**: Any preferred region (e.g. *Oregon (US West)* or *Frankfurt (EU)*)
-   - **Instance Type**: `Free`
-5. Configure Environment Variables:
-   - `DEBUG`: `False`
-   - `ALLOWED_HOSTS`: `.onrender.com,localhost,127.0.0.1`
-   - `CSRF_TRUSTED_ORIGINS`: `https://*.onrender.com`
-   - `SECRET_KEY`: *(Click "Generate" to generate a secure random value)*
-6. Click **Create Web Service**. Render will automatically build the `production` Docker stage and provide a live URL (`https://<service-name>.onrender.com`).
-
-> [!NOTE]
-> **Free Tier Sleep Behavior:** Render's free services spin down after 15 minutes of inactivity. When a new request arrives, it wakes up with a ~30–50 second cold start. To keep the demo continuously warm without costs, you can add a free uptime monitor pinging the root URL every 10 minutes using [UptimeRobot](https://uptimerobot.com) or [cron-job.org](https://cron-job.org).
-
-### Environment Variables
-
-| Variable | Default | Description |
+| Pattern | Source File | What to Look For |
 | :--- | :--- | :--- |
-| `DEBUG` | `True` | Set to `False` in production. |
-| `SECRET_KEY` | *(insecure dev key)* | Secret key for Django cryptographic signing. |
-| `ALLOWED_HOSTS` | `127.0.0.1,testserver,localhost` | Comma-separated list of valid hostnames/domains (e.g. `.onrender.com`). |
-| `CSRF_TRUSTED_ORIGINS` | `""` | Comma-separated trusted origins (e.g. `https://*.onrender.com`). |
-| `STATIC_ROOT` | `<BASE_DIR>/staticfiles` | Directory where `collectstatic` outputs assets. |
-| `PORT` | `8000` | Port for Gunicorn to listen on (Render automatically provides `PORT=10000`). |
+| **Reusable Shell Renderers** | [`example/htmx_nav_demo/views_baseline.py`](htmx_nav_demo/views_baseline.py) | How `make_shell_renderer` defines a shared list of `Swap`s once, keeping views identical to standard `render()`. |
+| **Direct & Ad-Hoc Swaps** | [`example/htmx_nav_demo/views_composite.py`](htmx_nav_demo/views_composite.py) | Using `render_nav` with inline `swaps=[...]` for custom or single-view needs. |
+| **Multi-Tier Navigation** | [`example/htmx_nav_demo/views_atomic.py`](htmx_nav_demo/views_atomic.py) | Granular swaps synchronizing sidebar, breadcrumbs, tabs, and subtabs simultaneously. |
+| **Declarative Registry** | [`example/htmx_nav_demo/views_declarative.py`](htmx_nav_demo/views_declarative.py) | Decoupling navigation rules into a route-aware registry, keeping views exceptionally thin. |
+| **Class-Based Views (CBVs)** | [`example/htmx_nav_demo/views_*.py`](htmx_nav_demo/) | Subclassing mixins generated via `make_shell_view_mixin(render_shell)`. |
+| **Specialized Swaps** | [`example/htmx_nav_demo/views_*.py`](htmx_nav_demo/) | Usage of `Swap.delete` (instant DOM deletion), `Swap.text` (raw text/counts), and `has_messages`. |
+| **Visual Swap Debugging** | [`example/config/settings.py`](config/settings.py) | `HTMX_NAV_DEBUG_SWAPS = True`, which highlights updated DOM regions with an animated pulse. |
 
-## Project Structure
+## Directory Structure
 
-```plaintext
+```text
 example/
-├── config/              # Django project configuration (settings, root URLs, WSGI)
-├── core/                # Shared domain models, mock data generators (Faker), base templates
-├── htmx_nav_demo/       # Interactive demo app using django-htmx-nav patterns
-├── mpa/                 # Reference implementation using traditional MPA full-page reloads
-├── static/              # Static assets and CSS stylesheets
+├── config/              # Django settings, root URL routing, WSGI
+├── frontpage/           # Landing page overview and architectural guide
+├── benchmarks/          # Empirical metrics dashboards (ECharts + Alpine.js)
+├── htmx_nav_demo/       # Reference implementations of django-htmx-nav patterns
+├── mpa/                 # Reference implementation using traditional full-page reloads
+├── core/                # Shared domain models, mock data generators, base templates
 └── manage.py            # Django command-line entrypoint
 ```
 
-### Key Components
+## Running the Example Test Suite
 
-- **`config/settings.py`**: Configured with `HTMX_NAV_DEBUG_SWAPS = True` for visual swap debugging.
-- **`core/`**: Defines workspace models, projects, tickets, and employees populated dynamically with mock data.
-- **`htmx_nav_demo/`**: Demonstrates `render_nav`, `make_shell_renderer`, `make_shell_view_mixin`, `Swap.text`, and `Swap.delete` across complex nested views.
-- **`mpa/`**: Demonstrates the baseline Multi-Page Application workflow for direct comparison.
+The example project includes automated parity, composition, and smoke test suites:
 
-## Planned Work & Future Experiments
+```bash
+# Run all example tests (~560 tests)
+PYTHONPATH=example DJANGO_SETTINGS_MODULE=config.settings pytest example/
+```
 
-- [x] Add vanilla HTMX variant views (`example/vanilla_htmx/`) to explicitly benchmark code lines and maintenance complexity against `django-htmx-nav`.
-- [x] Add interactive toggle in the UI header to seamlessly switch execution modes between MPA, Vanilla HTMX, and `django-htmx-nav`.
-- [x] Expand E2E test suites comparing client-side performance and network payload sizes across all three architectural variants.
+- **`test_shell_parity.py`**: Verifies that HTMX partial responses produce the exact same navigation context as full browser reloads.
+- **`test_shell_composition.py`**: Verifies that rendered shells contain all required DOM markers and container IDs.
+- **`test_variant_smoke.py`**: Smoke tests all 8 implementation families and orthogonal modifier axes (`+HS` / `hx-select`, `+M` / `idiomorph`).
