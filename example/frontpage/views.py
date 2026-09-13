@@ -26,7 +26,7 @@ def landing(request: HttpRequest) -> HttpResponse:
             {
                 "stat": "~32%",
                 "label": "Payload Reduction",
-                "desc": "Average wire size reduction compared to full-page MPA roundtrips.",
+                "desc": "Average wire size reduction compared to views unaware vanilla HTMX.",
             },
             {
                 "stat": "<0.5 ms",

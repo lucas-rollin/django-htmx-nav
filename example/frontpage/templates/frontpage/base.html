@@ -36,8 +36,9 @@
           type="text/css">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script defer src="{% static 'core/js/theme.js' %}"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     {% block head_extra %}{% endblock %}
+    <script defer
+            src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   </head>
   <body class="{% block body_class %}min-h-screen bg-base-100 text-base-content flex flex-col justify-between selection:bg-primary selection:text-primary-content{% endblock %}"
         {% block body_attrs %}
@@ -54,14 +55,14 @@
                 hn
               </span>
               {% block navbar_title %}
-                <span class="text-nowrap">django-htmx-nav</span>
+                <span class="text-nowrap hidden min-[290px]:inline-block"><span class="hidden min-[360px]:inline-block">django-</span>htmx-nav</span>
               {% endblock %}
             </a>
             {% block navbar_badge %}
               <span class="badge badge-sm badge-outline font-mono hidden sm:inline-flex">v0.3.1</span>
             {% endblock %}
           </div>
-          <div class="navbar-center hidden md:flex gap-1">
+          <div class="navbar-center hidden lg:flex gap-1">
             {% block navbar_links %}
               <a href="{% url 'landing' %}"
                  class="btn btn-ghost btn-sm font-semibold {% if request.path == '/' %}text-primary menu-active{% endif %}">Overview</a>

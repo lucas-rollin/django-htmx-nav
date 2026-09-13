@@ -13,7 +13,7 @@
       Server-Driven Navigation for <span class="text-primary underline decoration-primary/30 decoration-wavy">HTMX in Django</span>
     </h1>
     <p class="text-lg sm:text-xl text-base-content/75 max-w-2xl mx-auto mt-6 leading-relaxed">
-      Keep sidebars, breadcrumbs, and active navigation controls synchronized with the URL as the single source of truth—without state drift or boilerplate.
+      Keep sidebars, breadcrumbs, and active navigation controls synchronized with the URL as the single source of truth without state drift or boilerplate.
     </p>
     <div class="flex flex-wrap items-center justify-center gap-4 mt-8">
       <a href="#approaches"
@@ -263,34 +263,31 @@
     </div>
   </section>
   <!-- View Code Snippet Section -->
-  <section class="py-16 px-4 sm:px-6 max-w-5xl mx-auto" x-data="{ pattern: 'render_nav' }">
+  <section class="py-16 px-4 sm:px-6 max-w-5xl mx-auto"
+           x-data="{ pattern: 'render_nav' }">
     <div class="text-center mb-8">
       <h2 class="text-2xl sm:text-3xl font-black tracking-tight">How It Looks in Your Views</h2>
       <p class="text-base-content/75 text-sm sm:text-base mt-2">
         No custom middleware required. Just a concise, expressive wrapper around Django's standard rendering pipeline.
       </p>
     </div>
-
     <!-- Pattern toggle -->
     <div class="flex justify-center mb-4">
       <div class="tabs tabs-boxed bg-base-200 inline-flex rounded-lg">
         <button type="button"
                 class="tab"
                 :class="pattern === 'render_nav' && 'tab-active'"
-                @click="pattern = 'render_nav'">
-          One-off view
-        </button>
+                @click="pattern = 'render_nav'">One-off view</button>
         <button type="button"
                 class="tab"
                 :class="pattern === 'shell' && 'tab-active'"
-                @click="pattern = 'shell'">
-          Shared shell
-        </button>
+                @click="pattern = 'shell'">Shared shell</button>
       </div>
     </div>
-
     <!-- render_nav sample -->
-    <div x-show="pattern === 'render_nav'" x-cloak class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
+    <div x-show="pattern === 'render_nav'"
+         x-cloak
+         class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
       <pre data-prefix="1"><code><span class="text-primary font-bold">from</span> django.shortcuts <span class="text-primary font-bold">import</span> get_object_or_404</code></pre>
       <pre data-prefix="2"><code><span class="text-primary font-bold">from</span> htmx_nav <span class="text-primary font-bold">import</span> Swap, render_nav</code></pre>
       <pre data-prefix="3"><code></code></pre>
@@ -309,9 +306,10 @@
       <pre data-prefix="16"><code>        ],</code></pre>
       <pre data-prefix="17"><code>    )</code></pre>
     </div>
-
     <!-- shell sample -->
-    <div x-show="pattern === 'shell'" x-cloak class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
+    <div x-show="pattern === 'shell'"
+         x-cloak
+         class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
       <pre data-prefix="1"><code><span class="text-primary font-bold">from</span> django.shortcuts <span class="text-primary font-bold">import</span> get_object_or_404</code></pre>
       <pre data-prefix="1"><code><span class="text-primary font-bold">from</span> htmx_nav <span class="text-primary font-bold">import</span> Swap, make_shell_renderer</code></pre>
       <pre data-prefix="2"><code></code></pre>

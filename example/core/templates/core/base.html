@@ -28,6 +28,22 @@
       document.documentElement.setAttribute("data-theme", theme);
     })();
     </script>
+    <script>
+      (function () {
+        // Persist debug swap option
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasQueryParam = urlParams.has('debug-swaps') || urlParams.has('debug');
+        const savedPreference = localStorage.getItem("hn_debug_swaps") === "true";
+        if (hasQueryParam || savedPreference) {
+          if (hasQueryParam) {
+            localStorage.setItem("hn_debug_swaps", "true");
+          }
+          document.addEventListener("DOMContentLoaded", function () {
+            document.body.setAttribute("data-hn-debug-swaps", "");
+          });
+        }
+      })();
+    </script>
     <link rel="icon"
           type="image/svg+xml"
           href="{% static "core/img/favicon.svg" %}">
@@ -80,6 +96,7 @@
                   </svg>
                 </label>
                 <a href="{% url 'landing' %}"
+                   hx-boost="false"
                    class="flex items-center gap-2 font-bold text-xl no-underline hover:opacity-80 transition-opacity">
                   <svg class="h-6 w-6 fill-current"
                        xmlns="http://www.w3.org/2000/svg"
@@ -98,7 +115,7 @@
                 {% if active_variant.uses_htmx_nav %}
                   <button type="button"
                           class="btn btn-ghost flex items-center gap-2"
-                          onclick="document.body.toggleAttribute('data-hn-debug-swaps')">
+                          onclick="document.body.toggleAttribute('data-hn-debug-swaps'); localStorage.setItem('hn_debug_swaps', document.body.hasAttribute('data-hn-debug-swaps'));">
                     Highlight swaps
                     <span class="h-2 w-2 rounded-full bg-slate-300 [body[data-hn-debug-swaps]_&]:bg-green-500"></span>
                   </button>
