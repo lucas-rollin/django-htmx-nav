@@ -279,3 +279,31 @@ def test_collect_static_metrics_command(tmp_path, monkeypatch):
     rows = read_jsonl(written_files[0])
     assert len(rows) > 0
     assert rows[0]["variant"] == "mpa"
+
+
+def test_settings_split_dev_prod_vs_benchmark(monkeypatch):
+    """Verify settings split: dev & prod default to DEBUG_SWAPS=True and LOCAL_ASSETS=False;
+    benchmark test mode sets DEBUG_SWAPS=False and LOCAL_ASSETS=True."""
+    import importlib
+
+    import config.settings as app_settings
+
+    # 1. Dev / Production default (no environment variables set)
+    monkeypatch.delenv("HTMX_NAV_DEBUG_SWAPS", raising=False)
+    monkeypatch.delenv("HTMX_NAV_BENCHMARK_LOCAL_ASSETS", raising=False)
+    importlib.reload(app_settings)
+    assert app_settings.HTMX_NAV_DEBUG_SWAPS is True
+    assert app_settings.HTMX_NAV_BENCHMARK_LOCAL_ASSETS is False
+
+    # 2. Benchmark test mode (configured in docker-compose bench and DevServer)
+    monkeypatch.setenv("HTMX_NAV_DEBUG_SWAPS", "False")
+    monkeypatch.setenv("HTMX_NAV_BENCHMARK_LOCAL_ASSETS", "True")
+    importlib.reload(app_settings)
+    assert app_settings.HTMX_NAV_DEBUG_SWAPS is False
+    assert app_settings.HTMX_NAV_BENCHMARK_LOCAL_ASSETS is True
+
+    # Cleanup reload to default
+    monkeypatch.delenv("HTMX_NAV_DEBUG_SWAPS", raising=False)
+    monkeypatch.delenv("HTMX_NAV_BENCHMARK_LOCAL_ASSETS", raising=False)
+    importlib.reload(app_settings)
+

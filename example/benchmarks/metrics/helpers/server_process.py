@@ -38,9 +38,9 @@ class DevServer:
                 )
 
         env = os.environ.copy()
-        # Disables the debug-swap marker script and switches to vendored
-        # local htmx/idiomorph assets if present (see vendor_client_assets).
-        env.setdefault("HTMX_NAV_BENCHMARK", "1")
+        # Disables debug-swap marker scripts and switches to vendored local htmx assets
+        env.setdefault("HTMX_NAV_DEBUG_SWAPS", "False")
+        env.setdefault("HTMX_NAV_BENCHMARK_LOCAL_ASSETS", "True")
         self._err_file = tempfile.NamedTemporaryFile(mode="w+", delete=False)
         self._proc = subprocess.Popen(
             [

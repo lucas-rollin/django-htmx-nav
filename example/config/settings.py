@@ -154,11 +154,12 @@ try:
 except ImportError:
     pass
 
-HTMX_NAV_DEBUG_SWAPS = os.environ.get("HTMX_NAV_BENCHMARK") != "1"
+HTMX_NAV_DEBUG_SWAPS = os.environ.get("HTMX_NAV_DEBUG_SWAPS", "True").lower() in (
+    "true",
+    "1",
+    "yes",
+)
 
-_vendor_htmx = (
-    BASE_DIR / "core" / "static" / "core" / "js" / "vendor" / "htmx.min.js"
-)
-HTMX_NAV_BENCHMARK_LOCAL_ASSETS = (
-    os.environ.get("HTMX_NAV_BENCHMARK") == "1" and _vendor_htmx.is_file()
-)
+HTMX_NAV_BENCHMARK_LOCAL_ASSETS = os.environ.get(
+    "HTMX_NAV_BENCHMARK_LOCAL_ASSETS", "False"
+).lower() in ("true", "1", "yes")

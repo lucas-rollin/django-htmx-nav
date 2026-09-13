@@ -6,8 +6,16 @@ and displays them at `/benchmarks/`.
 
 ## Setup
 
+Install dependencies
+
 ```bash
 pip install -e ".[example,bench]" # radon, playwright, beautifulsoup + core deps
+```
+
+Download client assests to not rely on CDN for client metrics
+
+```bash
+python manage.py vendor_client_assets
 ```
 
 ## Run the test suite before collecting data
