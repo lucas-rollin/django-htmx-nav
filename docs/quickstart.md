@@ -49,6 +49,8 @@ In your HTML template, define the partial block using native Django 6 inline par
 {% endblock %}
 ```
 
+> **Note**: `partial` defaults to `"#content"`, so on HTMX requests `"app/project_list.html"` becomes `"app/project_list.html#content"`, matched by Django's `{% partialdef content %}` block. Name your block `content` to match, or override via `partial="#your_block"` / `partial="path/to/template.html"`.
+
 ### Behavior Under the Hood
 
 - **Direct Browser Navigation (GET):** Renders the entire document including `base.html`.

@@ -15,3 +15,5 @@ services:
         value: "https://*.onrender.com"
       - key: SECRET_KEY
         generateValue: true
+      - key: HTMX_NAV_DEBUG_SWAPS
+        value: "True"

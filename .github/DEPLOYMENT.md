@@ -47,6 +47,7 @@ Deploy using the repository's root [`render.yaml`](../render.yaml) Blueprint:
 | `CSRF_TRUSTED_ORIGINS` | `""` | Comma-separated trusted origins (e.g. `https://*.onrender.com`). |
 | `STATIC_ROOT` | `<BASE_DIR>/staticfiles` | Directory where `collectstatic` outputs assets. |
 | `PORT` | `8000` | Port for Gunicorn to listen on (Render automatically supplies `PORT=10000`). |
+| `HTMX_NAV_DEBUG_SWAPS` | `True` | Enables visual swap animations on demo pages. Active by default. |
 
 ## 4. Local Container Workflows
 

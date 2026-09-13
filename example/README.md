@@ -1,85 +1,88 @@
 # Example Application & Reference Testbed
 
-This directory contains a complete, runnable Django Helpdesk application designed to demonstrate `django-htmx-nav` patterns in a realistic, multi-region web application.
+This directory contains a complete, runnable Django Helpdesk application designed to demonstrate `django-htmx-nav` patterns and compare them against traditional multi-page architectures and vanilla HTMX techniques.
 
-## What's in this Example?
+## Quickstart: Running Locally
 
-The application implements a real-world Helpdesk workspace (Organizations, Projects, Kanban boards, Ticket details with subtabs, Multi-step ticket wizards, and Staff directories) across **8 distinct architectural paradigms**:
+You can run the example project directly on your host machine or in an isolated Docker container.
 
-1. **`mpa`**: Traditional Django full-page reloads.
-2. **`pure_htmx`**: Full HTML shells rendered on every boosted request.
-3. **`vanilla_htmx_composite`**: Hand-written `hx-swap-oob` fragments for core regions.
-4. **`vanilla_htmx_atomic`**: Hand-written OOB swaps for all regions with template branching.
-5. **`htmx_nav_baseline`**: Minimal boilerplate using `make_shell_renderer`.
-6. **`htmx_nav_composite`**: Direct `render_nav` calls with per-view `swaps=[...]`.
-7. **`htmx_nav_atomic`**: Explicit multi-level swaps across every visual tier.
-8. **`htmx_nav_declarative`**: Route-aware central registry decoupling navigation from views.
-
-Every page includes an **Implementation Switcher** in the top-right navbar, allowing you to jump between these approaches on any screen and observe behavior, payload sizes, and DOM updates in real time.
-
-## Quick Start (Run Locally in Seconds)
-
-### 1. Install in Editable Mode
-
-From the repository root, install the package and example dependencies:
+### Option A: Without Docker (Local Virtualenv)
 
 ```bash
+# 1. From the repository root, install the package and example dependencies:
 pip install -e ".[example]"
-```
 
-### 2. Run Migrations & Seed Sample Data
-
-```bash
+# 2. Run database migrations:
 python example/manage.py migrate
+
+# 3. (Optional) Seed mock data (CoreConfig automatically seeds if empty):
 python example/manage.py seed_helpdesk
-```
 
-### 3. Start the Development Server
-
-```bash
+# 4. Start the development server:
 python example/manage.py runserver
 ```
 
 Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) in your browser.
 
-> **Prefer Docker?** Run `docker compose up dev` to mount local code with auto-reload enabled.
+### Option B: With Docker (Containerized)
 
-## Where to Look: Exploring Package Patterns
+```bash
+# Development environment with local directory mount and hot reload:
+docker compose up dev
 
-If you are evaluating `django-htmx-nav` for your own project, explore these key files:
+# Or simulate production deployment (Gunicorn + WhiteNoise static serving):
+docker compose up --build web
+```
 
-| Pattern | Source File | What to Look For |
+Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) in your browser.
+
+## Exploring the 8 Implementation Strategies
+
+Every screen in the Helpdesk application (Organizations, Projects, Kanban boards, Ticket details with subtabs, and Staff directories) is implemented across **8 distinct architectural paradigms**:
+
+| Family / Namespace | Source File | Description |
 | :--- | :--- | :--- |
-| **Reusable Shell Renderers** | [`example/htmx_nav_demo/views_baseline.py`](htmx_nav_demo/views_baseline.py) | How `make_shell_renderer` defines a shared list of `Swap`s once, keeping views identical to standard `render()`. |
-| **Direct & Ad-Hoc Swaps** | [`example/htmx_nav_demo/views_composite.py`](htmx_nav_demo/views_composite.py) | Using `render_nav` with inline `swaps=[...]` for custom or single-view needs. |
-| **Multi-Tier Navigation** | [`example/htmx_nav_demo/views_atomic.py`](htmx_nav_demo/views_atomic.py) | Granular swaps synchronizing sidebar, breadcrumbs, tabs, and subtabs simultaneously. |
-| **Declarative Registry** | [`example/htmx_nav_demo/views_declarative.py`](htmx_nav_demo/views_declarative.py) | Decoupling navigation rules into a route-aware registry, keeping views exceptionally thin. |
-| **Class-Based Views (CBVs)** | [`example/htmx_nav_demo/views_*.py`](htmx_nav_demo/) | Subclassing mixins generated via `make_shell_view_mixin(render_shell)`. |
-| **Specialized Swaps** | [`example/htmx_nav_demo/views_*.py`](htmx_nav_demo/) | Usage of `Swap.delete` (instant DOM deletion), `Swap.text` (raw text/counts), and `has_messages`. |
-| **Visual Swap Debugging** | [`example/config/settings.py`](config/settings.py) | `HTMX_NAV_DEBUG_SWAPS = True`, which highlights updated DOM regions with an animated pulse. |
+| **`mpa`** | [`example/mpa/views.py`](mpa/views.py) | Traditional Django multi-page views with full-page browser reloads. |
+| **`pure_htmx`** | [`example/mpa/views.py`](mpa/views.py) | Full HTML shells returned on every boosted request (`hx-boost="true"`). |
+| **`vanilla_htmx_composite`** | [`example/vanilla_htmx_composite/views.py`](vanilla_htmx_composite/views.py) | Hand-written `hx-swap-oob` fragments for core regions (sidebar/breadcrumbs). |
+| **`vanilla_htmx_atomic`** | [`example/vanilla_htmx_atomic/views.py`](vanilla_htmx_atomic/views.py) | Hand-written OOB swaps for all visual regions using template conditionals. |
+| **`htmx_nav_baseline`** | [`example/htmx_nav_demo/views_baseline.py`](htmx_nav_demo/views_baseline.py) | Minimal boilerplate using `make_shell_renderer` with shared `Swap` definitions. |
+| **`htmx_nav_composite`** | [`example/htmx_nav_demo/views_composite.py`](htmx_nav_demo/views_composite.py) | Direct `render_nav` calls per view with inline `swaps=[...]` declarations. |
+| **`htmx_nav_atomic`** | [`example/htmx_nav_demo/views_atomic.py`](htmx_nav_demo/views_atomic.py) | Explicit multi-level swaps across every visual tier (sidebar, breadcrumbs, tabs, subtabs). |
+| **`htmx_nav_declarative`** | [`example/htmx_nav_demo/views_declarative.py`](htmx_nav_demo/views_declarative.py) | Route-aware central registry resolving navigation dependencies automatically. |
+
+> **Interactive Switcher:** Use the dropdown in the top-right navbar of any page to switch between these implementations in real time and observe payload differences and DOM updates.
 
 ## Directory Structure
 
 ```text
 example/
-├── config/              # Django settings, root URL routing, WSGI
-├── frontpage/           # Landing page overview and architectural guide
-├── benchmarks/          # Empirical metrics dashboards (ECharts + Alpine.js)
+├── config/              # Django settings, root URL routing, WSGI/ASGI
+├── core/                # Shared domain models, mock data generators, base templates
+├── frontpage/           # Showcase landing page, architectural guide, and SEO views
+├── benchmarks/          # Empirical metrics dashboards and collection harness
 ├── htmx_nav_demo/       # Reference implementations of django-htmx-nav patterns
 ├── mpa/                 # Reference implementation using traditional full-page reloads
-├── core/                # Shared domain models, mock data generators, base templates
-└── manage.py            # Django command-line entrypoint
+├── vanilla_htmx_composite/  # Vanilla HTMX implementation with composite OOB swaps
+├── vanilla_htmx_atomic/     # Vanilla HTMX implementation with atomic OOB swaps
+└── manage.py            # Django management command entrypoint
 ```
 
 ## Running the Example Test Suite
 
-The example project includes automated parity, composition, and smoke test suites:
+The test suite covers parity between full reloads and HTMX partials, shell composition, and smoke-testing across all variant axes:
 
 ```bash
-# Run all example tests (~560 tests)
-PYTHONPATH=example DJANGO_SETTINGS_MODULE=config.settings pytest example/
+# Run all example tests (~600 tests):
+pytest -c example/pytest.ini example/
 ```
 
-- **`test_shell_parity.py`**: Verifies that HTMX partial responses produce the exact same navigation context as full browser reloads.
-- **`test_shell_composition.py`**: Verifies that rendered shells contain all required DOM markers and container IDs.
-- **`test_variant_smoke.py`**: Smoke tests all 8 implementation families and orthogonal modifier axes (`+HS` / `hx-select`, `+M` / `idiomorph`).
+- **`test_shell_parity.py`**: Asserts that HTMX partial navigation produces the exact same active items, links, and navigation state as a direct full-page browser reload.
+- **`test_shell_composition.py`**: Asserts that rendered shells contain all expected container targets and DOM markers.
+- **`test_variant_smoke.py`**: Smoke tests all routes across all 8 variants and orthogonal modifier axes (`+HS` / `hx-select`, `+M` / `idiomorph`).
+
+## Related Guides & Resources
+
+- **[Benchmark Suite & Experiments](benchmarks/README.md)**: Guide to running automated Playwright and server-side metrics collections locally or via Docker.
+- **[Maintainer Deployment Guide](../.github/DEPLOYMENT.md)**: Production deployment instructions for containerized hosting on Render.
+- **[Sphinx Documentation](https://lucas-rollin.github.io/django-htmx-nav/)**: In-depth API reference and hypermedia architecture guides.

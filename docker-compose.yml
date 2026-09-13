@@ -51,4 +51,5 @@ services:
     volumes:
       - ./example/benchmarks/data:/workspace/example/benchmarks/data
     environment:
-      - HTMX_NAV_BENCHMARK=1
+      - HTMX_NAV_DEBUG_SWAPS=False
+      - HTMX_NAV_BENCHMARK_LOCAL_ASSETS=True

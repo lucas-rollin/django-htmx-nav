@@ -98,7 +98,7 @@ def project_detail(request, pk):
     )
 ```
 
-In your template, define the main content partial with Django inline partials:
+In your template, use native Django partials for the least boilerplate:
 
 ```html
 <!-- templates/app/project_detail.html -->
@@ -114,10 +114,10 @@ In your template, define the main content partial with Django inline partials:
 {% endblock %}
 ```
 
+See the [Quickstart Guide](quickstart.md) for how `partial=` resolves against `{% partialdef %}` blocks, plus out-of-band swaps, shell rendering, and testing.
+
 - **Direct browser load (`GET /projects/42/`)**: Renders full `base.html` shell with all navigation components intact.
 - **Boosted HTMX request (`HX-Request: true`)**: Renders only the `#content` partial, automatically appending out-of-band swaps for `#sidebar`, `#breadcrumbs`, and `#project-tabs`.
-
----
 
 ## Documentation Index
 

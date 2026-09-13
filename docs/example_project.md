@@ -51,22 +51,17 @@ The example suite contains automated verification tests (`example/core/tests/` a
 - **`test_variant_smoke.py`:** Smoke-tests every single route across all 8 implementation families and modifier axes.
 - **`test_variant_registry_symmetry.py`:** Ensures complete URL namespace symmetry across all variants.
 
-## Running Locally
+## Running the Example Locally
+
+The example application can be run locally on your host machine or inside Docker. Complete development workflow documentation, testing instructions, and directory structures are maintained in the [example project README](https://github.com/lucas-rollin/django-htmx-nav/blob/main/example/README.md).
 
 ```bash
-# Clone the repository and install dependencies
-git clone https://github.com/lucas-rollin/django-htmx-nav.git
-cd django-htmx-nav
+# Quick start with Docker (mounts source with hot reload):
+docker compose up dev
 
-# Install editable package with example dependencies
+# Or using native Python:
 pip install -e ".[example]"
-
-# Run database migrations and seed sample data
-python example/manage.py migrate
-python example/manage.py seed_helpdesk
-
-# Start the local development server
 python example/manage.py runserver
 ```
 
-Open [`http://127.0.0.1:8000/`](http://127.0.0.1:8000/) in your browser. Use the top-right implementation switcher dropdown to jump between variants on any page.
+Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) and use the top-right navbar dropdown to switch between implementations.

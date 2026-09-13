@@ -30,6 +30,8 @@ RUN pip install -e .[example,test,bench,lint]
 
 COPY . /workspace/
 
+RUN python example/manage.py vendor_client_assets
+
 CMD ["pytest"]
 
 # ==========================================
