@@ -1,11 +1,10 @@
 {% extends "benchmarks/base.html" %}
 {% block content %}
   {% partialdef content inline %}
-    <div class="p-6 max-w-7xl mx-auto"
-         x-data="overviewDashboard('panels-data')">
-      <!-- Header / Intro -->
-      <div class="mb-8 max-w-4xl">
-        <h1 class="text-3xl font-extrabold tracking-tight mb-3">Benchmark Overview</h1>
+    <!-- Guide Hero Banner -->
+    <section class="border-b border-base-200 bg-base-200/30 py-12 md:py-16 px-4 sm:px-6">
+      <div class="max-w-5xl mx-auto">
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight">Benchmark Overview</h1>
         <p class="text-base text-base-content/80 leading-relaxed">
           This benchmark evaluates architectural strategies for maintaining synchronized UI navigation state
           (<b>sidebar</b>, <b>breadcrumbs</b>, <b>tabs</b>, <b>subtabs</b>, and <b>step indicators</b>) during HTMX partial updates.
@@ -20,7 +19,10 @@
              class="link link-primary font-medium">the official documentation </a>.
         </p>
       </div>
-      <!-- Variant Descriptions / Implementation Approaches -->
+    </section>
+    <!-- Variant Descriptions / Implementation Approaches -->
+    <div class="p-6 max-w-7xl mx-auto"
+         x-data="overviewDashboard('panels-data')">
       <div class="mb-10">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-xl font-bold tracking-tight">Implementation Approaches</h2>

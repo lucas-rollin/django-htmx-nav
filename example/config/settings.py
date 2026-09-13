@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "htmx_nav",
+    "frontpage",
     "core",
     "mpa",
     "vanilla_htmx_composite",

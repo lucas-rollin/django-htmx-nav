@@ -16,7 +16,7 @@ PAGES = [
 ]
 
 
-def _sidebar_context(request: HttpRequest) -> dict:
+def _subnav_context(request: HttpRequest) -> dict:
     match = request.resolver_match
     active = match.url_name if match else ""
     return {
@@ -34,8 +34,8 @@ def _sidebar_context(request: HttpRequest) -> dict:
 
 render_shell = make_shell_renderer(
     lambda request: Swap(
-        "benchmarks/components/_sidebar.html",
-        _sidebar_context(request),
-        target_id="benchmarks-sidebar",
+        "benchmarks/components/_subnav.html",
+        _subnav_context(request),
+        target_id="benchmarks-subnav",
     )
 )

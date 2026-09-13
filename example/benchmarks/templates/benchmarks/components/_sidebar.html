@@ -1,9 +1,1 @@
-<ul class="menu min-h-full w-64 p-4">
-  <li class="menu-title">Metrics</li>
-  {% for page in pages %}
-    <li>
-      <a href="{{ page.url }}"
-         class="{% if page.active %}menu-active{% endif %}">{{ page.label }}</a>
-    </li>
-  {% endfor %}
-</ul>
+{% include "benchmarks/components/_subnav.html" %}

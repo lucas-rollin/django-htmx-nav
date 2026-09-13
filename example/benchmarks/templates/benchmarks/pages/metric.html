@@ -21,7 +21,6 @@
       {{ table|json_script:"table-data" }}
       {{ descriptions|json_script:"descriptions-data" }}
       {{ scenario_views|json_script:"scenarios-data" }}
-
       <!-- Scenario Selector Tabs -->
       <template x-if="scenarioList && scenarioList.length > 1">
         <div class="flex items-center justify-between flex-wrap gap-3 mb-6 p-2 rounded-lg bg-base-200 border border-base-300">
@@ -38,11 +37,11 @@
             </div>
           </div>
           <div class="text-xs text-base-content/60 pr-2">
-            Active view: <span class="badge badge-sm badge-outline font-semibold" x-text="currentScenarioLabel"></span>
+            Active view: <span class="badge badge-sm badge-outline font-semibold"
+       x-text="currentScenarioLabel"></span>
           </div>
         </div>
       </template>
-
       {% if not metrics %}
         <div class="alert alert-warning">
           <span>
@@ -97,16 +96,14 @@
             </div>
           </div>
         </div>
-
         <!-- Swap Scope Comparison Card -->
-        <div x-show="hasScenarioComparison" class="card bg-base-100 border border-base-300 mb-8">
+        <div x-show="hasScenarioComparison"
+             class="card bg-base-100 border border-base-300 mb-8">
           <div class="card-body p-4">
             <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
               <div>
                 <h2 class="card-title text-sm">Swap Scope Comparison</h2>
-                <p class="text-xs text-base-content/60">
-                  Directly compare payload across Main Content, Tab, and Subtab swaps.
-                </p>
+                <p class="text-xs text-base-content/60">Directly compare payload across Main Content, Tab, and Subtab swaps.</p>
               </div>
               <div class="flex gap-2 items-center">
                 <select class="select select-xs"
@@ -128,7 +125,6 @@
             <div class="h-80" x-ref="comparisonEl"></div>
           </div>
         </div>
-
         <div class="card bg-base-100 border border-base-300 overflow-x-auto">
           <div class="px-4 py-2 bg-base-200/50 border-b border-base-300 flex items-center justify-between text-xs">
             <span class="font-medium text-base-content/70">
@@ -139,8 +135,8 @@
           <table class="table table-sm table-zebra">
             <thead>
               <tr>
-                <template x-for="col in columns" :key="col">
-                  <th class="whitespace-nowrap">
+                <template x-for="(col, index) in columns" :key="col">
+                  <th class="whitespace-nowrap" :class="{ 'min-w-[5rem]': index < 3 }">
                     <template x-if="hasDescription(col)">
                       <div class="tooltip tooltip-bottom" :data-tip="describeFor(col)">
                         <span class="cursor-pointer select-none inline-flex items-center gap-1"
@@ -164,17 +160,19 @@
             <tbody>
               <template x-for="row in sortedRows" :key="row.variant">
                 <tr class="hover">
-                  <template x-for="col in columns" :key="col">
+                  <template x-for="(col, index) in columns" :key="col">
                     <td class="p-0">
                       <template x-if="isNumericColumn(col)">
-                        <div class="relative h-full min-w-[7rem] px-2 py-1.5">
+                        <div class="relative h-full min-w-[5rem] px-2 py-1.5">
                           <div class="absolute inset-y-1 left-0 bg-primary/15 rounded-sm"
                                :style="barStyle(col, row[col])"></div>
                           <span class="relative text-right block tabular-nums" x-text="fmt(row[col])"></span>
                         </div>
                       </template>
                       <template x-if="!isNumericColumn(col)">
-                        <div class="px-2 py-1.5" x-text="fmt(row[col])"></div>
+                        <div class="px-2 py-1.5 whitespace-nowrap"
+                             :class="{ 'min-w-[10rem]': index < 3 }"
+                             x-text="fmt(row[col])"></div>
                       </template>
                     </td>
                   </template>

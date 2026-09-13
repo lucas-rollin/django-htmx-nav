@@ -41,10 +41,10 @@ TARGET_COMPONENTS: dict[str, list[NavigationComponent]] = {
 }
 
 # Group -> daisyUI color name, so the active approach's category is
-# unambiguous at a glance in the navbar.
+# unambiguous at a glance in the navbar and consistent with landing page cards.
 GROUP_COLORS: dict[Group, str] = {
-    "mpa": "error",
-    "vanilla": "warning",
+    "mpa": "neutral",
+    "vanilla": "secondary",
     "package": "primary",
 }
 

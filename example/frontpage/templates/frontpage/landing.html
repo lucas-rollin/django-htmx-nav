@@ -1,0 +1,294 @@
+{% extends "frontpage/base.html" %}
+{% load static %}
+{% block title %}django-htmx-nav · Server-Driven Navigation for HTMX in Django{% endblock %}
+{% block meta_description %}Declarative, out-of-band partial navigation for Django and HTMX. Keep layout controls, sidebars, and breadcrumbs in sync without state drift.{% endblock %}
+{% block content %}
+  <!-- Hero Section -->
+  <section class="py-16 md:py-24 px-4 sm:px-6 max-w-7xl mx-auto text-center">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold uppercase tracking-wider mb-6">
+      <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+      Interactive Helpdesk Demo &amp; Empirical Benchmark Suite
+    </div>
+    <h1 class="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight max-w-4xl mx-auto leading-tight">
+      Server-Driven Navigation for <span class="text-primary underline decoration-primary/30 decoration-wavy">HTMX in Django</span>
+    </h1>
+    <p class="text-lg sm:text-xl text-base-content/75 max-w-2xl mx-auto mt-6 leading-relaxed">
+      Keep sidebars, breadcrumbs, and active navigation controls synchronized with the URL as the single source of truth—without state drift or boilerplate.
+    </p>
+    <div class="flex flex-wrap items-center justify-center gap-4 mt-8">
+      <a href="#approaches"
+         class="btn btn-primary btn-md shadow-md group gap-2">
+        <span>Compare 3 Implementations</span>
+        <svg class="size-4 transition-transform duration-200 group-hover:translate-y-0.5"
+             fill="none"
+             stroke="currentColor"
+             viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+        </svg>
+      </a>
+      <a href="{% url 'benchmarks:overview' %}"
+         class="btn btn-outline btn-md group gap-2">
+        <span>Explore Benchmarks</span>
+        <svg class="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
+             fill="none"
+             stroke="currentColor"
+             viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+        </svg>
+      </a>
+    </div>
+    <!-- Quick copy install command -->
+    <div class="mt-8 flex items-center justify-center">
+      <div class="inline-flex items-center gap-3 bg-base-200/70 border border-base-300 rounded-xl px-4 py-2 font-mono text-xs sm:text-sm text-base-content/90 shadow-inner">
+        <span class="text-primary font-bold">$</span>
+        <code>pip install django-htmx-nav</code>
+      </div>
+    </div>
+  </section>
+  <!-- The Problem Visualizer Section -->
+  <section id="problem"
+           class="py-12 bg-base-200/40 border-y border-base-200 px-4 sm:px-6 scroll-mt-16">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center max-w-3xl mx-auto mb-10">
+        <h2 class="text-2xl sm:text-3xl font-black tracking-tight">The Stale Navigation Problem</h2>
+        <p class="text-base-content/75 text-sm sm:text-base mt-2">
+          When an HTMX request updates only an inner container (like <code>#main-content</code>), surrounding layout controls do not update automatically.
+        </p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Problem Card -->
+        <div class="card bg-base-100 border border-error/30 shadow-sm">
+          <div class="card-body p-5 sm:p-6">
+            <div class="flex items-center justify-between">
+              <span class="badge badge-error badge-sm uppercase font-bold tracking-wider">Default HTMX</span>
+              <span class="text-xs text-error font-semibold">State Drift</span>
+            </div>
+            <h3 class="font-bold text-base mt-2">Single-Target Swap (#main-content)</h3>
+            <div class="rounded-lg border border-base-300 bg-base-200/30 p-3 font-mono text-xs space-y-2 mt-2">
+              <div class="p-2 rounded bg-error/10 border border-error/20 text-error">
+                Header / Breadcrumbs: <b>Stale (Page 1)</b>
+              </div>
+              <div class="grid grid-cols-3 gap-2">
+                <div class="p-2 rounded bg-error/10 border border-error/20 text-error col-span-1">
+                  Sidebar: <b>Stale (Tab 1)</b>
+                </div>
+                <div class="p-2 rounded bg-success/10 border border-success/20 text-success col-span-2">
+                  Main Content: <b>Updated (Page 2)</b>
+                </div>
+              </div>
+            </div>
+            <p class="text-xs text-base-content/70 mt-3">
+              The targeted block updates, but sidebar active states and breadcrumb trails stay stuck on the previous route.
+            </p>
+          </div>
+        </div>
+        <!-- Solution Card -->
+        <div class="card bg-base-100 border border-success/30 shadow-sm">
+          <div class="card-body p-5 sm:p-6">
+            <div class="flex items-center justify-between">
+              <span class="badge badge-success badge-sm uppercase font-bold tracking-wider">django-htmx-nav</span>
+              <span class="text-xs text-success font-semibold">Fully Synchronized</span>
+            </div>
+            <h3 class="font-bold text-base mt-2">Target + Multi-Region OOB Updates</h3>
+            <div class="rounded-lg border border-base-300 bg-base-200/30 p-3 font-mono text-xs space-y-2 mt-2">
+              <div class="p-2 rounded bg-success/10 border border-success/20 text-success">
+                Header / Breadcrumbs: <b>Synced (Page 2)</b>
+              </div>
+              <div class="grid grid-cols-3 gap-2">
+                <div class="p-2 rounded bg-success/10 border border-success/20 text-success col-span-1">
+                  Sidebar: <b>Synced (Tab 2)</b>
+                </div>
+                <div class="p-2 rounded bg-success/10 border border-success/20 text-success col-span-2">
+                  Main Content: <b>Updated (Page 2)</b>
+                </div>
+              </div>
+            </div>
+            <p class="text-xs text-base-content/70 mt-3">
+              Out-of-band swaps automatically update surrounding navigation elements in the same HTTP response.
+            </p>
+          </div>
+        </div>
+      </div>
+      <!-- Link to the deep architecture guide -->
+      <div class="mt-8 text-center">
+        <a href="{% url 'guide' %}" class="btn btn-outline btn-sm group gap-2">
+          <span>Read the Full Architectural Guide: Comparing Turbo, LiveView &amp; HTMX</span>
+          <svg class="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
+               fill="none"
+               stroke="currentColor"
+               viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+  <!-- 3 Architectural Approaches Compared -->
+  <section id="approaches"
+           class="py-16 px-4 sm:px-6 max-w-7xl mx-auto scroll-mt-16">
+    <div class="text-center max-w-3xl mx-auto mb-12">
+      <h2 class="text-2xl sm:text-3xl font-black tracking-tight">3 Architectural Approaches Compared</h2>
+      <p class="text-base-content/75 text-sm sm:text-base mt-2">
+        This live deployment implements the exact same Helpdesk application across 3 distinct architectural models so you can compare developer experience, code complexity, and wire payload.
+      </p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Card 1: MPA -->
+      <div class="card bg-base-100 border border-base-300 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+        <div class="card-body p-6">
+          <div class="flex items-center justify-between mb-3">
+            <span class="badge badge-neutral badge-sm uppercase font-semibold">Baseline</span>
+            <span class="text-xs font-mono text-base-content/60">No JS</span>
+          </div>
+          <h3 class="text-xl font-bold">Pure Multi-Page App (MPA)</h3>
+          <p class="text-sm text-base-content/75 mt-2 leading-relaxed">
+            Traditional full-page reloads on every navigation. Simplest conceptual model with zero client-side coordination, but transfers full layout HTML on every click.
+          </p>
+          <ul class="text-xs text-base-content/70 space-y-1.5 mt-4 border-t border-base-200 pt-3">
+            <li>✓ Native browser navigation</li>
+            <li>✓ Zero client state sync logic</li>
+            <li>✗ Highest network payload (~32% larger)</li>
+          </ul>
+        </div>
+        <div class="p-6 pt-0">
+          <a href="/mpa/"
+             class="btn btn-neutral btn-sm w-full group justify-center gap-2">
+            <span>Launch MPA Demo</span>
+            <svg class="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                 fill="none"
+                 stroke="currentColor"
+                 viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </a>
+        </div>
+      </div>
+      <!-- Card 2: Vanilla HTMX -->
+      <div class="card bg-base-100 border border-base-300 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+        <div class="card-body p-6">
+          <div class="flex items-center justify-between mb-3">
+            <span class="badge badge-secondary badge-sm uppercase font-semibold">Manual HTMX</span>
+            <span class="text-xs font-mono text-base-content/60">Ad-Hoc OOB</span>
+          </div>
+          <h3 class="text-xl font-bold">Vanilla HTMX (Composite / Atomic)</h3>
+          <p class="text-sm text-base-content/75 mt-2 leading-relaxed">
+            Uses standard HTMX with hand-written <code>hx-swap-oob</code> fragments. Views manually inspect <code>request.htmx</code> and assemble layout partials.
+          </p>
+          <ul class="text-xs text-base-content/70 space-y-1.5 mt-4 border-t border-base-200 pt-3">
+            <li>✓ Fast partial updates on wire</li>
+            <li>✗ Verbose template branching and string joining</li>
+            <li>✗ Duplicate query risks without request caching</li>
+          </ul>
+        </div>
+        <div class="p-6 pt-0">
+          <a href="/vanilla-htmx/composite/"
+             class="btn btn-secondary btn-sm w-full group justify-center gap-2">
+            <span>Launch Vanilla HTMX Demo</span>
+            <svg class="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                 fill="none"
+                 stroke="currentColor"
+                 viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </a>
+        </div>
+      </div>
+      <!-- Card 3: django-htmx-nav -->
+      <div class="card bg-base-100 border-2 border-primary shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between relative overflow-hidden">
+        <div class="absolute top-0 right-0 bg-primary text-primary-content text-[10px] font-bold uppercase px-3 py-0.5 rounded-bl">
+          Recommended
+        </div>
+        <div class="card-body p-6">
+          <div class="flex items-center justify-between mb-3">
+            <span class="badge badge-primary badge-sm uppercase font-semibold">Helper Library</span>
+            <span class="text-xs font-mono text-primary font-bold">Declarative</span>
+          </div>
+          <h3 class="text-xl font-bold">django-htmx-nav</h3>
+          <p class="text-sm text-base-content/75 mt-2 leading-relaxed">
+            Declarative partial specifications with <code>render_nav</code>, reusable shell composers, and request-scoped caching. Eliminates boilerplate while preserving URL truth.
+          </p>
+          <ul class="text-xs text-base-content/70 space-y-1.5 mt-4 border-t border-base-200 pt-3">
+            <li>✓ ~32% payload reduction matching manual OOB</li>
+            <li>✓ Clean, declarative view code</li>
+            <li>✓ Automatic cache-on-request prevents duplicate DB queries</li>
+          </ul>
+        </div>
+        <div class="p-6 pt-0">
+          <a href="/htmx-nav/baseline/"
+             class="btn btn-primary btn-sm w-full group justify-center gap-2">
+            <span>Launch django-htmx-nav Demo</span>
+            <svg class="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                 fill="none"
+                 stroke="currentColor"
+                 viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- Benchmark Highlights Section -->
+  <section id="benchmarks"
+           class="py-16 bg-base-200/40 border-y border-base-200 px-4 sm:px-6 scroll-mt-16">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+        <div>
+          <span class="text-xs font-bold uppercase text-primary tracking-wider">Empirical Data</span>
+          <h2 class="text-2xl sm:text-3xl font-black tracking-tight mt-1">Benchmark Highlights</h2>
+          <p class="text-base-content/75 text-sm mt-1">
+            Measured across reproducible testbeds with Playwright and server instrumentation.
+          </p>
+        </div>
+        <a href="{% url 'benchmarks:overview' %}"
+           class="btn btn-outline btn-sm group gap-2">
+          <span>Open Full Benchmark Suite</span>
+          <svg class="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
+               fill="none"
+               stroke="currentColor"
+               viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+        </a>
+      </div>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {% for m in headline_metrics %}
+          <div class="stat bg-base-100 border border-base-300 rounded-xl shadow-sm p-5">
+            <div class="stat-value text-primary text-3xl font-black">{{ m.stat }}</div>
+            <div class="stat-title text-sm font-bold text-base-content mt-1">{{ m.label }}</div>
+            <div class="stat-desc text-xs text-wrap text-base-content/70 mt-1.5 leading-normal">{{ m.desc }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  <!-- View Code Snippet Section -->
+  <section class="py-16 px-4 sm:px-6 max-w-5xl mx-auto">
+    <div class="text-center mb-10">
+      <h2 class="text-2xl sm:text-3xl font-black tracking-tight">How It Looks in Your Views</h2>
+      <p class="text-base-content/75 text-sm sm:text-base mt-2">
+        No custom middleware required. Just a concise, expressive wrapper around Django's standard rendering pipeline.
+      </p>
+    </div>
+    <div class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
+      <pre data-prefix="1"><code><span class="text-primary font-bold">from</span> django.shortcuts <span class="text-primary font-bold">import</span> get_object_or_404</code></pre>
+      <pre data-prefix="2"><code><span class="text-primary font-bold">from</span> htmx_nav <span class="text-primary font-bold">import</span> Swap, render_nav</code></pre>
+      <pre data-prefix="3"><code></code></pre>
+      <pre data-prefix="4"><code><span class="text-secondary font-bold">def</span> project_board(request, org_id, project_id):</code></pre>
+      <pre data-prefix="5"><code>    project = get_object_or_404(Project, id=project_id)</code></pre>
+      <pre data-prefix="6"><code>    context = {"project": project, "tickets": project.tickets.all()}</code></pre>
+      <pre data-prefix="7"><code></code></pre>
+      <pre data-prefix="8"><code>    <span class="text-success"># Automatically serves full page for initial/direct visits,</span></code></pre>
+      <pre data-prefix="9"><code>    <span class="text-success"># or partial + OOB swaps for boosted/HTMX navigations:</span></code></pre>
+      <pre data-prefix="10"><code>    <span class="text-primary font-bold">return</span> render_nav(</code></pre>
+      <pre data-prefix="11"><code>        request,</code></pre>
+      <pre data-prefix="12"><code>        <span class="text-warning">"pages/board.html"</span>,</code></pre>
+      <pre data-prefix="13"><code>        context,</code></pre>
+      <pre data-prefix="14"><code>        swaps=[</code></pre>
+      <pre data-prefix="15"><code>            Swap(<span class="text-warning">"components/_sidebar.html"</span>, target_id=<span class="text-warning">"sidebar"</span>),</code></pre>
+      <pre data-prefix="16"><code>            Swap(<span class="text-warning">"components/_breadcrumbs.html"</span>, target_id=<span class="text-warning">"breadcrumbs"</span>),</code></pre>
+      <pre data-prefix="17"><code>        ],</code></pre>
+      <pre data-prefix="18"><code>    )</code></pre>
+    </div>
+  </section>
+{% endblock %}

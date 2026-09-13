@@ -1,0 +1,17 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6">
+  <div class="flex items-center justify-between gap-4">
+    <nav class="flex items-center gap-1 sm:gap-2 overflow-x-auto py-2.5 -mx-4 px-4 sm:mx-0 sm:px-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+         aria-label="Benchmark Navigation">
+      <div class="inline-flex items-center gap-2 mr-2 text-xs font-bold uppercase tracking-wider text-base-content/50 shrink-0 hidden md:inline-flex">
+        <span class="w-2 h-2 rounded-full bg-primary"></span>
+        Metrics
+      </div>
+      {% for page in pages %}
+        <a href="{{ page.url }}"
+           class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all shrink-0 text-nowrap {% if page.active %}bg-primary text-primary-content shadow-sm shadow-primary/20{% else %}text-base-content/70 hover:text-base-content hover:bg-base-200/80{% endif %}">
+          {{ page.label }}
+        </a>
+      {% endfor %}
+    </nav>
+  </div>
+</div>

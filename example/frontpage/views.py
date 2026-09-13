@@ -1,12 +1,11 @@
 """
-Showcase landing page and SEO views for django-htmx-nav example project.
+Showcase landing page, architectural guide, and SEO views for django-htmx-nav.
 """
 
+from core.navigation.registry import VARIANTS
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
-
-from core.navigation.registry import VARIANTS
 
 
 def landing(request: HttpRequest) -> HttpResponse:
@@ -46,7 +45,12 @@ def landing(request: HttpRequest) -> HttpResponse:
             },
         ],
     }
-    return render(request, "core/pages/landing.html", context)
+    return render(request, "frontpage/landing.html", context)
+
+
+def guide(request: HttpRequest) -> HttpResponse:
+    """Architectural guide on solving stale navigation in hypermedia apps."""
+    return render(request, "frontpage/guide.html")
 
 
 def robots_txt(request: HttpRequest) -> HttpResponse:
@@ -62,12 +66,13 @@ def robots_txt(request: HttpRequest) -> HttpResponse:
 
 
 def sitemap_xml(request: HttpRequest) -> HttpResponse:
-    """Dynamic sitemap.xml indexing landing, benchmarks, and demo entry points."""
+    """Dynamic sitemap.xml indexing landing, guide, benchmarks, and demo entry points."""
     domain = request.build_absolute_uri("/").rstrip("/")
     now = timezone.now().strftime("%Y-%m-%d")
 
     urls = [
         {"loc": f"{domain}/", "priority": "1.0", "changefreq": "weekly"},
+        {"loc": f"{domain}/guide/", "priority": "0.9", "changefreq": "weekly"},
         {"loc": f"{domain}/benchmarks/", "priority": "0.9", "changefreq": "weekly"},
         {
             "loc": f"{domain}/benchmarks/static/",

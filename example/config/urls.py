@@ -19,7 +19,6 @@ from importlib import import_module
 
 from core.navigation.registry import VARIANTS
 from core.urls import generate_variant_urls
-from core.views_landing import landing, robots_txt, sitemap_xml
 from django.urls import include, path
 
 
@@ -36,9 +35,7 @@ def _variant_mounts():
 
 
 urlpatterns = [
-    path("", landing, name="landing"),
-    path("robots.txt", robots_txt, name="robots_txt"),
-    path("sitemap.xml", sitemap_xml, name="sitemap_xml"),
+    path("", include("frontpage.urls")),
     path("benchmarks/", include("benchmarks.urls")),
     *_variant_mounts(),
 ]
