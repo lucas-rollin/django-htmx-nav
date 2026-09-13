@@ -1,0 +1,1 @@
+"""Frontpage app tests."""
