@@ -2,6 +2,21 @@
 {% load static %}
 {% block title %}django-htmx-nav · Server-Driven Navigation for HTMX in Django{% endblock %}
 {% block meta_description %}Declarative, out-of-band partial navigation for Django and HTMX. Keep layout controls, sidebars, and breadcrumbs in sync without state drift.{% endblock %}
+{% block head_extra %}
+  <!-- Syntax highlighting via highlight.js -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      hljs.highlightAll();
+      hljs.initLineNumbersOnLoad({ singleLine: true });
+    });
+  </script>
+  <link rel="stylesheet" href="{% static "frontpage/css/landing.css" %}">
+{% endblock %}
 {% block content %}
   <!-- Hero Section -->
   <section class="py-16 md:py-24 px-4 sm:px-6 max-w-7xl mx-auto text-center">
@@ -263,68 +278,129 @@
     </div>
   </section>
   <!-- View Code Snippet Section -->
-  <section class="py-16 px-4 sm:px-6 max-w-5xl mx-auto"
-           x-data="{ pattern: 'render_nav' }">
-    <div class="text-center mb-8">
-      <h2 class="text-2xl sm:text-3xl font-black tracking-tight">How It Looks in Your Views</h2>
-      <p class="text-base-content/75 text-sm sm:text-base mt-2">
-        No custom middleware required. Just a concise, expressive wrapper around Django's standard rendering pipeline.
-      </p>
-    </div>
-    <!-- Pattern toggle -->
-    <div class="flex justify-center mb-4">
-      <div class="tabs tabs-boxed bg-base-200 inline-flex rounded-lg">
+  <!-- View Code Snippet Section -->
+<section class="py-16 px-4 sm:px-6 max-w-5xl mx-auto"
+         x-data="{
+           pattern: 'render_nav',
+           tabs: [
+             { id: 'render_nav', label: 'One-off view' },
+             { id: 'shell', label: 'Shared shell' },
+             { id: 'cbv', label: 'Class-based view' },
+             { id: 'specialized', label: 'Beyond Navigation' }
+           ]
+         }">
+  <div class="text-center mb-8">
+    <h2 class="text-2xl sm:text-3xl font-black tracking-tight">How It Looks in Your Views</h2>
+    <p class="text-base-content/75 text-sm sm:text-base mt-2">
+      No custom middleware required. Just a concise, expressive wrapper around Django's standard rendering pipeline.
+    </p>
+  </div>
+
+  <!-- Dynamic Pattern Toggle -->
+  <div class="flex justify-center mb-4">
+    <nav class="tabs tabs-boxed bg-base-200 inline-flex flex-wrap rounded-lg gap-1 p-1"
+         aria-label="Code view patterns">
+      <template x-for="tab in tabs" :key="tab.id">
         <button type="button"
                 class="tab"
-                :class="pattern === 'render_nav' && 'tab-active'"
-                @click="pattern = 'render_nav'">One-off view</button>
-        <button type="button"
-                class="tab"
-                :class="pattern === 'shell' && 'tab-active'"
-                @click="pattern = 'shell'">Shared shell</button>
-      </div>
-    </div>
-    <!-- render_nav sample -->
-    <div x-show="pattern === 'render_nav'"
-         x-cloak
-         class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
-      <pre data-prefix="1"><code><span class="text-primary font-bold">from</span> django.shortcuts <span class="text-primary font-bold">import</span> get_object_or_404</code></pre>
-      <pre data-prefix="2"><code><span class="text-primary font-bold">from</span> htmx_nav <span class="text-primary font-bold">import</span> Swap, render_nav</code></pre>
-      <pre data-prefix="3"><code></code></pre>
-      <pre data-prefix="4"><code><span class="text-secondary font-bold">def</span> project_board(request, org_id, project_id):</code></pre>
-      <pre data-prefix="5"><code>    project = get_object_or_404(Project, id=project_id)</code></pre>
-      <pre data-prefix="6"><code>    context = {"project": project, "tickets": project.tickets.all()}</code></pre>
-      <pre data-prefix="7"><code></code></pre>
-      <pre data-prefix="8"><code>    <span class="text-success"># Full page for direct visits, partial + OOB swaps for HTMX:</span></code></pre>
-      <pre data-prefix="9"><code>    <span class="text-primary font-bold">return</span> render_nav(</code></pre>
-      <pre data-prefix="10"><code>        request,</code></pre>
-      <pre data-prefix="11"><code>        <span class="text-warning">"pages/board.html"</span>,</code></pre>
-      <pre data-prefix="12"><code>        context,</code></pre>
-      <pre data-prefix="13"><code>        swaps=[</code></pre>
-      <pre data-prefix="14"><code>            Swap(<span class="text-warning">"components/_sidebar.html"</span>, target_id=<span class="text-warning">"sidebar"</span>),</code></pre>
-      <pre data-prefix="15"><code>            Swap(<span class="text-warning">"components/_breadcrumbs.html"</span>, target_id=<span class="text-warning">"breadcrumbs"</span>),</code></pre>
-      <pre data-prefix="16"><code>        ],</code></pre>
-      <pre data-prefix="17"><code>    )</code></pre>
-    </div>
-    <!-- shell sample -->
-    <div x-show="pattern === 'shell'"
-         x-cloak
-         class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
-      <pre data-prefix="1"><code><span class="text-primary font-bold">from</span> django.shortcuts <span class="text-primary font-bold">import</span> get_object_or_404</code></pre>
-      <pre data-prefix="1"><code><span class="text-primary font-bold">from</span> htmx_nav <span class="text-primary font-bold">import</span> Swap, make_shell_renderer</code></pre>
-      <pre data-prefix="2"><code></code></pre>
-      <pre data-prefix="3"><code><span class="text-success"># Defined once, reused by every view in the app:</span></code></pre>
-      <pre data-prefix="4"><code>render_shell = make_shell_renderer(<span class="text-primary font-bold">lambda</span> request: [</code></pre>
-      <pre data-prefix="5"><code>    Swap(<span class="text-warning">"components/_sidebar.html"</span>, sidebar_ctx(request), target_id=<span class="text-warning">"sidebar"</span>),</code></pre>
-      <pre data-prefix="6"><code>    Swap(<span class="text-warning">"components/_breadcrumbs.html"</span>, crumbs_ctx(request), target_id=<span class="text-warning">"breadcrumbs"</span>),</code></pre>
-      <pre data-prefix="7"><code>])</code></pre>
-      <pre data-prefix="8"><code></code></pre>
-      <pre data-prefix="9"><code><span class="text-secondary font-bold">def</span> project_board(request, org_id, project_id):</code></pre>
-      <pre data-prefix="10"><code>    project = get_object_or_404(Project, id=project_id)</code></pre>
-      <pre data-prefix="11"><code>    context = {"project": project, "tickets": project.tickets.all()}</code></pre>
-      <pre data-prefix="12"><code></code></pre>
-      <pre data-prefix="13"><code>    <span class="text-success"># Sidebar & breadcrumbs come along for free, every time:</span></code></pre>
-      <pre data-prefix="14"><code>    <span class="text-primary font-bold">return</span> render_shell(request, <span class="text-warning">"pages/board.html"</span>, context)</code></pre>
-    </div>
-  </section>
+                :class="{ 'tab-active': pattern === tab.id }"
+                @click="pattern = tab.id"
+                x-text="tab.label"></button>
+      </template>
+    </nav>
+  </div>
+
+  <!-- 1. render_nav sample -->
+  <div x-show="pattern === 'render_nav'"
+       x-cloak
+       class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
+    <pre><code class="language-python">from django.shortcuts import get_object_or_404
+from htmx_nav import Swap, render_nav
+
+
+def project_board(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+
+    # Full page for direct visits, partial + OOB swaps for HTMX
+    return render_nav(
+        request,
+        "pages/board.html",
+        {"project": project},
+        swaps=[
+            Swap("components/_sidebar.html", {"user": request.user}, target_id="sidebar"),
+            Swap("components/_breadcrumbs.html", target_id="breadcrumbs"),
+        ],
+    )</code></pre>
+  </div>
+
+  <!-- 2. shell sample -->
+  <div x-show="pattern === 'shell'"
+       x-cloak
+       class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
+    <pre><code class="language-python">from django.shortcuts import get_object_or_404
+from htmx_nav import Swap, make_shell_renderer
+
+# Defined once, reused by every view in the app
+render_shell = make_shell_renderer(lambda request: [
+    Swap("components/_sidebar.html", {"user": request.user}, target_id="sidebar"),
+    Swap("components/_breadcrumbs.html", target_id="breadcrumbs"),
+])
+
+
+def project_board(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+
+    # Sidebar & breadcrumbs come along for free, every time
+    return render_shell(request, "pages/board.html", {"project": project})</code></pre>
+  </div>
+
+  <!-- 3. cbv sample -->
+  <div x-show="pattern === 'cbv'"
+       x-cloak
+       class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
+    <pre><code class="language-python">from django.views.generic import DetailView
+from htmx_nav import Swap, make_shell_view_mixin
+
+# Reuse the shell renderer from the previous tab
+ShellViewMixin = make_shell_view_mixin(render_shell)
+
+
+class ProjectBoardView(ShellViewMixin, DetailView):
+    model = Project
+    template_name = "pages/board.html"
+    context_object_name = "project"
+
+    def get_extra_swaps(self):
+        # Sidebar & breadcrumbs come from the shell. Extras can come here
+        return Swap("components/_status_badge.html", target_id="project-status")</code></pre>
+  </div>
+
+  <!-- 4. specialized sample -->
+  <div x-show="pattern === 'specialized'"
+       x-cloak
+       class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
+    <pre><code class="language-python">from django.contrib import messages
+from htmx_nav import Swap, render_with_swaps, has_messages
+
+
+def delete_ticket(request, ticket_id):
+    ticket = get_object_or_404(Ticket, id=ticket_id)
+    ticket.delete()
+    messages.success(request, f"Ticket #{ticket_id} deleted.")
+
+    # No navigation involved, just OOB updates alongside the response
+    return render_with_swaps(
+        request,
+        "tickets/empty_state.html",
+        swaps=[
+            # Remove the row (hx-swap-oob="delete")
+            Swap.delete(f"ticket-row-{ticket_id}"),
+            # Raw text swap skips the template engine
+            Swap.text("open-tickets-count", str(Ticket.objects.filter(status="open").count())),
+            # Only render messages partial if any are queued
+            Swap("components/_messages.html", target_id="messages", include_if=has_messages),
+        ],
+    )</code></pre>
+  </div>
+</section>
 {% endblock %}

@@ -1,4 +1,4 @@
-# Example Project & Reference Testbed
+# Example Project
 
 The [`example/`](https://github.com/lucas-rollin/django-htmx-nav/tree/main/example) directory contains a fully functional Django Helpdesk application (organizations, projects, Kanban boards, ticket detail views with subtabs, multi-step ticket creation wizards, and staff directories).
 

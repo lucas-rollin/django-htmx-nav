@@ -2,7 +2,7 @@
 
 **Server-driven hypermedia navigation for Django and HTMX, with the URL as the single source of truth.**
 
-`django-htmx-nav` is a lightweight Python library designed to eliminate **state drift** in HTMX applications. It provides declarative out-of-band (OOB) swaps, zero-boilerplate component auto-wrapping, reusable shell renderers, and robust test helpers—keeping sidebars, breadcrumbs, tabs, badges, and page titles strictly synchronized with the current route.
+`django-htmx-nav` is a lightweight Python library designed to eliminate **state drift** in HTMX applications. It provides declarative out-of-band (OOB) swaps, zero-boilerplate component auto-wrapping, reusable shell renderers, and robust test helpers, keeping sidebars, breadcrumbs, tabs, badges, and page titles strictly synchronized with the current route.
 
 ## The Problem: Stale Navigation Regions (State Drift)
 

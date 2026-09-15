@@ -9,15 +9,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
   <script>document.addEventListener('DOMContentLoaded', () => { hljs.highlightAll(); });</script>
-  <style>
-  pre code.hljs {
-    background: transparent !important;
-    padding: 0 !important;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-    font-size: 0.825rem;
-    line-height: 1.5;
-  }
-  </style>
+  <link rel="stylesheet" href="{% static "frontpage/css/guide.css" %}">
 {% endblock %}
 {% block content %}
   <!-- Guide Hero Banner -->
@@ -478,74 +470,78 @@ def delete_ticket(request, ticket_id):
     ticket.delete()
     messages.success(request, f"Ticket #{ticket_id} deleted successfully.")
 
-    return render_nav(
+    
+    return render_with_swaps(
         request,
         "tickets/empty_state.html",
         swaps=[
-            # 1. Remove the ticket row from the active table:
+            # Remove the row (hx-swap-oob="delete")
             Swap.delete(f"ticket-row-{ticket_id}"),
-            # 2. Update the counter badge with raw text (skips template engine):
+            # Raw text swap skips the template engine
             Swap.text("open-tickets-count", str(Ticket.objects.filter(status="open").count())),
-            # 3. Only render the messages partial if messages were queued:
+            # Only render messages partial if any are queued
             Swap("components/_messages.html", target_id="messages", include_if=has_messages),
         ],
     )</code></pre>
           </div>
         </div>
-        <!-- 3.4 Pythonic Conditionals vs. Template Logic -->
-        <div id="swap-conditionals" class="space-y-4 scroll-mt-24">
-          <h3 class="text-xl font-bold flex items-center gap-2">
-            <span class="w-6 h-6 rounded bg-primary/10 text-primary font-mono text-xs flex items-center justify-center font-bold">3.4</span>
-            Pythonic Conditionals vs. Fragile Inline Template Logic
-          </h3>
+        <!-- 3.4 Pythonic Conditionals vs. Template Logic --> 
+        <div id="swap-conditionals" class="space-y-4 scroll-mt-24"> 
+          <h3 class="text-xl font-bold flex items-center gap-2"> 
+            <span class="w-6 h-6 rounded bg-primary/10 text-primary font-mono text-xs flex items-center justify-center font-bold">3.4</span> 
+            Pythonic Conditionals vs. Fragile Inline Template Logic 
+          </h3> 
           <p class="text-sm text-base-content/80 leading-relaxed">
-            In template-driven pinpoint swapping, templates become deeply coupled to HTMX request headers. Developers write defensive blocks like <code>&#123;% if request.htmx and request.headers.HX_Target == "tab-content" %&#125;</code> inside HTML files. This pattern is notoriously fragile: typos in target IDs fail silently at runtime, previewing templates in design tools breaks, and unit-testing requires full template rendering pipelines.
-          </p>
-          <p class="text-sm text-base-content/80 leading-relaxed">
-            <code>Swap</code> moves this decision into pure Python via the <code class="font-mono text-primary font-bold">include_if</code> parameter. Conditionals are evaluated before template rendering, completely eliminating redundant render cycles:
-          </p>
-          <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-4">
-            <pre><code class="language-python">from htmx_nav import Swap, targeting, not_targeting, has_messages
+            When handling nested navigation, targeted swaps reduce payload size by updating only what changed. However, the rendering engine must know what fragments to include based on the request's target (e.g., swapping tab contents vs. swapping the whole page body). Once rendered, the URL remains the source of truth regardless of navigation path.
+          </p> 
+          <p class="text-sm text-base-content/80 leading-relaxed"> 
+            In template-driven target checking, templates become tightly coupled to HTMX headers. Developers write defensive guards like <code>&#123;% if request.htmx and request.headers.HX_Target == "tab-content" %&#125;</code> directly inside HTML files. This pattern is fragile: typos in target IDs fail silently at runtime, template previews break, and testing requires running full template rendering pipelines. 
+          </p> 
+          <p class="text-sm text-base-content/80 leading-relaxed"> 
+            <code>Swap</code> moves this decision into pure Python via the <code class="font-mono text-primary font-bold">include_if</code> parameter. Predicates are evaluated before template rendering, completely bypassing unnecessary parsing and database queries for excluded fragments: 
+          </p> 
+          <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-4"> 
+            <pre><code class="language-python">from htmx_nav import Swap, targeting, not_targeting, has_messages 
 
-# Conditionals expressed cleanly in Python:
-swaps = [
-    # Match exact target string:
-    Swap("nav/_tabs.html", include_if="project-tabs"),
+# Conditionals expressed cleanly in Python: 
+swaps = [ 
+    # Match exact target string: 
+    Swap("nav/_tabs.html", include_if="project-tabs"), 
 
-    # Built-in targeting predicates matching one or multiple DOM IDs:
-    Swap("nav/_breadcrumbs.html", include_if=targeting("main-content", "subtabs")),
+    # Built-in targeting predicates matching one or multiple DOM IDs: 
+    Swap("nav/_breadcrumbs.html", include_if=targeting("main-content", "subtabs")), 
 
-    # Inverted targeting (e.g., skip sidebar if user is directly targeting the sidebar itself):
-    Swap("nav/_sidebar.html", include_if=not_targeting("sidebar")),
+    # Inverted targeting (e.g., skip sidebar if user targets the sidebar directly): 
+    Swap("nav/_sidebar.html", include_if=not_targeting("sidebar")), 
 
-    # Native message predicate:
-    Swap("nav/_messages.html", include_if=has_messages),
+    # Native message predicate: 
+    Swap("nav/_messages.html", include_if=has_messages), 
 
-    # Custom callable / lambda checking permissions, query params, or URL resolvers:
-    Swap(
-        "nav/_admin_badge.html",
-        include_if=lambda req: req.user.is_staff and not req.htmx.boosted,
-    ),
-]</code></pre>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs not-prose">
-            <div class="p-3 bg-base-200/50 rounded-lg border border-base-300">
-              <div class="font-bold text-success">✓ Why Pythonic Evaluation Wins</div>
-              <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
-                <li>Templates remain 100% agnostic to HTMX request state.</li>
-                <li>Predicates are standard callables testable with simple unit tests.</li>
-                <li>Excluded swaps skip template parsing and DB queries entirely.</li>
-              </ul>
-            </div>
-            <div class="p-3 bg-base-200/50 rounded-lg border border-base-300">
-              <div class="font-bold text-error">✗ The Template-Based Alternative</div>
-              <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
-                <li>Templates execute DB context queries even when OOB is discarded.</li>
-                <li>Silent breakage if CSS selectors or target IDs change.</li>
-                <li>Template logic becomes deeply intertwined with HTTP transport.</li>
-              </ul>
-            </div>
-          </div>
+    # Custom callable / lambda checking permissions or HTMX state: 
+    Swap( 
+        "nav/_admin_badge.html", 
+        include_if=lambda req: req.user.is_staff and not req.htmx.boosted, 
+    ), 
+]</code></pre> 
+          </div> 
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs not-prose"> 
+            <div class="p-3 bg-base-200/50 rounded-lg border border-base-300"> 
+              <div class="font-bold text-success">✓ Why Pythonic Evaluation Wins</div> 
+              <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside"> 
+                <li>Templates remain 100% agnostic to HTMX request headers.</li> 
+                <li>Predicates are standard callables testable with simple unit tests.</li> 
+                <li>Excluded swaps skip template parsing and DB queries entirely.</li> 
+              </ul> 
+            </div> 
+            <div class="p-3 bg-base-200/50 rounded-lg border border-base-300"> 
+              <div class="font-bold text-error">✗ The Template-Based Alternative</div> 
+              <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside"> 
+                <li>Templates execute DB context queries even when OOB is discarded.</li> 
+                <li>Silent breakage if CSS selectors or target IDs change.</li> 
+                <li>Template logic becomes deeply intertwined with HTTP transport.</li> 
+              </ul> 
+            </div> 
+          </div> 
         </div>
         <!-- 3.5 Built-in Visual Debugging -->
         <div id="swap-debugging" class="space-y-4 scroll-mt-24">
