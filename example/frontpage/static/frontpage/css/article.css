@@ -2,6 +2,12 @@ pre code.hljs {
     background: transparent !important;
     padding: 0 !important;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-    font-size: 0.825rem;
+    font-size: 0.75rem;
     line-height: 1.5;
+}
+
+@media (width >= 768px) {
+  pre code.hljs {
+    font-size: 0.825rem;
+  }
 }

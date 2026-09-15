@@ -10,3 +10,4 @@ off_*
 example/benchmarks/data/*.jsonl
 !example/benchmarks/data/reference_*.jsonl
 vendor/
+*.tmp

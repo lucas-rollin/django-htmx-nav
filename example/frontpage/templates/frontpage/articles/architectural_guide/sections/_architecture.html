@@ -12,7 +12,7 @@
   </div>
   <!-- 3.1 The Swap Primitive & Auto-Wrapping -->
   <div id="swap-auto-wrap" class="space-y-4 scroll-mt-24">
-    {% include "frontpage/components/_subsection_heading.html" with number="3.1" text="The <code class='text-primary'>Swap</code> Primitive &amp; Zero-Boilerplate Auto-Wrapping" %}
+    {% include "frontpage/components/_subsection_heading.html" with number="3.1" text="The <code class='text-primary contents'>Swap</code> Primitive &amp; Zero-Boilerplate Auto-Wrapping" %}
     <p class="text-sm text-base-content/80 leading-relaxed">
       In vanilla HTMX, pinpoint out-of-band updates force developers into a painful dilemma: either duplicate templates into dedicated "OOB" variants, or pollute reusable component partials with outer <code>&lt;div id="sidebar" hx-swap-oob="innerHTML"&gt;</code> wrappers.
     </p>
@@ -74,7 +74,7 @@
       </button>
       <button type="button"
               class="card border p-4 rounded-xl text-left transition-colors"
-              :class="pattern === 'shell' ? 'border-primary bg-primary/5' : 'border-base-300 bg-base-100 hover:border-primary'"
+              :class="pattern === 'shell' ? 'border-secondary bg-primary/5' : 'border-base-300 bg-base-100 hover:border-secondary'"
               @click="pattern = 'shell'">
         <div class="badge badge-secondary badge-sm font-mono font-bold mb-2">2. Reusable Shells</div>
         <h4 class="font-bold text-sm font-mono text-base-content">make_shell_renderer</h4>
@@ -84,7 +84,7 @@
       </button>
       <button type="button"
               class="card border p-4 rounded-xl text-left transition-colors"
-              :class="pattern === 'cbv' ? 'border-primary bg-primary/5' : 'border-base-300 bg-base-100 hover:border-primary'"
+              :class="pattern === 'cbv' ? 'border-accent bg-primary/5' : 'border-base-300 bg-base-100 hover:border-accent'"
               @click="pattern = 'cbv'">
         <div class="badge badge-accent badge-sm font-mono font-bold mb-2">3. Class-Based Views</div>
         <h4 class="font-bold text-sm font-mono text-base-content">make_shell_view_mixin</h4>

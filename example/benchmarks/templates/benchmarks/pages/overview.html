@@ -21,7 +21,7 @@
       </div>
     </section>
     <!-- Variant Descriptions / Implementation Approaches -->
-    <div class="p-6 max-w-7xl mx-auto"
+    <div class="p-4 sm:p-6 max-w-7xl mx-auto"
          x-data="overviewDashboard('panels-data')">
       <div class="mb-10">
         <div class="flex items-center justify-between mb-4">
@@ -85,7 +85,7 @@
           <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
             <template x-for="(panel, index) in panels" :key="panel.key">
               <div class="card bg-base-100 border border-base-300 shadow-sm">
-                <div class="card-body p-5">
+                <div class="card-body p-3 sm:p-5">
                   <h3 class="card-title text-base font-semibold" x-text="panel.title"></h3>
                   <div class="h-72 mt-2" x-init="mount($el, panel, index)"></div>
                   <p class="text-xs md:text-sm text-base-content/80 mt-3 leading-relaxed bg-base-200/50 p-3 rounded-lg border border-base-200"

@@ -70,7 +70,7 @@
                  class="btn btn-ghost btn-sm font-semibold {% if '/guide/' in request.path %}text-primary menu-active{% endif %}">Architecture Guide</a>
               <a href="{% url 'benchmarks:overview' %}"
                  class="btn btn-ghost btn-sm font-semibold {% if '/benchmarks/' in request.path %}text-primary menu-active{% endif %}">Benchmarks</a>
-              <a href="/htmx-nav/baseline/" class="btn btn-ghost btn-sm font-semibold">Live Demo</a>
+              <a href="{% url 'htmx_nav_declarative:overview' %}" class="btn btn-ghost btn-sm font-semibold">Live Demo</a>
               <a href="https://lucas-rollin.github.io/django-htmx-nav/"
                  target="_blank"
                  rel="noopener noreferrer"
@@ -183,7 +183,7 @@
                 <li><a href="{% url 'landing' %}">Overview</a></li>
                 <li><a href="{% url 'guide' %}">Architecture Guide</a></li>
                 <li><a href="{% url 'benchmarks:overview' %}">Benchmarks</a></li>
-                <li><a href="/htmx-nav/baseline/">Live Demo</a></li>
+                <li><a href="{% url 'htmx_nav_declarative:overview' %}">Live Demo</a></li>
                 <li class="divider my-1"></li>
                 <li>
                   <a href="https://lucas-rollin.github.io/django-htmx-nav/"
@@ -237,7 +237,7 @@
           <div class="flex flex-wrap items-center gap-4">
             <a href="{% url 'landing' %}" class="link link-hover">Overview</a>
             <a href="{% url 'guide' %}" class="link link-hover">Architecture Guide</a>
-            <a href="/htmx-nav/baseline/" class="link link-hover">Live Demo</a>
+            <a href="{% url 'htmx_nav_declarative:overview' %}" class="link link-hover">Live Demo</a>
             <a href="{% url 'benchmarks:overview' %}" class="link link-hover">Benchmarks</a>
             <a href="https://lucas-rollin.github.io/django-htmx-nav/"
                target="_blank"

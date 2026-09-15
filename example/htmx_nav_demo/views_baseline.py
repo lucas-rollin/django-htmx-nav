@@ -65,6 +65,7 @@ def overview(request: HttpRequest) -> HttpResponse:
     """Displays the primary helpdesk dashboard and high-level summary metrics."""
     context = {
         **_sidebar_context(active_page="overview"),
+        **_breadcrumbs(("helpdesk", None)),
         "org_count": Organization.objects.count(),
         "project_count": Project.objects.count(),
         "open_ticket_count": Ticket.objects.filter(status=Ticket.Status.OPEN).count(),
@@ -91,6 +92,7 @@ def staff_list(request: HttpRequest) -> HttpResponse:
 
     context = {
         **_sidebar_context(active_page="staff_list"),
+        **_breadcrumbs(("helpdesk", None)),
         "employees": employees,
     }
     return render_shell(
@@ -106,6 +108,7 @@ def org_list(request: HttpRequest) -> HttpResponse:
     """Displays a list of all client organizations."""
     context = {
         **_sidebar_context(active_page="org_list"),
+        **_breadcrumbs(("helpdesk", None)),
         "orgs": Organization.objects.all(),
     }
     return render_shell(

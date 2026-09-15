@@ -117,7 +117,7 @@
       <!-- Link to the deep architecture guide -->
       <div class="mt-8 text-center">
         <a href="{% url 'guide' %}" class="btn btn-outline btn-sm group gap-2">
-          <span>Read the Full Architectural Guide: Comparing Turbo, LiveView &amp; HTMX</span>
+          <span>Read the Full Architectural Guide</span>
           {% include "frontpage/components/_arrow_icon.html" %}
         </a>
       </div>
@@ -151,7 +151,7 @@
           </ul>
         </div>
         <div class="p-6 pt-0">
-          <a href="/mpa/"
+          <a href="{% url "mpa:overview" %}"
              class="btn btn-neutral btn-sm w-full group justify-center gap-2">
             <span>Launch MPA Demo</span>
             {% include "frontpage/components/_arrow_icon.html" %}
@@ -176,7 +176,7 @@
           </ul>
         </div>
         <div class="p-6 pt-0">
-          <a href="/vanilla-htmx/composite/"
+          <a href="{% url "htmx_nav_declarative:overview" %}"
              class="btn btn-secondary btn-sm w-full group justify-center gap-2">
             <span>Launch Vanilla HTMX Demo</span>
             {% include "frontpage/components/_arrow_icon.html" %}
@@ -204,7 +204,7 @@
           </ul>
         </div>
         <div class="p-6 pt-0">
-          <a href="/htmx-nav/baseline/"
+          <a href="{% url "htmx_nav_declarative:overview" %}"
              class="btn btn-primary btn-sm w-full group justify-center gap-2">
             <span>Launch django-htmx-nav Demo</span>
             {% include "frontpage/components/_arrow_icon.html" %}

@@ -53,7 +53,7 @@
       {% else %}
         <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-8">
           <div class="card bg-base-100 border border-base-300">
-            <div class="card-body p-4">
+            <div class="card-body p-3 sm:p-5">
               <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
                 <h2 class="card-title text-sm">Metric Explorer</h2>
                 <div class="flex gap-2 items-center">
@@ -76,7 +76,7 @@
                   </select>
                 </div>
               </div>
-              <div class="h-80" x-ref="scatterEl"></div>
+              <div class="h-120" x-ref="scatterEl"></div>
             </div>
           </div>
           <div class="card bg-base-100 border border-base-300">
@@ -92,7 +92,7 @@
                   </template>
                 </select>
               </div>
-              <div class="h-80" x-ref="rankedEl"></div>
+              <div class="h-120" x-ref="rankedEl"></div>
             </div>
           </div>
         </div>
@@ -125,61 +125,64 @@
             <div class="h-80" x-ref="comparisonEl"></div>
           </div>
         </div>
-        <div class="card bg-base-100 border border-base-300 overflow-x-auto">
-          <div class="px-4 py-2 bg-base-200/50 border-b border-base-300 flex items-center justify-between text-xs">
+          <div class="card bg-base-100 border border-base-300 overflow-hidden">
+          <div class="px-4 py-2 bg-base-200/50 border-b border-base-300 flex items-center justify-between text-xs rounded-t-2xl">
             <span class="font-medium text-base-content/70">
-              Variant Breakdown &bull; <span class="font-semibold text-base-content" x-text="currentScenarioLabel"></span>
+              Variant Breakdown &bull;
+              <span class="font-semibold text-base-content" x-text="currentScenarioLabel"></span>
             </span>
             <span class="text-base-content/50">Click column header to sort</span>
           </div>
-          <table class="table table-sm table-zebra">
-            <thead>
-              <tr>
-                <template x-for="(col, index) in columns" :key="col">
-                  <th class="whitespace-nowrap" :class="{ 'min-w-[5rem]': index < 3 }">
-                    <template x-if="hasDescription(col)">
-                      <div class="tooltip tooltip-bottom" :data-tip="describeFor(col)">
-                        <span class="cursor-pointer select-none inline-flex items-center gap-1"
-                              @click="sortBy(col)">
-                          <span x-text="labelFor(col)"></span>
-                          <span class="text-xs opacity-60" x-text="sortIndicator(col)"></span>
-                          <span class="text-[10px] opacity-40 border border-current rounded-full w-3.5 h-3.5 inline-flex items-center justify-center leading-none">?</span>
-                        </span>
-                      </div>
-                    </template>
-                    <template x-if="!hasDescription(col)">
-                      <span class="cursor-pointer select-none" @click="sortBy(col)">
-                        <span x-text="labelFor(col)"></span>
-                        <span class="text-xs opacity-60" x-text="sortIndicator(col)"></span>
-                      </span>
-                    </template>
-                  </th>
-                </template>
-              </tr>
-            </thead>
-            <tbody>
-              <template x-for="row in sortedRows" :key="row.variant">
-                <tr class="hover">
+          <div class="overflow-x-auto">
+            <table class="table table-sm table-zebra">
+              <thead>
+                <tr>
                   <template x-for="(col, index) in columns" :key="col">
-                    <td class="p-0">
-                      <template x-if="isNumericColumn(col)">
-                        <div class="relative h-full min-w-[5rem] px-2 py-1.5">
-                          <div class="absolute inset-y-1 left-0 bg-primary/15 rounded-sm"
-                               :style="barStyle(col, row[col])"></div>
-                          <span class="relative text-right block tabular-nums" x-text="fmt(row[col])"></span>
+                    <th class="whitespace-nowrap" :class="{ 'min-w-[5rem]': index < 3 }">
+                      <template x-if="hasDescription(col)">
+                        <div class="tooltip tooltip-bottom" :data-tip="describeFor(col)">
+                          <span class="cursor-pointer select-none inline-flex items-center gap-1"
+                                @click="sortBy(col)">
+                            <span x-text="labelFor(col)"></span>
+                            <span class="text-xs opacity-60" x-text="sortIndicator(col)"></span>
+                            <span class="text-[10px] opacity-40 border border-current rounded-full w-3.5 h-3.5 inline-flex items-center justify-center leading-none">?</span>
+                          </span>
                         </div>
                       </template>
-                      <template x-if="!isNumericColumn(col)">
-                        <div class="px-2 py-1.5 whitespace-nowrap"
-                             :class="{ 'min-w-[10rem]': index < 3 }"
-                             x-text="fmt(row[col])"></div>
+                      <template x-if="!hasDescription(col)">
+                        <span class="cursor-pointer select-none" @click="sortBy(col)">
+                          <span x-text="labelFor(col)"></span>
+                          <span class="text-xs opacity-60" x-text="sortIndicator(col)"></span>
+                        </span>
                       </template>
-                    </td>
+                    </th>
                   </template>
                 </tr>
-              </template>
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                <template x-for="row in sortedRows" :key="row.variant">
+                  <tr class="hover">
+                    <template x-for="(col, index) in columns" :key="col">
+                      <td class="p-0">
+                        <template x-if="isNumericColumn(col)">
+                          <div class="relative h-full min-w-[5rem] px-2 py-1.5">
+                            <div class="absolute inset-y-1 left-0 bg-primary/15 rounded-sm"
+                                :style="barStyle(col, row[col])"></div>
+                            <span class="relative text-right block tabular-nums" x-text="fmt(row[col])"></span>
+                          </div>
+                        </template>
+                        <template x-if="!isNumericColumn(col)">
+                          <div class="px-2 py-1.5 whitespace-nowrap"
+                              :class="{ 'min-w-[10rem]': index < 3 }"
+                              x-text="fmt(row[col])"></div>
+                        </template>
+                      </td>
+                    </template>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
         </div>
       {% endif %}
     </div>
