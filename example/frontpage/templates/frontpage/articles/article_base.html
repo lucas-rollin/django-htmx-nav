@@ -1,0 +1,63 @@
+{% extends "frontpage/base.html" %}
+{% load static %}
+{% comment %}
+  Layout contract for articles.
+
+  An article template must fill:
+    title, meta_description  - inherited from frontpage/base.html
+    article_eyebrow          - short label shown above the title
+    article_heading          - <h1> text
+    article_lede             - one-paragraph summary
+    article_toc              - <li> entries for the sticky sidebar
+    article_body             - the section partials, in reading order
+
+  It may also fill:
+    article_head_extra       - per-article CSS/JS
+    article_aside_extra      - extra cards under the table of contents
+    article_cta              - closing call-to-action banner
+{% endcomment %}
+{% block head_extra %}
+  <!-- Syntax highlighting via highlight.js -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', () => { hljs.highlightAll(); });</script>
+  <link rel="stylesheet" href="{% static "frontpage/css/article.css" %}">
+  {% block article_head_extra %}{% endblock %}
+{% endblock %}
+{% block content %}
+  <!-- Hero banner -->
+  <section class="border-b border-base-200 bg-base-200/30 py-12 md:py-16 px-4 sm:px-6">
+    <div class="max-w-5xl mx-auto">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold uppercase tracking-wider mb-4">
+        <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+        {% block article_eyebrow %}{% endblock %}
+      </div>
+      <h1 class="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight">
+        {% block article_heading %}{% endblock %}
+      </h1>
+      <p class="text-base sm:text-lg text-base-content/80 mt-4 max-w-3xl leading-relaxed">
+        {% block article_lede %}{% endblock %}
+      </p>
+    </div>
+  </section>
+  <!-- Layout grid: content + sticky sidebar -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-12 grid grid-cols-1 lg:grid-cols-12 gap-10">
+    <!-- Table of contents -->
+    <aside class="hidden lg:block lg:col-span-3">
+      <div class="sticky top-24 space-y-4">
+        <div class="text-xs font-bold uppercase tracking-wider text-base-content/50 px-3">On this page</div>
+        <ul class="menu menu-sm bg-base-100 border border-base-200 rounded-xl p-2 gap-0.5 text-xs font-medium">
+          {% block article_toc %}{% endblock %}
+        </ul>
+        {% block article_aside_extra %}{% endblock %}
+      </div>
+    </aside>
+    <!-- Article content -->
+    <article class="lg:col-span-9 prose max-w-none space-y-16">
+      {% block article_body %}{% endblock %}
+      {% block article_cta %}{% endblock %}
+    </article>
+  </div>
+{% endblock %}

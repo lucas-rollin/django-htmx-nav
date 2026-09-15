@@ -34,22 +34,12 @@
       <a href="#approaches"
          class="btn btn-primary btn-md shadow-md group gap-2">
         <span>Compare 3 Implementations</span>
-        <svg class="size-4 transition-transform duration-200 group-hover:translate-y-0.5"
-             fill="none"
-             stroke="currentColor"
-             viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-        </svg>
+        {% include "frontpage/components/_arrow_icon.html" with direction="y" %}
       </a>
       <a href="{% url 'benchmarks:overview' %}"
          class="btn btn-outline btn-md group gap-2">
         <span>Explore Benchmarks</span>
-        <svg class="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
-             fill="none"
-             stroke="currentColor"
-             viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-        </svg>
+        {% include "frontpage/components/_arrow_icon.html" %}
       </a>
     </div>
     <!-- Quick copy install command -->
@@ -128,12 +118,7 @@
       <div class="mt-8 text-center">
         <a href="{% url 'guide' %}" class="btn btn-outline btn-sm group gap-2">
           <span>Read the Full Architectural Guide: Comparing Turbo, LiveView &amp; HTMX</span>
-          <svg class="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
-               fill="none"
-               stroke="currentColor"
-               viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-          </svg>
+          {% include "frontpage/components/_arrow_icon.html" %}
         </a>
       </div>
     </div>
@@ -169,12 +154,7 @@
           <a href="/mpa/"
              class="btn btn-neutral btn-sm w-full group justify-center gap-2">
             <span>Launch MPA Demo</span>
-            <svg class="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
-                 fill="none"
-                 stroke="currentColor"
-                 viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
+            {% include "frontpage/components/_arrow_icon.html" %}
           </a>
         </div>
       </div>
@@ -199,12 +179,7 @@
           <a href="/vanilla-htmx/composite/"
              class="btn btn-secondary btn-sm w-full group justify-center gap-2">
             <span>Launch Vanilla HTMX Demo</span>
-            <svg class="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
-                 fill="none"
-                 stroke="currentColor"
-                 viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
+            {% include "frontpage/components/_arrow_icon.html" %}
           </a>
         </div>
       </div>
@@ -232,12 +207,7 @@
           <a href="/htmx-nav/baseline/"
              class="btn btn-primary btn-sm w-full group justify-center gap-2">
             <span>Launch django-htmx-nav Demo</span>
-            <svg class="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
-                 fill="none"
-                 stroke="currentColor"
-                 viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
+            {% include "frontpage/components/_arrow_icon.html" %}
           </a>
         </div>
       </div>
@@ -258,12 +228,7 @@
         <a href="{% url 'benchmarks:overview' %}"
            class="btn btn-outline btn-sm group gap-2">
           <span>Open Full Benchmark Suite</span>
-          <svg class="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
-               fill="none"
-               stroke="currentColor"
-               viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-          </svg>
+          {% include "frontpage/components/_arrow_icon.html" %}
         </a>
       </div>
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -279,128 +244,58 @@
   </section>
   <!-- View Code Snippet Section -->
   <!-- View Code Snippet Section -->
-<section class="py-16 px-4 sm:px-6 max-w-5xl mx-auto"
-         x-data="{
+  <section class="py-16 px-4 sm:px-6 max-w-5xl mx-auto"
+           x-data="{
            pattern: 'render_nav',
            tabs: [
              { id: 'render_nav', label: 'One-off view' },
              { id: 'shell', label: 'Shared shell' },
              { id: 'cbv', label: 'Class-based view' },
-             { id: 'specialized', label: 'Beyond Navigation' }
+             { id: 'beyond', label: 'Beyond Navigation' }
            ]
          }">
-  <div class="text-center mb-8">
-    <h2 class="text-2xl sm:text-3xl font-black tracking-tight">How It Looks in Your Views</h2>
-    <p class="text-base-content/75 text-sm sm:text-base mt-2">
-      No custom middleware required. Just a concise, expressive wrapper around Django's standard rendering pipeline.
-    </p>
-  </div>
-
-  <!-- Dynamic Pattern Toggle -->
-  <div class="flex justify-center mb-4">
-    <nav class="tabs tabs-boxed bg-base-200 inline-flex flex-wrap rounded-lg gap-1 p-1"
-         aria-label="Code view patterns">
-      <template x-for="tab in tabs" :key="tab.id">
-        <button type="button"
-                class="tab"
-                :class="{ 'tab-active': pattern === tab.id }"
-                @click="pattern = tab.id"
-                x-text="tab.label"></button>
-      </template>
-    </nav>
-  </div>
-
-  <!-- 1. render_nav sample -->
-  <div x-show="pattern === 'render_nav'"
-       x-cloak
-       class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
-    <pre><code class="language-python">from django.shortcuts import get_object_or_404
-from htmx_nav import Swap, render_nav
-
-
-def project_board(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
-
-    # Full page for direct visits, partial + OOB swaps for HTMX
-    return render_nav(
-        request,
-        "pages/board.html",
-        {"project": project},
-        swaps=[
-            Swap("components/_sidebar.html", {"user": request.user}, target_id="sidebar"),
-            Swap("components/_breadcrumbs.html", target_id="breadcrumbs"),
-        ],
-    )</code></pre>
-  </div>
-
-  <!-- 2. shell sample -->
-  <div x-show="pattern === 'shell'"
-       x-cloak
-       class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
-    <pre><code class="language-python">from django.shortcuts import get_object_or_404
-from htmx_nav import Swap, make_shell_renderer
-
-# Defined once, reused by every view in the app
-render_shell = make_shell_renderer(lambda request: [
-    Swap("components/_sidebar.html", {"user": request.user}, target_id="sidebar"),
-    Swap("components/_breadcrumbs.html", target_id="breadcrumbs"),
-])
-
-
-def project_board(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
-
-    # Sidebar & breadcrumbs come along for free, every time
-    return render_shell(request, "pages/board.html", {"project": project})</code></pre>
-  </div>
-
-  <!-- 3. cbv sample -->
-  <div x-show="pattern === 'cbv'"
-       x-cloak
-       class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
-    <pre><code class="language-python">from django.views.generic import DetailView
-from htmx_nav import Swap, make_shell_view_mixin
-
-# Reuse the shell renderer from the previous tab
-ShellViewMixin = make_shell_view_mixin(render_shell)
-
-
-class ProjectBoardView(ShellViewMixin, DetailView):
-    model = Project
-    template_name = "pages/board.html"
-    context_object_name = "project"
-
-    def get_extra_swaps(self):
-        # Sidebar & breadcrumbs come from the shell. Extras can come here
-        return Swap("components/_status_badge.html", target_id="project-status")</code></pre>
-  </div>
-
-  <!-- 4. specialized sample -->
-  <div x-show="pattern === 'specialized'"
-       x-cloak
-       class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
-    <pre><code class="language-python">from django.contrib import messages
-from htmx_nav import Swap, render_with_swaps, has_messages
-
-
-def delete_ticket(request, ticket_id):
-    ticket = get_object_or_404(Ticket, id=ticket_id)
-    ticket.delete()
-    messages.success(request, f"Ticket #{ticket_id} deleted.")
-
-    # No navigation involved, just OOB updates alongside the response
-    return render_with_swaps(
-        request,
-        "tickets/empty_state.html",
-        swaps=[
-            # Remove the row (hx-swap-oob="delete")
-            Swap.delete(f"ticket-row-{ticket_id}"),
-            # Raw text swap skips the template engine
-            Swap.text("open-tickets-count", str(Ticket.objects.filter(status="open").count())),
-            # Only render messages partial if any are queued
-            Swap("components/_messages.html", target_id="messages", include_if=has_messages),
-        ],
-    )</code></pre>
-  </div>
-</section>
+    <div class="text-center mb-8">
+      <h2 class="text-2xl sm:text-3xl font-black tracking-tight">How It Looks in Your Views</h2>
+      <p class="text-base-content/75 text-sm sm:text-base mt-2">
+        No custom middleware required. Just a concise, expressive wrapper around Django's standard rendering pipeline.
+      </p>
+    </div>
+    <!-- Dynamic Pattern Toggle -->
+    <div class="flex justify-center mb-4">
+      <nav class="tabs tabs-boxed bg-base-200 inline-flex flex-wrap rounded-lg gap-1 p-1"
+           aria-label="Code view patterns">
+        <template x-for="tab in tabs" :key="tab.id">
+          <button type="button"
+                  class="tab"
+                  :class="{ 'tab-active': pattern === tab.id }"
+                  @click="pattern = tab.id"
+                  x-text="tab.label"></button>
+        </template>
+      </nav>
+    </div>
+    <!-- 1. render_nav sample -->
+    <div x-show="pattern === 'render_nav'"
+         x-cloak
+         class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
+      <pre><code class="language-python">{% include "frontpage/snippets/fbv.py" %}</code></pre>
+    </div>
+    <!-- 2. shell sample -->
+    <div x-show="pattern === 'shell'"
+         x-cloak
+         class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
+      <pre><code class="language-python">{% include "frontpage/snippets/shell.py" %}</code></pre>
+    </div>
+    <!-- 3. cbv sample -->
+    <div x-show="pattern === 'cbv'"
+         x-cloak
+         class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
+      <pre><code class="language-python">{% include "frontpage/snippets/cbv.py" %}</code></pre>
+    </div>
+    <!-- 4. beyond navigation sample -->
+    <div x-show="pattern === 'beyond'"
+         x-cloak
+         class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
+      <pre><code class="language-python">{% include "frontpage/snippets/beyond.py" %}</code></pre>
+    </div>
+  </section>
 {% endblock %}

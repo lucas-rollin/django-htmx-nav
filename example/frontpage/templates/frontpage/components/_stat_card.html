@@ -1,0 +1,5 @@
+<div class="stat bg-base-100 border border-base-300 rounded-xl p-5 shadow-sm">
+  <div class="stat-title text-xs font-semibold">{{ label }}</div>
+  <div class="stat-value text-{{ tone|default:'primary' }} text-3xl font-black mt-1">{{ value|safe }}</div>
+  <div class="stat-desc text-xs mt-1{% if desc_highlight %} text-success font-semibold{% endif %}">{{ desc|safe }}</div>
+</div>

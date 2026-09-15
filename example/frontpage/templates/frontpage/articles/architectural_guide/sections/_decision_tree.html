@@ -1,0 +1,49 @@
+<section id="decision-tree" class="scroll-mt-24">
+  <h2 class="text-2xl sm:text-3xl font-black tracking-tight border-b border-base-200 pb-3">
+    6. Architectural Decision Tree
+  </h2>
+  <p class="text-base text-base-content/85 leading-relaxed mt-4">
+    Use this guide to choose the right strategy for your Django project:
+  </p>
+  <div class="space-y-4 not-prose my-6 text-sm">
+    <div class="collapse collapse-arrow bg-base-200/50 border border-base-300 rounded-xl">
+      <input type="radio" name="decision-accordion" checked="checked">
+      <div class="collapse-title font-bold flex items-center gap-2">
+        <span class="badge badge-neutral badge-sm font-mono">1</span>
+        Simple marketing sites, blogs, or mostly static documents
+      </div>
+      <div class="collapse-content text-xs text-base-content/80 leading-relaxed">
+        <p><strong>Recommendation:</strong> Use <strong>Pure MPA</strong> or plain <code>hx-boost="true"</code> on <code>&lt;body&gt;</code>.</p>
+        <p class="mt-1">
+          Without complex nested dashboards or dynamic layout controls, the simplicity of traditional full-page loads outweighs any wire payload optimization.
+        </p>
+      </div>
+    </div>
+    <div class="collapse collapse-arrow bg-base-200/50 border border-base-300 rounded-xl">
+      <input type="radio" name="decision-accordion">
+      <div class="collapse-title font-bold flex items-center gap-2">
+        <span class="badge badge-secondary badge-sm font-mono">2</span>
+        Small SaaS apps with 1-2 layout regions (e.g. fixed sidebar, 1 tab bar)
+      </div>
+      <div class="collapse-content text-xs text-base-content/80 leading-relaxed">
+        <p><strong>Recommendation:</strong> Use <strong><code>django-htmx-nav</code> Baseline</strong> (via <code>make_shell_renderer</code>).</p>
+        <p class="mt-1">
+          Define your 2-3 standard layout swaps once in a <code>render_shell</code> helper. Views remain completely standard Django views, while network payload drops by over 30%.
+        </p>
+      </div>
+    </div>
+    <div class="collapse collapse-arrow bg-base-200/50 border border-base-300 rounded-xl">
+      <input type="radio" name="decision-accordion">
+      <div class="collapse-title font-bold flex items-center gap-2">
+        <span class="badge badge-primary badge-sm font-mono">3</span>
+        Complex web apps with deep nesting (organizations, projects, subtabs, wizards)
+      </div>
+      <div class="collapse-content text-xs text-base-content/80 leading-relaxed">
+        <p><strong>Recommendation:</strong> Use <strong><code>django-htmx-nav</code> Declarative Registry</strong> with <code>cache_on_request</code>.</p>
+        <p class="mt-1">
+          Decoupling navigation state resolution into a central registry keeps views razor-thin, eliminates copy-pasted breadcrumb code, and guarantees zero redundant database queries across partials.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>

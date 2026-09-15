@@ -1,0 +1,215 @@
+<section id="django-htmx-nav-model" class="scroll-mt-24 space-y-12">
+  <div>
+    <h2 class="text-2xl sm:text-3xl font-black tracking-tight border-b border-base-200 pb-3">
+      3. The django-htmx-nav Architecture: Centralizing on <code class='text-primary font-mono'>Swap</code>
+    </h2>
+    <p class="text-base text-base-content/85 leading-relaxed mt-4">
+      Rather than introducing heavy runtime abstractions or proprietary template tag dialects, <strong>django-htmx-nav</strong> centralizes hypermedia navigation around a single primitive: the <code class="font-mono font-bold text-primary">Swap</code> class.
+    </p>
+    <p class="text-sm text-base-content/75 leading-relaxed mt-2">
+      In server-driven hypermedia, an out-of-band fragment is fundamentally a data structure: <em>what</em> to render, <em>where</em> to send it, <em>how</em> to deliver it, and <em>when</em> it should apply. By encapsulating that fragment in a frozen Python dataclass, <code>django-htmx-nav</code> decouples navigation synchronization from both template markup and view routing.
+    </p>
+  </div>
+  <!-- 3.1 The Swap Primitive & Auto-Wrapping -->
+  <div id="swap-auto-wrap" class="space-y-4 scroll-mt-24">
+    {% include "frontpage/components/_subsection_heading.html" with number="3.1" text="The <code class='text-primary'>Swap</code> Primitive &amp; Zero-Boilerplate Auto-Wrapping" %}
+    <p class="text-sm text-base-content/80 leading-relaxed">
+      In vanilla HTMX, pinpoint out-of-band updates force developers into a painful dilemma: either duplicate templates into dedicated "OOB" variants, or pollute reusable component partials with outer <code>&lt;div id="sidebar" hx-swap-oob="innerHTML"&gt;</code> wrappers.
+    </p>
+    <p class="text-sm text-base-content/80 leading-relaxed">
+      <code>Swap</code> solves this through <strong>automatic wrapping</strong>. You point <code>Swap</code> directly at your existing, standard component template. At render time, <code>Swap</code> automatically wraps the rendered markup in the appropriate HTMX wire envelope:
+    </p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 not-prose my-4">
+      <div class="bg-base-200/50 border border-base-300 rounded-xl p-4">
+        <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-2 flex items-center justify-between">
+          <span>Clean Component Template</span>
+          <span class="badge badge-sm badge-ghost font-mono">_sidebar.html</span>
+        </div>
+        <pre><code class="language-html">{% verbatim %}&lt;!-- Clean, standard HTML partial --&gt;
+&lt;!-- Reusable in {% include %} or OOB! --&gt;
+&lt;ul class="menu p-4"&gt;
+  &lt;li class="menu-title"&gt;Projects&lt;/li&gt;
+  {% for proj in projects %}
+    &lt;li&gt;&lt;a href="{{ proj.url }}"&gt;{{ proj.name }}&lt;/a&gt;&lt;/li&gt;
+  {% endfor %}
+&lt;/ul&gt;{% endverbatim %}</code></pre>
+      </div>
+      <div class="bg-base-200/50 border border-base-300 rounded-xl p-4">
+        <div class="text-xs font-bold uppercase tracking-wider text-primary mb-2 flex items-center justify-between">
+          <span>Auto-Wrapped by Swap</span>
+          <span class="badge badge-sm badge-primary font-mono">Wire Output</span>
+        </div>
+        <pre><code class="language-html">&lt;!-- Swap(..., target_id="sidebar") --&gt;
+&lt;!-- Generated automatically in HTTP response --&gt;
+&lt;div id="sidebar" hx-swap-oob="innerHTML"&gt;
+  &lt;ul class="menu p-4"&gt;
+    &lt;li class="menu-title"&gt;Projects&lt;/li&gt;
+    ...
+  &lt;/ul&gt;
+&lt;/div&gt;</code></pre>
+      </div>
+    </div>
+    <p class="text-xs text-base-content/70 leading-relaxed">
+      By default, <code>Swap</code> generates standard <code>hx-swap-oob</code> wrappers. For projects utilizing the HTMX v4, setting <code>wrap="hx-partial"</code> produces <code>&lt;hx-partial hx-target="#sidebar" hx-swap="innerHTML"&gt;</code> instead.
+    </p>
+  </div>
+  <!-- 3.2 Python Versatility (FBVs, Mixins, Shells) -->
+  <div id="swap-orchestration"
+       class="space-y-4 scroll-mt-24"
+       x-data="{ pattern: 'fbv' }">
+    {% include "frontpage/components/_subsection_heading.html" with number="3.2" text="Python-First Versatility: Direct FBVs, Reusable Shells, and CBV Mixins" %}
+    <p class="text-sm text-base-content/80 leading-relaxed">
+      Because a <code>Swap</code> is a regular Python object, it can be passed, filtered, composed, and reused anywhere in your Django backend. Three integration levels cover most apps, pick the tab for the one that matches your situation.
+    </p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 not-prose my-4">
+      <button type="button"
+              class="card border p-4 rounded-xl text-left transition-colors"
+              :class="pattern === 'fbv' ? 'border-primary bg-primary/5' : 'border-base-300 bg-base-100 hover:border-primary'"
+              @click="pattern = 'fbv'">
+        <div class="badge badge-primary badge-sm font-mono font-bold mb-2">1. Direct FBVs</div>
+        <h4 class="font-bold text-sm font-mono text-base-content">render_nav</h4>
+        <p class="text-xs text-base-content/70 mt-1">
+          Drop-in replacement for <code>render()</code>. Attach ad-hoc swaps per-endpoint for one-off updates.
+        </p>
+      </button>
+      <button type="button"
+              class="card border p-4 rounded-xl text-left transition-colors"
+              :class="pattern === 'shell' ? 'border-primary bg-primary/5' : 'border-base-300 bg-base-100 hover:border-primary'"
+              @click="pattern = 'shell'">
+        <div class="badge badge-secondary badge-sm font-mono font-bold mb-2">2. Reusable Shells</div>
+        <h4 class="font-bold text-sm font-mono text-base-content">make_shell_renderer</h4>
+        <p class="text-xs text-base-content/70 mt-1">
+          Centralizes recurring shell fragments (sidebar, breadcrumbs) into one reusable renderer with per-view <code>extra_swaps</code>.
+        </p>
+      </button>
+      <button type="button"
+              class="card border p-4 rounded-xl text-left transition-colors"
+              :class="pattern === 'cbv' ? 'border-primary bg-primary/5' : 'border-base-300 bg-base-100 hover:border-primary'"
+              @click="pattern = 'cbv'">
+        <div class="badge badge-accent badge-sm font-mono font-bold mb-2">3. Class-Based Views</div>
+        <h4 class="font-bold text-sm font-mono text-base-content">make_shell_view_mixin</h4>
+        <p class="text-xs text-base-content/70 mt-1">
+          Integrates into <code>ListView</code>, <code>DetailView</code>, etc. Override <code>get_extra_swaps()</code> with access to <code>self.object</code>.
+        </p>
+      </button>
+    </div>
+    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-4">
+      <pre x-show="pattern === 'fbv'" x-cloak><code class="language-python">{% include "frontpage/snippets/fbv.py" %}</code></pre>
+      <pre x-show="pattern === 'shell'" x-cloak><code class="language-python">{% include "frontpage/snippets/shell.py" %}</code></pre>
+      <pre x-show="pattern === 'cbv'" x-cloak><code class="language-python">{% include "frontpage/snippets/cbv.py" %}</code></pre>
+    </div>
+  </div>
+  <!-- 3.3 Text, Delete & Message Swaps -->
+  <div id="swap-specialized" class="space-y-4 scroll-mt-24">
+    {% include "frontpage/components/_subsection_heading.html" with number="3.3" text="First-Class Support for Text, Deletion, and Flash Messages" %}
+    <p class="text-sm text-base-content/80 leading-relaxed">
+      Real-world applications do not only swap large HTML partials. They need to update counter badges, dismiss alert banners, delete table rows after an action, and sync flash messages. <code>Swap</code> provides specialized constructors designed for maximum performance and zero template overhead:
+    </p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 not-prose my-4">
+      <!-- Swap.text -->
+      <div class="p-4 bg-base-200/50 rounded-xl border border-base-300">
+        <div class="flex items-center gap-2 font-mono text-xs font-bold text-primary">
+          <span class="badge badge-xs badge-primary">Fast</span>
+          Swap.text(...)
+        </div>
+        <p class="text-xs text-base-content/75 mt-2">
+          Sends raw string or numeric content directly without touching Django's template engine. Ideal for counters, totals, or status badges.
+        </p>
+        <div class="mt-3 bg-neutral text-neutral-content rounded p-2 text-[11px] font-mono">
+          Swap.text("unread-count", "7")
+        </div>
+      </div>
+      <!-- Swap.delete -->
+      <div class="p-4 bg-base-200/50 rounded-xl border border-base-300">
+        <div class="flex items-center gap-2 font-mono text-xs font-bold text-secondary">
+          <span class="badge badge-xs badge-secondary">OOB</span>
+          Swap.delete(...)
+        </div>
+        <p class="text-xs text-base-content/75 mt-2">
+          Emits <code>hx-swap-oob="delete"</code> targeting a DOM ID. Instantly removes modals, banners, or deleted table rows from the DOM.
+        </p>
+        <div class="mt-3 bg-neutral text-neutral-content rounded p-2 text-[11px] font-mono">
+          Swap.delete("flash-notification")
+        </div>
+      </div>
+      <!-- has_messages -->
+      <div class="p-4 bg-base-200/50 rounded-xl border border-base-300">
+        <div class="flex items-center gap-2 font-mono text-xs font-bold text-accent">
+          <span class="badge badge-xs badge-accent">Django</span>
+          has_messages
+        </div>
+        <p class="text-xs text-base-content/75 mt-2">
+          Native integration with <code>django.contrib.messages</code>. Automatically suppresses the message swap when no pending flash messages exist.
+        </p>
+        <div class="mt-3 bg-neutral text-neutral-content rounded p-2 text-[11px] font-mono">
+          Swap("...", include_if=has_messages)
+        </div>
+      </div>
+    </div>
+    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-4">
+      <pre><code class="language-python">{% include "frontpage/snippets/beyond.py" %}</code></pre>
+    </div>
+  </div>
+  <!-- 3.4 Pythonic Conditionals vs. Template Logic -->
+  <div id="swap-conditionals" class="space-y-4 scroll-mt-24">
+    {% include "frontpage/components/_subsection_heading.html" with number="3.4" text="Pythonic Conditionals vs. Fragile Inline Template Logic" %}
+    <p class="text-sm text-base-content/80 leading-relaxed">
+      When handling nested navigation, targeted swaps reduce payload size by updating only what changed. However, the rendering engine must know what fragments to include based on the request's target (e.g., swapping tab contents vs. swapping the whole page body). Once rendered, the URL remains the source of truth regardless of navigation path.
+    </p>
+    <p class="text-sm text-base-content/80 leading-relaxed">
+      In template-driven target checking, templates become tightly coupled to HTMX headers. Developers write defensive guards like <code>&#123;% if request.htmx and request.headers.HX_Target == "tab-content" %&#125;</code> directly inside HTML files. This pattern is fragile: typos in target IDs fail silently at runtime, template previews break, and testing requires running full template rendering pipelines.
+    </p>
+    <p class="text-sm text-base-content/80 leading-relaxed">
+      <code>Swap</code> moves this decision into pure Python via the <code class="font-mono text-primary font-bold">include_if</code> parameter. Predicates are evaluated before template rendering, completely bypassing unnecessary parsing and database queries for excluded fragments:
+    </p>
+    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-4">
+      <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/conditionals.py" %}</code></pre>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs not-prose">
+      <div class="p-3 bg-base-200/50 rounded-lg border border-base-300">
+        <div class="font-bold text-success">✓ Why Pythonic Evaluation Wins</div>
+        <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
+          <li>Templates remain 100% agnostic to HTMX request headers.</li>
+          <li>Predicates are standard callables testable with simple unit tests.</li>
+          <li>Excluded swaps skip template parsing and DB queries entirely.</li>
+        </ul>
+      </div>
+      <div class="p-3 bg-base-200/50 rounded-lg border border-base-300">
+        <div class="font-bold text-error">✗ The Template-Based Alternative</div>
+        <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
+          <li>Templates execute DB context queries even when OOB is discarded.</li>
+          <li>Silent breakage if CSS selectors or target IDs change.</li>
+          <li>Template logic becomes deeply intertwined with HTTP transport.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <!-- 3.5 Built-in Visual Debugging -->
+  <div id="swap-debugging" class="space-y-4 scroll-mt-24">
+    {% include "frontpage/components/_subsection_heading.html" with number="3.5" text="Built-in Visual Swap Debugging" %}
+    <p class="text-sm text-base-content/80 leading-relaxed">
+      When managing multiple simultaneous out-of-band updates, specially when pinpoint swap requires complex branching logic to decide which components to render, tracking what changes on each click can be difficult. <code>django-htmx-nav</code> features built-in visual swap debugging to give you instant feedback.
+    </p>
+    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-2">
+      <pre><code class="language-python"># settings.py
+HTMX_NAV_DEBUG_SWAPS = True</code></pre>
+    </div>
+    <p class="text-sm text-base-content/80 leading-relaxed">
+      When enabled, swapped targets flash with a CSS pulse animation, giving you immediate confirmation that only the intended regions updated without needing the devtools network tab open.
+    </p>
+    <div class="pt-2">
+      <a href="{% url 'htmx_nav_declarative:project_settings' '2204' '552855' %}?debug-swaps=1"
+         class="btn btn-primary btn-sm gap-2 no-underline">
+        <svg xmlns="http://www.w3.org/2000/svg"
+             class="size-4"
+             fill="none"
+             viewBox="0 0 24 24"
+             stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        </svg>
+        See it in action in the live demo
+      </a>
+    </div>
+  </div>
+</section>

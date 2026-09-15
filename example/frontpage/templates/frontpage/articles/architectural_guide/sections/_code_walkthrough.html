@@ -1,0 +1,127 @@
+<section id="example-variants" class="scroll-mt-24 space-y-12">
+  <div>
+    <h2 class="text-2xl sm:text-3xl font-black tracking-tight border-b border-base-200 pb-3">
+      4. Code Walkthrough by Implementation Variant
+    </h2>
+    <p class="text-base text-base-content/85 leading-relaxed mt-4">
+      To empirically compare these approaches under identical conditions, the example project implements the exact same Helpdesk application across several architectural paradigms. Here is how the <code>overview</code> dashboard view is written in each:
+    </p>
+  </div>
+  <!-- 4.1 Pure MPA -->
+  <div id="code-mpa" class="space-y-3">
+    <div class="flex items-center justify-between">
+      <h3 class="text-lg sm:text-xl font-bold flex items-center gap-2">
+        <span class="badge badge-neutral badge-sm uppercase">Baseline</span>
+        4.1 Pure Multi-Page Application (MPA)
+      </h3>
+      <a href="{% url "mpa:overview" %}" class="btn btn-neutral btn-xs group">
+        Try Live MPA Demo {% include "frontpage/components/_arrow_icon.html" with size="3.5" %}
+      </a>
+    </div>
+    <p class="text-xs text-base-content/70">
+      Source: <code>example/mpa/views.py</code>
+    </p>
+    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose">
+      <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/views_mpa.py" %}</code></pre>
+    </div>
+    <div class="text-xs text-base-content/75 bg-base-200/40 p-3 rounded-lg border border-base-200">
+      <strong>Result:</strong> Reliable and standard, but browser performs a full repaint. <strong>Wire payload: ~6.1 KB</strong> on every click.
+    </div>
+  </div>
+  <!-- 4.2 Vanilla HTMX Composite -->
+  <div id="code-vanilla" class="space-y-3">
+    <div class="flex items-center justify-between">
+      <h3 class="text-lg sm:text-xl font-bold flex items-center gap-2">
+        <span class="badge badge-secondary badge-sm uppercase">Manual OOB</span>
+        4.2 Vanilla HTMX with Shell Templates
+      </h3>
+      <a href="{% url "vanilla_htmx_composite:overview" %}"
+         class="btn btn-secondary btn-xs group">
+        Try Live Vanilla Demo {% include "frontpage/components/_arrow_icon.html" with size="3.5" %}
+      </a>
+    </div>
+    <p class="text-xs text-base-content/70">
+      Source: <code>example/vanilla_htmx_composite/views.py</code> and <code>templates/vanilla_htmx_composite/_overview.html</code>
+    </p>
+    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose">
+      <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/views_vanilla_htmx_composite.py" %}</code></pre>
+    </div>
+    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose">
+      <pre><code class="language-html">{% include "frontpage/articles/architectural_guide/snippets/shell_overview.html" %}</code></pre>
+    </div>
+    <div class="text-xs text-base-content/75 bg-base-200/40 p-3 rounded-lg border border-base-200">
+      <strong>Result:</strong> Reduces payload by ~32% to <strong>~4.1 KB</strong>, but forces the team to author and maintain a shadow directory of <code>_*.html</code> shell templates.
+    </div>
+  </div>
+  <!-- 4.3 htmx-nav Baseline -->
+  <div id="code-htmx-nav-baseline" class="space-y-3">
+    <div class="flex items-center justify-between">
+      <h3 class="text-lg sm:text-xl font-bold flex items-center gap-2">
+        <span class="badge badge-primary badge-sm uppercase">Helper Library</span>
+        4.3 django-htmx-nav Baseline (make_shell_renderer)
+      </h3>
+      <a href="{% url "htmx_nav_baseline:overview" %}"
+         class="btn btn-primary btn-xs group">
+        Try Live Baseline Demo {% include "frontpage/components/_arrow_icon.html" with size="3.5" %}
+      </a>
+    </div>
+    <p class="text-xs text-base-content/70">
+      Source: <code>example/htmx_nav_demo/views_baseline.py</code>
+    </p>
+    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose">
+      <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/views_htmx_nav_baseline.py" %}</code></pre>
+    </div>
+    <div class="text-xs text-base-content/75 bg-base-200/40 p-3 rounded-lg border border-base-200">
+      <strong>Result:</strong> Matches the ~32% payload reduction of Vanilla HTMX (down to <strong>~4.1 KB</strong>), but eliminates all parallel shell templates.
+    </div>
+  </div>
+  <!-- 4.4 htmx-nav Declarative -->
+  <div id="code-htmx-nav-declarative" class="space-y-3">
+    <div class="flex items-center justify-between">
+      <h3 class="text-lg sm:text-xl font-bold flex items-center gap-2">
+        <span class="badge badge-primary badge-sm uppercase">Declarative</span>
+        4.4 django-htmx-nav Declarative Registry
+      </h3>
+      <a href="{% url "htmx_nav_declarative:overview" %}"
+         class="btn btn-primary btn-xs group">
+        Try Live Declarative Demo {% include "frontpage/components/_arrow_icon.html" with size="3.5" %}
+      </a>
+    </div>
+    <p class="text-xs text-base-content/70">
+      Source: <code>example/htmx_nav_demo/registry_declarative.py</code> &amp; <code>views_declarative.py</code>
+    </p>
+    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose">
+      <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/registry_declarative.py" %}</code></pre>
+    </div>
+    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose">
+      <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/views_declarative.py" %}</code></pre>
+    </div>
+    <div class="text-xs text-base-content/75 bg-base-200/40 p-3 rounded-lg border border-base-200">
+      <strong>Result:</strong> Maximum separation of concerns. Navigation structures live in a single registry, and views contain zero lines of breadcrumb/sidebar boilerplate.
+    </div>
+  </div>
+  <!-- 4.5 Orthogonal Axes -->
+  <div id="code-orthogonal-axes" class="space-y-3">
+    <h3 class="text-lg sm:text-xl font-bold flex items-center gap-2">
+      <span class="badge badge-outline badge-sm uppercase">Add-on Axes</span>
+      4.5 Orthogonal Add-ons: +hx-select (+HS) and +morph (+M)
+    </h3>
+    <p class="text-sm text-base-content/80 leading-relaxed">
+      In the demo app, any variant can be combined with two orthogonal client-side axes:
+    </p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 not-prose my-3 text-xs">
+      <div class="p-4 rounded-xl border border-base-300 bg-base-200/30">
+        <div class="font-mono font-bold text-primary text-sm">+HS (hx-select-oob)</div>
+        <p class="mt-2 text-base-content/75 leading-normal">
+          When enabled, the client uses <code>hx-select-oob</code> to pluck out secondary regions if the backend didn't supply them. Useful when migrating legacy views that still return full pages.
+        </p>
+      </div>
+      <div class="p-4 rounded-xl border border-base-300 bg-base-200/30">
+        <div class="font-mono font-bold text-secondary text-sm">+M (Idiomorph)</div>
+        <p class="mt-2 text-base-content/75 leading-normal">
+          Replaces HTMX's standard <code>innerHTML</code> replacement with Idiomorph's DOM morphing algorithm. Crucial for preserving input focus in search inputs and preventing scroll jumps.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>

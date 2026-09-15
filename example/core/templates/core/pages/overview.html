@@ -5,10 +5,25 @@
     <div class="p-6 max-w-4xl mx-auto space-y-6">
       <div class="card bg-{{ active_variant.color }}/5 border border-{{ active_variant.color }}/30">
         <div class="card-body gap-2">
-          <div class="flex items-center gap-2">
+          <div class="flex items-center justify-between gap-2">
             <span class="badge badge-{{ active_variant.color }}">{{ active_variant.family_label }}</span>
             {% if active_variant.axis_badge %}
-              <span class="badge badge-outline">{{ active_variant.axis_badge }}</span>
+              <span class="badge badge-outline mr-auto">{{ active_variant.axis_badge }}</span>
+            {% endif %}
+            {% if active_variant.source_url %}
+              <a class="btn btn-ghost btn-sm"
+                 href="{{ active_variant.source_url }}"
+                 target="_blank"
+                 rel="noopener noreferrer">
+                Source code
+                <svg class="size-3.5 opacity-70"
+                     fill="none"
+                     stroke="currentColor"
+                     viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14">
+                  </path>
+                </svg>
+              </a>
             {% endif %}
           </div>
           <p class="text-sm">{{ active_variant.family_description }}</p>

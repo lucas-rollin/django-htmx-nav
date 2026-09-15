@@ -68,6 +68,7 @@ class Variant:
     views_module: str
     url_prefix: str
     app_name: str = "core"
+    source_url: str = ""
 
     component_swaps: list[NavigationComponent] | None = None
     uses_htmx: bool = True
@@ -139,6 +140,7 @@ def make_family(
     views_module: str,
     url_prefix: str,
     app_name: str,
+    source_url: str,
     component_swaps: list[NavigationComponent] | None = None,
     uses_htmx: bool = True,
     uses_htmx_nav: bool = False,
@@ -164,6 +166,7 @@ def make_family(
             views_module=views_module,
             url_prefix=f"{prefix}{suffix.replace('_', '-')}/",
             app_name=app_name,
+            source_url=source_url,
             component_swaps=component_swaps,
             uses_htmx=uses_htmx,
             uses_htmx_nav=uses_htmx_nav,

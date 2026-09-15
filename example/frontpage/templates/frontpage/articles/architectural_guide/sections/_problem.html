@@ -1,0 +1,48 @@
+<section id="the-problem" class="scroll-mt-24">
+  <h2 class="text-2xl sm:text-3xl font-black tracking-tight border-b border-base-200 pb-3">
+    1. The Stale Navigation Problem (State Drift)
+  </h2>
+  <p class="text-base text-base-content/85 leading-relaxed mt-4">
+    When developers begin using HTMX to accelerate navigation in a server-rendered application, the instinctive first step is to target the center content container:
+  </p>
+  <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-4">
+    <pre><code class="language-html">&lt;!-- Naive approach: Swapping only the inner container --&gt;
+&lt;a href="/projects/42/board/" 
+   hx-get="/projects/42/board/" 
+   hx-target="#main-content" 
+   hx-push-url="true"&gt;
+  Kanban Board
+&lt;/a&gt;</code></pre>
+  </div>
+  <p class="text-base text-base-content/85 leading-relaxed">
+    While this updates <code>#main-content</code> smoothly without a full page refresh, it creates a subtle, jarring failure mode known as <strong>State Drift</strong>:
+  </p>
+  <!-- State Drift Breakdown Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 not-prose my-6">
+    <div class="card bg-error/5 border border-error/20 p-5 rounded-xl">
+      <div class="flex items-center justify-between">
+        <span class="badge badge-error badge-sm font-bold uppercase">Stale Navigation</span>
+        <span class="text-xs text-error font-semibold font-mono">Bug</span>
+      </div>
+      <h4 class="font-bold text-base mt-2 text-base-content">Layout Elements Are Desynchronized</h4>
+      <ul class="text-xs text-base-content/75 space-y-2 mt-3 list-disc list-inside">
+        <li><strong>Stale Components:</strong> Sidebar and breadcrumbs show previous state.</li>
+        <li><strong>Document &lt;title&gt;:</strong> Does not update automatically.</li>
+      </ul>
+    </div>
+    <div class="card bg-success/5 border border-success/20 p-5 rounded-xl">
+      <div class="flex items-center justify-between">
+        <span class="badge badge-success badge-sm font-bold uppercase">Synchronized Navigation</span>
+        <span class="text-xs text-success font-semibold font-mono">Goal</span>
+      </div>
+      <h4 class="font-bold text-base mt-2 text-base-content">URL as Single Source of Truth</h4>
+      <ul class="text-xs text-base-content/75 space-y-2 mt-3 list-disc list-inside">
+        <li><strong>Out-of-band updates:</strong> Sidebar, breadcrumbs, and title update simultaneously.</li>
+        <li><strong>Direct load parity:</strong> Page refresh produces the identical visual tree.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="text-base text-base-content/85 leading-relaxed">
+    Single-Page Applications (SPAs) avoid this by maintaining a centralized client-side state tree. But they introduce client-server API contracts, state synchronization bugs, and heavy JavaScript runtimes. The goal of server-driven hypermedia is to solve this <em>without</em> abandoning the server as the single source of truth.
+  </p>
+</section>

@@ -1,0 +1,44 @@
+{% extends "frontpage/articles/article_base.html" %}
+{% block title %}Solving Stale Navigation in Hypermedia Applications · Architectural Guide{% endblock %}
+{% block meta_description %}An in-depth architectural guide on solving state drift and stale navigation in server-driven hypermedia apps. Compares Turbo, LiveView, Unpoly, and Django with HTMX.{% endblock %}
+{% block article_eyebrow %}Comprehensive Architectural Guide{% endblock %}
+{% block article_heading %}Solving Stale Navigation in Hypermedia Applications{% endblock %}
+{% block article_lede %}
+  When transitioning from classic multi-page apps to HTML-over-the-wire, partial container swaps often cause <strong>state drift</strong> across breadcrumbs, sidebars, and application chrome. Here are shown how to approach the problem and the trade-offs of each strategy.
+{% endblock %}
+{% block article_toc %}
+  {% include "frontpage/articles/architectural_guide/_toc.html" %}
+{% endblock %}
+{% block article_aside_extra %}
+  <div class="card bg-base-200/50 border border-base-200 p-4 text-xs space-y-2">
+    <div class="font-bold text-base-content flex items-center gap-1.5">
+      <span>Interactive Testbed</span>
+    </div>
+    <p class="text-base-content/70">Every pattern analyzed in this guide is implemented and runnable inside this example app.</p>
+    <a href="{% url "htmx_nav_declarative:overview" %}"
+       class="btn btn-primary btn-xs w-full mt-1">Open Live Demo</a>
+  </div>
+{% endblock %}
+{% block article_body %}
+  {% include "frontpage/articles/architectural_guide/sections/_problem.html" %}
+  {% include "frontpage/articles/architectural_guide/sections/_general_methods.html" %}
+  {% include "frontpage/articles/architectural_guide/sections/_architecture.html" %}
+  {% include "frontpage/articles/architectural_guide/sections/_code_walkthrough.html" %}
+  {% include "frontpage/articles/architectural_guide/sections/_benchmarks.html" %}
+  {% include "frontpage/articles/architectural_guide/sections/_decision_tree.html" %}
+{% endblock %}
+{% block article_cta %}
+  <div class="card bg-primary text-primary-content p-8 rounded-2xl shadow-xl not-prose mt-12 flex flex-col sm:flex-row items-center justify-between gap-6">
+    <div>
+      <h3 class="text-2xl font-black tracking-tight">Ready to eliminate state drift?</h3>
+      <p class="text-primary-content/80 text-sm mt-1 max-w-xl">Install <code class='text-base-content'>django-htmx-nav</code> today or inspect the complete, runnable source code in GitHub.</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-3">
+      <a href="https://lucas-rollin.github.io/django-htmx-nav/"
+         {% if primary_external %}target="_blank" rel="noopener noreferrer"{% endif %}
+         class="btn btn-neutral btn-sm shadow-md group">Read Documentation {% include "frontpage/components/_arrow_icon.html" %}</a>
+      <a href="{% url 'htmx_nav_declarative:overview' %}"
+         class="btn btn-outline btn-sm border-white text-white hover:bg-white hover:text-primary">Launch Live Demo</a>
+    </div>
+  </div>
+{% endblock %}

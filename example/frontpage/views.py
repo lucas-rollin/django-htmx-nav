@@ -50,7 +50,7 @@ def landing(request: HttpRequest) -> HttpResponse:
 
 def guide(request: HttpRequest) -> HttpResponse:
     """Architectural guide on solving stale navigation in hypermedia apps."""
-    return render(request, "frontpage/guide.html")
+    return render(request, "frontpage/articles/architectural_guide/index.html")
 
 
 def robots_txt(request: HttpRequest) -> HttpResponse:
