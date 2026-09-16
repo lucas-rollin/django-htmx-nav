@@ -7,13 +7,11 @@ services:
     plan: free
     region: oregon
     envVars:
-      - key: DEBUG
-        value: "False"
+      - key: ENVIRONMENT
+        value: "demo_production"
       - key: ALLOWED_HOSTS
         value: ".onrender.com,localhost,127.0.0.1"
       - key: CSRF_TRUSTED_ORIGINS
         value: "https://*.onrender.com"
       - key: SECRET_KEY
         generateValue: true
-      - key: HTMX_NAV_DEBUG_SWAPS
-        value: "True"

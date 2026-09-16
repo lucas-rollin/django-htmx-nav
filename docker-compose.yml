@@ -8,8 +8,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DEBUG=False
-      - SECRET_KEY=production-demo-secret-key-change-for-live-deployment
+      - ENVIRONMENT=demo_production
       - ALLOWED_HOSTS=*
       - CSRF_TRUSTED_ORIGINS=http://localhost:8000,http://127.0.0.1:8000
     restart: unless-stopped
@@ -26,9 +25,6 @@ services:
       - "8000:8000"
     volumes:
       - .:/workspace
-    environment:
-      - DEBUG=True
-      - HTMX_NAV_DEBUG_SWAPS=1
 
   # Hermetic Test Runner (Unit & Integration tests)
   test:
@@ -51,5 +47,4 @@ services:
     volumes:
       - ./example/benchmarks/data:/workspace/example/benchmarks/data
     environment:
-      - HTMX_NAV_DEBUG_SWAPS=False
-      - HTMX_NAV_BENCHMARK_LOCAL_ASSETS=True
+      - ENVIRONMENT=benchmark

@@ -15,7 +15,7 @@
       <span>Interactive Testbed</span>
     </div>
     <p class="text-base-content/70">Every pattern analyzed in this guide is implemented and runnable inside this example app.</p>
-    <a href="{% url "htmx_nav_declarative:overview" %}"
+    <a href="{{ DEMO_URL }}{% url "htmx_nav_declarative:overview" %}"
        class="btn btn-primary btn-xs w-full mt-1">Open Live Demo</a>
   </div>
 {% endblock %}
@@ -34,10 +34,10 @@
       <p class="text-primary-content/80 text-sm mt-1 max-w-xl">Install <code class='!bg-gray-900 !border-gray-900'>django-htmx-nav</code> today or inspect the complete, runnable source code in GitHub.</p>
     </div>
     <div class="flex flex-wrap items-center gap-3">
-      <a href="https://lucas-rollin.github.io/django-htmx-nav/"
+      <a href="{{ SITE_URL }}"
          {% if primary_external %}target="_blank" rel="noopener noreferrer"{% endif %}
          class="btn btn-neutral btn-sm shadow-md group">Read Documentation {% include "frontpage/components/_arrow_icon.html" %}</a>
-      <a href="{% url 'htmx_nav_declarative:overview' %}"
+      <a href="{{ DEMO_URL }}{% url 'htmx_nav_declarative:overview' %}"
          class="btn btn-outline btn-sm border-white text-white hover:bg-white hover:text-primary">Launch Live Demo</a>
     </div>
   </div>

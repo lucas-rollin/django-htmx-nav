@@ -7,30 +7,33 @@
       To empirically compare these approaches under identical conditions, the example project implements the exact same Helpdesk application across several architectural paradigms. Here is how the <code>overview</code> dashboard view is written in each:
     </p>
   </div>
-
   <!-- Optional Toggleable Section for Context Helpers & Imports -->
-  <div x-data="{ showHelpers: false }" class="border border-base-300 rounded-xl bg-base-200/30 p-4 not-prose">
+  <div x-data="{ showHelpers: false }"
+       class="border border-base-300 rounded-xl bg-base-200/30 p-4 not-prose">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-2">
         <span class="badge badge-ghost badge-sm uppercase">Shared</span>
         <span class="text-sm font-semibold">Common Context Helpers &amp; Django Imports</span>
       </div>
-      <button @click="showHelpers = !showHelpers" class="btn btn-ghost btn-xs text-primary">
+      <button @click="showHelpers = !showHelpers"
+              class="btn btn-ghost btn-xs text-primary">
         <span x-text="showHelpers ? 'Hide Helpers' : 'Show Helpers'"></span>
       </button>
     </div>
-    <div x-show="showHelpers" x-cloak class="mt-3 pt-3 border-t border-base-300">
+    <div x-show="showHelpers"
+         x-cloak
+         class="mt-3 pt-3 border-t border-base-300">
       <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content">
         <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/context_helpers.py" %}</code></pre>
       </div>
     </div>
   </div>
-
   <!-- 4.1 Pure MPA -->
   <div id="code-mpa" class="space-y-3">
     <div class="flex items-center justify-between">
       {% include "frontpage/components/_subsection_heading.html" with number="4.1" text="Pure Multi-Page Application (MPA)" %}
-      <a href="{% url "mpa:overview" %}" class="btn btn-neutral btn-xs group">
+      <a href="{{ DEMO_URL }}{% url "mpa:overview" %}"
+         class="btn btn-neutral btn-xs group">
         Try Live <span class="hidden sm:inline-block">MPA Demo</span> {% include "frontpage/components/_arrow_icon.html" with size="3.5" %}
       </a>
     </div>
@@ -44,12 +47,11 @@
       <strong>Result:</strong> Reliable and standard, but browser performs a full repaint. <strong>Wire payload: ~6.1 KB</strong> on every click.
     </div>
   </div>
-
   <!-- 4.2 Vanilla HTMX Composite -->
   <div id="code-vanilla" class="space-y-3">
     <div class="flex items-center justify-between">
       {% include "frontpage/components/_subsection_heading.html" with number="4.2" text="Vanilla HTMX with Shell Templates" %}
-      <a href="{% url "vanilla_htmx_composite:overview" %}"
+      <a href="{{ DEMO_URL }}{% url "vanilla_htmx_composite:overview" %}"
          class="btn btn-secondary btn-xs group">
         Try Live <span class="hidden sm:inline-block">Vanilla Demo</span> {% include "frontpage/components/_arrow_icon.html" with size="3.5" %}
       </a>
@@ -67,12 +69,11 @@
       <strong>Result:</strong> Reduces payload by ~32% to <strong>~4.1 KB</strong>, but forces the team to author and maintain a shadow directory of <code>_*.html</code> shell templates.
     </div>
   </div>
-
   <!-- 4.3 htmx-nav Composite -->
   <div id="code-htmx-nav-composite" class="space-y-3">
     <div class="flex items-center justify-between">
       {% include "frontpage/components/_subsection_heading.html" with number="4.3" text="django-htmx-nav Composite (render_nav with Swaps)" %}
-      <a href="{% url "htmx_nav_composite:overview" %}"
+      <a href="{{ DEMO_URL }}{% url "htmx_nav_composite:overview" %}"
          class="btn btn-primary btn-xs group">
         Try Live <span class="hidden sm:inline-block">Composite Demo</span> {% include "frontpage/components/_arrow_icon.html" with size="3.5" %}
       </a>
@@ -87,12 +88,11 @@
       <strong>Result:</strong> Matches the ~32% payload reduction of Vanilla HTMX (down to <strong>~4.1 KB</strong>), but eliminates all parallel shell templates.
     </div>
   </div>
-
   <!-- 4.4 htmx-nav Baseline -->
   <div id="code-htmx-nav-baseline" class="space-y-3">
     <div class="flex items-center justify-between">
       {% include "frontpage/components/_subsection_heading.html" with number="4.4" text="django-htmx-nav Baseline (make_shell_renderer)" %}
-      <a href="{% url "htmx_nav_baseline:overview" %}"
+      <a href="{{ DEMO_URL }}{% url "htmx_nav_baseline:overview" %}"
          class="btn btn-primary btn-xs group">
         Try Live <span class="hidden sm:inline-block">Baseline Demo</span> {% include "frontpage/components/_arrow_icon.html" with size="3.5" %}
       </a>
@@ -107,12 +107,13 @@
       <strong>Result:</strong> Same payload reduction as previous variant but the view is closer to pure MPA, it only changes the render function.
     </div>
   </div>
-
   <!-- 4.5 htmx-nav Declarative -->
-  <div id="code-htmx-nav-declarative" class="space-y-3" x-data="{ showRegistry: false }">
+  <div id="code-htmx-nav-declarative"
+       class="space-y-3"
+       x-data="{ showRegistry: false }">
     <div class="flex items-center justify-between">
       {% include "frontpage/components/_subsection_heading.html" with number="4.5" text="django-htmx-nav Declarative Registry" %}
-      <a href="{% url "htmx_nav_declarative:overview" %}"
+      <a href="{{ DEMO_URL }}{% url "htmx_nav_declarative:overview" %}"
          class="btn btn-primary btn-xs group ml-auto">
         Try Live <span class="hidden sm:inline-block">Declarative Demo</span> {% include "frontpage/components/_arrow_icon.html" with size="3.5" %}
       </a>
@@ -120,20 +121,21 @@
     <p class="text-xs text-base-content/70">
       Source: <code>example/htmx_nav_demo/registry_declarative.py</code> &amp; <code>views_declarative.py</code>
     </p>
-
     <!-- Toggleable Registry Snippet (Default Hidden) -->
     <div class="space-y-2">
       <div class="flex items-center justify-between text-xs">
         <span class="font-mono text-base-content/70">registry_declarative.py</span>
-        <button @click="showRegistry = !showRegistry" class="btn btn-ghost btn-xs text-primary">
+        <button @click="showRegistry = !showRegistry"
+                class="btn btn-ghost btn-xs text-primary">
           <span x-text="showRegistry ? 'Hide Registry Code' : 'Show Registry Code'"></span>
         </button>
       </div>
-      <div x-show="showRegistry" x-cloak class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose">
+      <div x-show="showRegistry"
+           x-cloak
+           class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose">
         <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/registry_declarative.py" %}</code></pre>
       </div>
     </div>
-
     <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose">
       <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/views_declarative.py" %}</code></pre>
     </div>
@@ -141,7 +143,6 @@
       <strong>Result:</strong> Maximum separation of concerns. Navigation structures live in a single registry, and views contain zero lines of breadcrumb/sidebar boilerplate.
     </div>
   </div>
-
   <!-- 4.6 Orthogonal Axes -->
   <div id="code-orthogonal-axes" class="space-y-3">
     {% include "frontpage/components/_subsection_heading.html" with number="4.6" text="Orthogonal Add-ons: +hx-select (+HS) and +morph (+M)" %}

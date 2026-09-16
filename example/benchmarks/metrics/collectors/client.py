@@ -228,7 +228,8 @@ def _run_scenario_htmx(page, PWTimeoutError, landing, variant, scenario, cctx, r
                 result["paint"] - result["beforeRequest"]
             )
             samples[Metric.HTMX_PROCESSING_MS].append(
-                (result.get("afterSwap") or result["afterSettle"]) - result["beforeSwap"]
+                (result.get("afterSwap") or result["afterSettle"])
+                - result["beforeSwap"]
             )
             samples[Metric.DOM_MUTATIONS].append(result["mutationRecords"])
             samples[Metric.DOM_NODES_ADDED].append(result["nodesAdded"])

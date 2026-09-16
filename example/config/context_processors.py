@@ -1,4 +1,5 @@
 from core.navigation.registry import VARIANTS
+from django.conf import settings
 
 
 def variants(request):
@@ -21,7 +22,13 @@ def variants(request):
     }
 
 
-def benchmark(request):
-    from django.conf import settings
-
-    return {"benchmark_local_assets": settings.HTMX_NAV_BENCHMARK_LOCAL_ASSETS}
+def site_settings(request):
+    return {
+        "BENCHMARK_LOCAL_ASSETS": settings.HTMX_NAV_BENCHMARK_LOCAL_ASSETS,
+        "DEMO_URL": settings.DEMO_URL.rstrip("/"),
+        "SITE_URL": settings.SITE_URL.rstrip("/"),
+        "DOCS_URL": settings.DOCS_URL,
+        "DOCS_SITE": settings.DOCS_URL,
+        "REPO_URL": settings.REPO_URL.rstrip("/"),
+        "PYPI_URL": settings.PYPI_URL.rstrip("/"),
+    }

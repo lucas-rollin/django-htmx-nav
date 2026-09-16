@@ -70,8 +70,9 @@
                  class="btn btn-ghost btn-sm font-semibold {% if '/guide/' in request.path %}text-primary menu-active{% endif %}">Architecture Guide</a>
               <a href="{% url 'benchmarks:overview' %}"
                  class="btn btn-ghost btn-sm font-semibold {% if '/benchmarks/' in request.path %}text-primary menu-active{% endif %}">Benchmarks</a>
-              <a href="{% url 'htmx_nav_declarative:overview' %}" class="btn btn-ghost btn-sm font-semibold">Live Demo</a>
-              <a href="https://lucas-rollin.github.io/django-htmx-nav/"
+              <a href="{{ DEMO_URL }}{% url 'htmx_nav_declarative:overview' %}"
+                 class="btn btn-ghost btn-sm font-semibold">Live Demo</a>
+              <a href="{{ DOCS_SITE }}"
                  target="_blank"
                  rel="noopener noreferrer"
                  class="btn btn-ghost btn-sm font-semibold gap-1.5">
@@ -101,7 +102,7 @@
               </svg>
             </label>
             <!-- GitHub Desktop Link -->
-            <a href="https://github.com/lucas-rollin/django-htmx-nav"
+            <a href="{{ REPO_URL }}"
                target="_blank"
                rel="noopener noreferrer"
                class="btn btn-ghost btn-square btn-sm hidden sm:inline-flex"
@@ -163,7 +164,8 @@
                     <li>
                       <div class="flex flex-wrap gap-1 px-1 pb-2">
                         {% for variant in family.variants %}
-                          <a href="/{{ variant.url_prefix }}" class="btn btn-xs btn-outline">{{ variant.axis_badge|default:"base" }}</a>
+                          <a href="{{ DEMO_URL }}/{{ variant.url_prefix }}"
+                             class="btn btn-xs btn-outline">{{ variant.axis_badge|default:"base" }}</a>
                         {% endfor %}
                       </div>
                     </li>
@@ -183,10 +185,10 @@
                 <li><a href="{% url 'landing' %}">Overview</a></li>
                 <li><a href="{% url 'guide' %}">Architecture Guide</a></li>
                 <li><a href="{% url 'benchmarks:overview' %}">Benchmarks</a></li>
-                <li><a href="{% url 'htmx_nav_declarative:overview' %}">Live Demo</a></li>
+                <li><a href="{{ DEMO_URL }}{% url 'htmx_nav_declarative:overview' %}">Live Demo</a></li>
                 <li class="divider my-1"></li>
                 <li>
-                  <a href="https://lucas-rollin.github.io/django-htmx-nav/"
+                  <a href="{{ DOCS_SITE }}"
                      target="_blank"
                      rel="noopener noreferrer"
                      class="flex items-center justify-between">
@@ -200,7 +202,7 @@
                   </a>
                 </li>
                 <li>
-                  <a href="https://github.com/lucas-rollin/django-htmx-nav"
+                  <a href="{{ REPO_URL }}"
                      target="_blank"
                      rel="noopener noreferrer"
                      class="flex items-center justify-between">
@@ -237,17 +239,18 @@
           <div class="flex flex-wrap items-center gap-4">
             <a href="{% url 'landing' %}" class="link link-hover">Overview</a>
             <a href="{% url 'guide' %}" class="link link-hover">Architecture Guide</a>
-            <a href="{% url 'htmx_nav_declarative:overview' %}" class="link link-hover">Live Demo</a>
+            <a href="{{ DEMO_URL }}{% url 'htmx_nav_declarative:overview' %}"
+               class="link link-hover">Live Demo</a>
             <a href="{% url 'benchmarks:overview' %}" class="link link-hover">Benchmarks</a>
-            <a href="https://lucas-rollin.github.io/django-htmx-nav/"
+            <a href="{{ DOCS_SITE }}"
                target="_blank"
                rel="noopener noreferrer"
                class="link link-hover">Documentation</a>
-            <a href="https://github.com/lucas-rollin/django-htmx-nav"
+            <a href="{{ REPO_URL }}"
                target="_blank"
                rel="noopener noreferrer"
                class="link link-hover">GitHub</a>
-            <a href="https://pypi.org/project/django-htmx-nav/"
+            <a href="{{ PYPI_URL }}"
                target="_blank"
                rel="noopener noreferrer"
                class="link link-hover">PyPI</a>

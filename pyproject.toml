@@ -32,6 +32,7 @@ example = [
     "Faker==40.36.0",
     "gunicorn>=22.0.0",
     "whitenoise>=6.6.0",
+    "django-environ==0.14.0",
 ]
 bench = [
     "playwright",

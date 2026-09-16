@@ -89,4 +89,3 @@ class DevServer:
             except requests.exceptions.ConnectionError:
                 time.sleep(0.3)
         raise RuntimeError(f"Dev server on port {self.port} did not start in time.")
-

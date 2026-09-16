@@ -256,7 +256,9 @@ def test_server_collector_workflow():
 @pytest.mark.django_db
 def test_collect_static_metrics_command(tmp_path, monkeypatch):
     """Test running the collect_static_metrics management command."""
-    monkeypatch.setattr("benchmarks.management.commands.collect_static_metrics.DATA_DIR", tmp_path)
+    monkeypatch.setattr(
+        "benchmarks.management.commands.collect_static_metrics.DATA_DIR", tmp_path
+    )
 
     out = io.StringIO()
     err = io.StringIO()
@@ -306,4 +308,3 @@ def test_settings_split_dev_prod_vs_benchmark(monkeypatch):
     monkeypatch.delenv("HTMX_NAV_DEBUG_SWAPS", raising=False)
     monkeypatch.delenv("HTMX_NAV_BENCHMARK_LOCAL_ASSETS", raising=False)
     importlib.reload(app_settings)
-

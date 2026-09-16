@@ -125,7 +125,7 @@
             <div class="h-80" x-ref="comparisonEl"></div>
           </div>
         </div>
-          <div class="card bg-base-100 border border-base-300 overflow-hidden">
+        <div class="card bg-base-100 border border-base-300 overflow-hidden">
           <div class="px-4 py-2 bg-base-200/50 border-b border-base-300 flex items-center justify-between text-xs rounded-t-2xl">
             <span class="font-medium text-base-content/70">
               Variant Breakdown &bull;
@@ -167,14 +167,14 @@
                         <template x-if="isNumericColumn(col)">
                           <div class="relative h-full min-w-[5rem] px-2 py-1.5">
                             <div class="absolute inset-y-1 left-0 bg-primary/15 rounded-sm"
-                                :style="barStyle(col, row[col])"></div>
+                                 :style="barStyle(col, row[col])"></div>
                             <span class="relative text-right block tabular-nums" x-text="fmt(row[col])"></span>
                           </div>
                         </template>
                         <template x-if="!isNumericColumn(col)">
                           <div class="px-2 py-1.5 whitespace-nowrap"
-                              :class="{ 'min-w-[10rem]': index < 3 }"
-                              x-text="fmt(row[col])"></div>
+                               :class="{ 'min-w-[10rem]': index < 3 }"
+                               x-text="fmt(row[col])"></div>
                         </template>
                       </td>
                     </template>

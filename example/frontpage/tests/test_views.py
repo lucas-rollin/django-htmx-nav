@@ -49,7 +49,9 @@ def test_guide_page(client):
     response = client.get(url)
 
     assert response.status_code == 200
-    assert "frontpage/guide.html" in [t.name for t in response.templates]
+    assert "frontpage/articles/architectural_guide/index.html" in [
+        t.name for t in response.templates
+    ]
     assert "frontpage/base.html" in [t.name for t in response.templates]
 
     content = response.content.decode()
@@ -99,7 +101,12 @@ def test_sitemap_xml(client):
 
         assert loc is not None and loc.text
         assert lastmod is not None and lastmod.text
-        assert changefreq is not None and changefreq.text in ("daily", "weekly", "monthly", "yearly")
+        assert changefreq is not None and changefreq.text in (
+            "daily",
+            "weekly",
+            "monthly",
+            "yearly",
+        )
         assert priority is not None and float(priority.text) >= 0.0
 
         locs.append(loc.text)
@@ -112,5 +119,4 @@ def test_sitemap_xml(client):
     assert "http://testserver/benchmarks/server/" in locs
     assert "http://testserver/benchmarks/payload/" in locs
     assert "http://testserver/benchmarks/client/" in locs
-    assert "http://testserver/mpa/" in locs
-    assert "http://testserver/htmx-nav/baseline/" in locs
+    assert "http://testserver/docs/" in locs

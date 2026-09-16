@@ -2,14 +2,26 @@
 Showcase landing page, architectural guide, and SEO views for django-htmx-nav.
 """
 
+from pathlib import Path
+
+from urllib.parse import urlsplit
+
+from config.constants import EnvironmentChoices
 from core.navigation.registry import VARIANTS
+from django.conf import settings
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils import timezone
 
 
 def landing(request: HttpRequest) -> HttpResponse:
     """Project showcase overview landing page."""
+
+    # Redirect for the demo
+    if settings.ENVIRONMENT == EnvironmentChoices.DEMO:
+        redirect("htmx_nav_declarative:overview")
+
     # Group unique base implementation families
     families = []
     seen = set()
@@ -55,7 +67,10 @@ def guide(request: HttpRequest) -> HttpResponse:
 
 def robots_txt(request: HttpRequest) -> HttpResponse:
     """Dynamic robots.txt with sitemap reference."""
-    domain = request.build_absolute_uri("/").rstrip("/")
+    if settings.ROBOTS_DISALLOW_ALL:
+        return HttpResponse("User-agent: *\nDisallow: /", content_type="text/plain")
+
+    domain = (settings.SITE_URL or request.build_absolute_uri("/")).rstrip("/")
     lines = [
         "User-agent: *",
         "Allow: /",
@@ -65,67 +80,83 @@ def robots_txt(request: HttpRequest) -> HttpResponse:
     return HttpResponse("\n".join(lines), content_type="text/plain")
 
 
+def _get_doc_urls(domain: str, now: str) -> list[dict]:
+    """Generate doc url for every file in `docs/`.
+    Expects the render to <stem>.html by Sphinx.
+    """
+    docs_dir = Path(__file__).resolve().parent.parent.parent / "docs"
+    urls = [
+        {
+            "loc": f"{domain}/docs/",
+            "priority": "0.9",
+            "changefreq": "weekly",
+            "lastmod": now,
+        }
+    ]
+    if docs_dir.is_dir():
+        for doc in sorted(docs_dir.glob("*.md")):
+            if doc.stem != "index":
+                urls.append(
+                    {
+                        "loc": f"{domain}/docs/{doc.stem}.html",
+                        "priority": "0.8",
+                        "changefreq": "monthly",
+                        "lastmod": now,
+                    }
+                )
+    return urls
+
+
 def sitemap_xml(request: HttpRequest) -> HttpResponse:
     """Dynamic sitemap.xml indexing landing, guide, benchmarks, and demo entry points."""
-    domain = request.build_absolute_uri("/").rstrip("/")
+    domain = settings.SITE_URL.rstrip("/") or request.build_absolute_uri("/").rstrip(
+        "/"
+    )
+    parsed = urlsplit(domain)
+    origin = f"{parsed.scheme}://{parsed.netloc}" if parsed.netloc else domain
     now = timezone.now().strftime("%Y-%m-%d")
 
-    urls = [
-        {"loc": f"{domain}/", "priority": "1.0", "changefreq": "weekly"},
-        {"loc": f"{domain}/guide/", "priority": "0.9", "changefreq": "weekly"},
-        {"loc": f"{domain}/benchmarks/", "priority": "0.9", "changefreq": "weekly"},
+    django_urls = [
         {
-            "loc": f"{domain}/benchmarks/static/",
+            "loc": f"{origin}{reverse('landing')}",
+            "priority": "1.0",
+            "changefreq": "weekly",
+        },
+        {
+            "loc": f"{origin}{reverse('guide')}",
+            "priority": "0.9",
+            "changefreq": "weekly",
+        },
+        {
+            "loc": f"{origin}{reverse('benchmarks:overview')}",
+            "priority": "0.9",
+            "changefreq": "monthly",
+        },
+        {
+            "loc": f"{origin}{reverse('benchmarks:static')}",
             "priority": "0.7",
             "changefreq": "monthly",
         },
         {
-            "loc": f"{domain}/benchmarks/server/",
+            "loc": f"{origin}{reverse('benchmarks:server')}",
             "priority": "0.7",
             "changefreq": "monthly",
         },
         {
-            "loc": f"{domain}/benchmarks/payload/",
+            "loc": f"{origin}{reverse('benchmarks:payload')}",
             "priority": "0.7",
             "changefreq": "monthly",
         },
         {
-            "loc": f"{domain}/benchmarks/client/",
+            "loc": f"{origin}{reverse('benchmarks:client')}",
             "priority": "0.7",
-            "changefreq": "monthly",
-        },
-        {"loc": f"{domain}/mpa/", "priority": "0.8", "changefreq": "monthly"},
-        {
-            "loc": f"{domain}/vanilla-htmx/composite/",
-            "priority": "0.8",
-            "changefreq": "monthly",
-        },
-        {
-            "loc": f"{domain}/vanilla-htmx/atomic/",
-            "priority": "0.8",
-            "changefreq": "monthly",
-        },
-        {
-            "loc": f"{domain}/htmx-nav/baseline/",
-            "priority": "0.8",
-            "changefreq": "monthly",
-        },
-        {
-            "loc": f"{domain}/htmx-nav/composite/",
-            "priority": "0.8",
-            "changefreq": "monthly",
-        },
-        {
-            "loc": f"{domain}/htmx-nav/atomic/",
-            "priority": "0.8",
-            "changefreq": "monthly",
-        },
-        {
-            "loc": f"{domain}/htmx-nav/declarative/",
-            "priority": "0.8",
             "changefreq": "monthly",
         },
     ]
+
+    sphinx_urls = _get_doc_urls(domain, now)
+
+    urls = django_urls + sphinx_urls
 
     xml_lines = [
         '<?xml version="1.0" encoding="UTF-8"?>',

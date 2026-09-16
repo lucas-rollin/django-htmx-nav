@@ -1,4 +1,4 @@
-name: Deploy Documentation
+name: Deploy Documentation & Static Site
 
 on:
   push:
@@ -24,20 +24,31 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: "3.12"
 
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install .[docs]
+          pip install .[docs,example]
 
-      - name: Build Docs
-        run: sphinx-build -b html docs site
+      - name: Build Static Site & Sphinx Docs
+        env:
+          ENVIRONMENT: static_generation
+          STATIC_ROOT: site/static
+          STATIC_URL: /django-htmx-nav/static/
+        run: |
+          python example/manage.py collectstatic --noinput
+
+          python example/manage.py freeze_static_pages --out site --prefix /django-htmx-nav/
+
+          sphinx-build -b html docs site/docs
+
+          touch site/.nojekyll
 
       - name: Upload Artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
-          path: './site'
+          path: ./site
 
   deploy:
     needs: build

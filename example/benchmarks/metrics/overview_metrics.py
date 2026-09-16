@@ -169,7 +169,9 @@ def _server_latency(server_rows) -> Panel | None:
 
 
 def _transfer_bytes(payload_rows) -> Panel | None:
-    data_by_scenario: dict[str, dict[str, float]] = {sc[0]: {} for sc in SCENARIOS_PAYLOAD}
+    data_by_scenario: dict[str, dict[str, float]] = {
+        sc[0]: {} for sc in SCENARIOS_PAYLOAD
+    }
     for row in payload_rows:
         if row["metric"] != "transfer_bytes":
             continue
@@ -249,10 +251,16 @@ def _htmx_processing(client_rows) -> Panel | None:
     htmx_families = [f for f in FAMILY_ORDER if f != "mpa"]
 
     series_defs = [
-        ("Base (innerHTML)", lambda r: not r.get("uses_hx_select") and not r.get("uses_morph")),
+        (
+            "Base (innerHTML)",
+            lambda r: not r.get("uses_hx_select") and not r.get("uses_morph"),
+        ),
         ("+hx-select", lambda r: r.get("uses_hx_select") and not r.get("uses_morph")),
         ("+Idiomorph", lambda r: not r.get("uses_hx_select") and r.get("uses_morph")),
-        ("+hx-select + Morph", lambda r: r.get("uses_hx_select") and r.get("uses_morph")),
+        (
+            "+hx-select + Morph",
+            lambda r: r.get("uses_hx_select") and r.get("uses_morph"),
+        ),
     ]
 
     series = []
@@ -265,7 +273,11 @@ def _htmx_processing(client_rows) -> Panel | None:
                 if r["metric"] == "htmx_processing_ms"
                 and (
                     r["family"] == fam
-                    or (fam == "vanilla_htmx_unaware_views" and r["family"] in ("vanilla_htmx_unaware_view", "vanilla_htmx_unaware_views"))
+                    or (
+                        fam == "vanilla_htmx_unaware_views"
+                        and r["family"]
+                        in ("vanilla_htmx_unaware_view", "vanilla_htmx_unaware_views")
+                    )
                 )
                 and pred(r)
             ]
