@@ -1,4 +1,3 @@
-# example/htmx_nav_demo/registry_declarative.py
 from htmx_nav import Swap, make_shell_renderer
 
 # Declarative mapping of route names to navigation parameters/breadcrumbs

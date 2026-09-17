@@ -71,6 +71,8 @@
               <a href="{% url 'benchmarks:overview' %}"
                  class="btn btn-ghost btn-sm font-semibold {% if '/benchmarks/' in request.path %}text-primary menu-active{% endif %}">Benchmarks</a>
               <a href="{{ DEMO_URL }}{% url 'htmx_nav_declarative:overview' %}"
+                 target="_blank"
+                 rel="noopener noreferrer"
                  class="btn btn-ghost btn-sm font-semibold">Live Demo</a>
               <a href="{{ DOCS_SITE }}"
                  target="_blank"
@@ -125,8 +127,7 @@
                     </path>
                   </svg>
                 </summary>
-                <ul class="menu dropdown-content bg-base-100 rounded-box z-50 w-80 p-2 shadow-lg border border-base-200 gap-1"
-                    hx-boost="false">
+                <ul class="menu dropdown-content bg-base-100 rounded-box z-50 w-80 p-2 shadow-lg border border-base-200 gap-1">
                   <li>
                     <a class="flex items-center gap-2 font-semibold {% if request.path == '/' %}text-primary menu-active{% endif %}"
                        href="{% url 'landing' %}">
@@ -158,13 +159,15 @@
                     </a>
                   </li>
                   <li class="divider my-1"></li>
-                  <li class="menu-title pb-0">Switch Implementation</li>
+                  <li class="menu-title pb-0">Live Demo Variants</li>
                   {% for family in variant_families %}
                     <li class="menu-title pb-0">{{ family.label }}</li>
                     <li>
                       <div class="flex flex-wrap gap-1 px-1 pb-2">
                         {% for variant in family.variants %}
                           <a href="{{ DEMO_URL }}/{{ variant.url_prefix }}"
+                             target="_blank"
+                             rel="noopener noreferrer"
                              class="btn btn-xs btn-outline">{{ variant.axis_badge|default:"base" }}</a>
                         {% endfor %}
                       </div>
@@ -185,7 +188,7 @@
                 <li><a href="{% url 'landing' %}">Overview</a></li>
                 <li><a href="{% url 'guide' %}">Architecture Guide</a></li>
                 <li><a href="{% url 'benchmarks:overview' %}">Benchmarks</a></li>
-                <li><a href="{{ DEMO_URL }}{% url 'htmx_nav_declarative:overview' %}">Live Demo</a></li>
+                <li><a href="{{ DEMO_URL }}{% url 'htmx_nav_declarative:overview' %}" target="_blank" rel="noopener noreferrer">Live Demo</a></li>
                 <li class="divider my-1"></li>
                 <li>
                   <a href="{{ DOCS_SITE }}"
@@ -240,6 +243,8 @@
             <a href="{% url 'landing' %}" class="link link-hover">Overview</a>
             <a href="{% url 'guide' %}" class="link link-hover">Architecture Guide</a>
             <a href="{{ DEMO_URL }}{% url 'htmx_nav_declarative:overview' %}"
+               target="_blank"
+               rel="noopener noreferrer"
                class="link link-hover">Live Demo</a>
             <a href="{% url 'benchmarks:overview' %}" class="link link-hover">Benchmarks</a>
             <a href="{{ DOCS_SITE }}"

@@ -1,66 +1,121 @@
-# Maintainer Deployment Guide (Render & Docker)
+# Maintainer Deployment Guide
 
-> **Internal Maintainer Runbook:** Instructions for maintaining and deploying the live reference demo at `https://django-htmx-nav.onrender.com/`.
+> **Internal Maintainer Runbook:** Documentation for managing, building, and deploying the static documentation/showcase site on **GitHub Pages** alongside the live interactive demo sandbox on **Render**.
 
-## 1. Architecture Overview
+## 1. Architecture & Deployment Topology
 
-The containerized demo is engineered for a single-container deployment with an idle memory footprint under 60 MB RAM:
+The project splits functionality across two distinct deployment targets, while development works normally as one django project.
 
-- **Static Files**: Assets are served directly via `whitenoise` with compression (`CompressedStaticFilesStorage`), removing the need for external S3 buckets or Nginx sidecars.
-- **Application Server**: Gunicorn runs with `gthread` workers, request limits, and standard stdout/stderr logging.
-- **Security**: Container runs as a non-privileged user (`app:app` UID 1000).
+### Target A: GitHub Pages (Static Showcase & Docs)
 
-## 2. Deploying to Render (Free Web Service)
+- **Host:** `https://lucas-rollin.github.io/django-htmx-nav/`
+- **Included Apps & Content:**
+  - **`frontpage` App:** Frozen landing page and technical hypermedia synchronization guide (`/guide/`). The live demo landing page includes a redirect pointing visitors to the flagship demo variant on Render.
+  - **`benchmark` App:** Frozen empirical charts and latency metrics dashboard (`/benchmarks/`).
+  - **Sphinx Docs:** Compiled developer guides and API reference (`/docs/`).
+- **Characteristics:** Zero cold start, globally cached CDN, free hosting, and SEO/crawler friendly via `sitemap.xml`.
 
-[Render](https://render.com) provides a free tier for Web Services (512 MB RAM, shared CPU, 750 free instance hours/month) with native Docker support and free automatic SSL certificates.
+### Target B: Render (Live Interactive Sandbox)
 
-### Option A: 1-Click Deploy (Render Blueprint)
+- **Host:** `https://django-htmx-nav.onrender.com/`
+- **Included Components:**
+  - Full dynamic Django backend (Python + Django + Gunicorn) running all helpdesk variants (`/mpa/`, `/htmx/`, `/vanilla-htmx/*`, `/htmx-nav/*`).
+  - In-memory SQLite database with live mutations (Kanban/cards).
+- **Characteristics:** Spin-down after inactivity (~30s cold start), isolated sandbox environment with crawlers blocked via `robots.txt`.
 
-Deploy using the repository's root [`render.yaml`](../render.yaml) Blueprint:
+## 2. Environment Profiles (`EnvironmentChoices`)
+
+All configuration is driven by the `ENVIRONMENT` setting ([`example/config/constants.py`](../example/config/constants.py)), eliminating scattered ad-hoc flags:
+
+- **`development` *(default)***
+  - **Target:** Local host / Docker `dev`
+  - **Settings:** `DEBUG=True`, local paths (`SITE_URL=""`, `DEMO_URL=""`), `ROBOTS_DISALLOW_ALL=False`.
+  - **Behavior:** All links stay local on `127.0.0.1:8000`.
+- **`static_generation`**
+  - **Target:** GitHub Actions CI
+  - **Settings:** `DEBUG=False`, `SITE_URL="github.io"`, `DEMO_URL="onrender.com"`, `ROBOTS_DISALLOW_ALL=False`.
+  - **Behavior:** Freezes Django pages with script prefix.
+- **`demo_production`**
+  - **Target:** Render container / Docker `web`
+  - **Settings:** `DEBUG=False`, `SITE_URL="github.io"`, `DEMO_URL=""`, `ROBOTS_DISALLOW_ALL=True`.
+  - **Behavior:** Serves live variants. Chrome nav links return visitors to GitHub Pages.
+- **`benchmark`**
+  - **Target:** Docker `bench`
+  - **Settings:** `DEBUG=False`, `SITE_URL=""`, `DEMO_URL=""`, `ROBOTS_DISALLOW_ALL=False`.
+  - **Behavior:** Disables debug swaps; serves local vendor assets for Playwright runs.
+
+## 3. GitHub Pages Deployment (Static Showcase & Docs)
+
+Deployed automatically on pushes to `main` via [`.github/workflows/docs.yml`](./workflows/docs.yml).
+
+### Build Pipeline
+
+```bash
+# 1. Collect all static assets (Tailwind, DaisyUI, local JS/CSS)
+python example/manage.py collectstatic --noinput
+
+# 2. Freeze Django frontpage, architectural guide, benchmarks, robots.txt, and sitemap.xml
+python example/manage.py freeze_static_pages --out site --prefix /django-htmx-nav/
+
+# 3. Build Sphinx HTML documentation directly into site/docs/
+sphinx-build -b html docs site/docs
+
+# 4. Disable GitHub Pages Jekyll processing
+touch site/.nojekyll
+```
+
+The entire `site/` folder is uploaded and deployed as a single unified GitHub Pages artifact.
+
+## 4. Render Deployment (Interactive Demo Sandbox)
+
+The containerized demo runs as a lean single container with an idle footprint of ~60 MB RAM.
+
+### Option A: 1-Click Blueprint Deploy
+
+Deploy using the repository's root [`render.yaml`](../render.yaml):
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/lucas-rollin/django-htmx-nav)
 
-### Option B: Manual Web Service Setup
+### Option B: Manual Setup on Render
 
-1. Sign up or log in at [render.com](https://render.com) using GitHub.
-2. Click **New +** → **Web Service**.
-3. Connect the repository: `lucas-rollin/django-htmx-nav`.
-4. Configure service settings:
-   - **Language / Runtime**: `Docker`
-   - **Branch**: `main`
-   - **Region**: Any preferred region (e.g. *Oregon (US West)*)
-   - **Instance Type**: `Free`
-5. Configure Environment Variables:
-   - `DEBUG`: `False`
-   - `ALLOWED_HOSTS`: `.onrender.com,localhost,127.0.0.1`
-   - `CSRF_TRUSTED_ORIGINS`: `https://*.onrender.com`
-   - `SECRET_KEY`: *(Generate a secure random key)*
-6. Click **Create Web Service**. Render will build the `production` Docker stage and provide a live URL (`https://<service-name>.onrender.com`).
+1. Create a **New Web Service** connected to `lucas-rollin/django-htmx-nav`.
+2. Configure runtime parameters:
+    - **Language / Runtime:** `Docker`
+    - **Branch:** `main`
+    - **Region:** Any (e.g., *Oregon (US West)*)
+    - **Instance Type:** `Free`
 
-## 3. Environment Variables Reference
+3. Configure Environment Variables:
+    - `ENVIRONMENT`: `demo_production`
+    - `ALLOWED_HOSTS`: `.onrender.com,localhost,127.0.0.1`
+    - `CSRF_TRUSTED_ORIGINS`: `https://*.onrender.com`
+    - `SECRET_KEY`: *(Generate a secure key)*
 
-| Variable | Default | Description |
-| :--- | :--- | :--- |
-| `DEBUG` | `True` | Set to `False` in production. |
-| `SECRET_KEY` | *(insecure dev key)* | Secret key for Django cryptographic signing. Required in production. |
-| `ALLOWED_HOSTS` | `127.0.0.1,testserver,localhost` | Comma-separated list of valid hostnames/domains (e.g. `.onrender.com`). |
-| `CSRF_TRUSTED_ORIGINS` | `""` | Comma-separated trusted origins (e.g. `https://*.onrender.com`). |
-| `STATIC_ROOT` | `<BASE_DIR>/staticfiles` | Directory where `collectstatic` outputs assets. |
-| `PORT` | `8000` | Port for Gunicorn to listen on (Render automatically supplies `PORT=10000`). |
-| `HTMX_NAV_DEBUG_SWAPS` | `True` | Enables visual swap animations on demo pages. Active by default. |
+4. Click **Create Web Service**. Render builds the production Docker stage and exposes `https://django-htmx-nav.onrender.com/`.
 
-## 4. Local Container Workflows
+## 5. Local Docker & Container Workflows
+
+Use the [`docker-compose.yml`](https://www.google.com/search?q=../docker-compose.yml) targets for local verification:
 
 ```bash
-# Production image simulation locally (Gunicorn + WhiteNoise)
-docker compose up --build web
-
-# Development with hot-reload and local source mounted
+# 1. Run local development server (hot-reload on port 8000)
 docker compose up dev
 
-# Isolated testing
+# 2. Simulate Render production container locally (Gunicorn + WhiteNoise)
+docker compose up demo
+
+# 3. Run hermetic pytest test suite
 docker compose run --rm test
 
-# Metric & Playwright benchmark collection
+# 4. Execute Playwright benchmark measurement suite
 docker compose run --rm bench
+```
+
+### Local Native Static Freeze Verification
+
+To simulate the GitHub Actions static export locally:
+
+```bash
+ENVIRONMENT=static_generation python example/manage.py freeze_static_pages --out /tmp/site --prefix /django-htmx-nav/
+sphinx-build -b html docs /tmp/site/docs
 ```

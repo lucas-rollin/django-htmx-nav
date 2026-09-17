@@ -4,13 +4,16 @@ The [`example/`](https://github.com/lucas-rollin/django-htmx-nav/tree/main/examp
 
 It serves as both a runnable reference testbed and an empirical laboratory demonstrating how to solve **stale navigation regions (state drift)** across different architectural paradigms.
 
-## Live Deployment & Interactive Testbed
+## Live Deployments & Companion Resources
 
-The example project is deployed and accessible online:
+The project is deployed across a two-tier architecture:
 
-- **{demo}`Live Helpdesk Testbed <htmx-nav/baseline/>`:** Interact with the live application, switch between all 8 implementation families, and toggle `hx-select` or `idiomorph` on the fly.
-- **{live}`Benchmark Dashboard <benchmarks/>`:** Compare empirical payload distributions, server render times, and DOM churn across all variants.
-- **{live}`Architectural Guide <guide/>`:** Read the comprehensive architectural breakdown of hypermedia state synchronization.
+1. **Static CDN (GitHub Pages):** Fast, global CDN deployment with zero cold start containing the project landing page, documentation, and the static benchmark suite:
+   - <a href="../">Showcase Overview</a>: Architecture summaries and visual comparisons.
+   - <a href="../guide/">Architectural Guide</a>: Deep dive into hypermedia state drift patterns and solutions.
+   - <a href="../benchmarks/">Benchmark Dashboard</a>: Empirical measurements across payload, render latency, and database query counts.
+2. **Dynamic Sandbox (Render):** A live Python runtime hosting the interactive Helpdesk testbed:
+   - **{demo}`Live Helpdesk Sandbox <htmx-nav/declarative/>`:** Live hypermedia application on Render. Experiment with creating tickets, moving Kanban cards, switching variants, and toggling visual swap debugging in real time. *(Subject to free-tier spin-up delay on initial access)*.
 
 ## Implementation Approaches Compared
 

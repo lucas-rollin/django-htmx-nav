@@ -176,8 +176,8 @@ Whenever an out-of-band swap arrives in the browser, `django-htmx-nav` injects a
 
 ## Next Steps
 
-- Explore the deployed {demo}`Live Demo Testbed <htmx-nav/baseline/>` and compare all 8 architectural variants.
-- Check out the {live}`Interactive Benchmark Suite <benchmarks/>` for payload and latency metrics.
+- Explore the deployed {demo}`Live Demo Testbed <htmx-nav/declarative/>` and compare all 8 architectural variants.
+- Check out the <a href="../benchmarks/">Interactive Benchmark Suite</a> for empirical payload and latency metrics.
 - Read the [Architectural Navigation Patterns Guide](nav_context_patterns.md).
 - Learn about automated parity verification in the [Testing Guide](testing.md).
 - Reference full signatures in the [API Reference](api.md).

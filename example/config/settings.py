@@ -36,7 +36,7 @@ if ENVIRONMENT == EnvironmentChoices.STATIC:
         DEBUG=False,
         STATIC_BUILD=True,
         SITE_URL="https://lucas-rollin.github.io/django-htmx-nav",
-        DEMO_URL="https://demo-django-htmx-nav.onrender.com",
+        DEMO_URL="https://django-htmx-nav.onrender.com",
         ROBOTS_DISALLOW_ALL=False,
     )
 

@@ -72,15 +72,10 @@ ignore = []
 
 [tool.djlint]
 profile = "django"
-
-exclude = "src"
-
+exclude = "src,snippets/"
 max_line_length = 120
-
 wrap_attributes = true
-
 ignore = "H021,H025"
-
 indent = 2
 
 [tool.mypy]

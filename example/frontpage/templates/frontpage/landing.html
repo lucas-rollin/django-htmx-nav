@@ -151,7 +151,7 @@
           </ul>
         </div>
         <div class="p-6 pt-0">
-          <a href="{% url "mpa:overview" %}"
+          <a href="{{ DEMO_URL }}{% url "mpa:overview" %}"
              class="btn btn-neutral btn-sm w-full group justify-center gap-2">
             <span>Launch MPA Demo</span>
             {% include "frontpage/components/_arrow_icon.html" %}
@@ -176,7 +176,7 @@
           </ul>
         </div>
         <div class="p-6 pt-0">
-          <a href="{{ DEMO_URL }}{% url "htmx_nav_declarative:overview" %}"
+          <a href="{{ DEMO_URL }}{% url "vanilla_htmx_atomic:overview" %}"
              class="btn btn-secondary btn-sm w-full group justify-center gap-2">
             <span>Launch Vanilla HTMX Demo</span>
             {% include "frontpage/components/_arrow_icon.html" %}

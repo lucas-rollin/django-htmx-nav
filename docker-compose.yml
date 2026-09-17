@@ -1,6 +1,6 @@
 services:
   # Production Simulation / Standalone Deployment
-  web:
+  demo:
     image: django-htmx-nav:prod
     build:
       context: .

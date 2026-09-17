@@ -2,34 +2,31 @@
 
 **Server-driven hypermedia navigation for Django and HTMX, with the URL as the single source of truth.**
 
-`django-htmx-nav` is a lightweight Python library designed to eliminate **state drift** in HTMX applications. It provides declarative out-of-band (OOB) swaps, zero-boilerplate component auto-wrapping, reusable shell renderers, and robust test helpers, keeping sidebars, breadcrumbs, tabs, badges, and page titles strictly synchronized with the current route.
+`django-htmx-nav` provides declarative out-of-band (OOB) swaps, zero-boilerplate component auto-wrapping, reusable shell renderers, and automated parity testing for Django applications using HTMX. It ensures that secondary navigation regions—such as sidebars, breadcrumbs, tab bars, notifications, and badges—remain strictly synchronized with the current route during partial page swaps without UI state drift.
 
-## The Problem: Stale Navigation Regions (State Drift)
-
-When an HTMX request updates a single target container (such as `#main-content`), regions *outside* that container, such as active sidebar items, breadcrumb trails, tab indicators, or step progress bars, do not update automatically.
-
-```text
-┌─────────────────────────────────────────────────────────────┐
-│ Header / Breadcrumbs (Stale: Page 1)                        │
-├──────────────┬──────────────────────────────────────────────┤
-│              │                                              │
-│ Sidebar      │  Main Content (Updated: Page 2)              │
-│ (Stale:      │                                              │
-│  Item 1)     │  Targeted element swapped successfully.      │
-│              │  Surrounding navigation controls did not.    │
-│              │                                              │
-└──────────────┴──────────────────────────────────────────────┘
+```{tip}
+**Looking for project overviews or live benchmarks?**
+* <a href="../">Showcase Overview</a>: High-level overview, feature summary, and quick links.
+* <a href="../guide/">Architectural Guide</a>: Deep dive into hypermedia state synchronization across Turbo, LiveView, Unpoly, and Django.
+* <a href="../benchmarks/">Benchmark Dashboard</a>: Empirical measurements of payload compression (~70–80%), server overhead (<0.5 ms), and flat DB query counts across 23 variants.
+* {demo}`Live Helpdesk Sandbox <htmx-nav/declarative/>`: Interactive demo application hosted on Render.
 ```
 
-This creates UI state drift: the main content updates, but the surrounding application chrome still reflects the previous route.
+## Installation
 
-This repository serves as both library documentation and an empirical study. It analyzes and benchmarks solutions across **8 distinct architectural strategies**, ranging from unassisted Vanilla HTMX and hand-written template OOB swaps to declarative registries and baseline MPAs:
+Install `django-htmx-nav` from PyPI:
 
-- **{demo}`Live Example Project Showcase <htmx-nav/baseline/>`:** Compare implementations, template structures, and UI behaviors side-by-side in a deployed helpdesk app.
-- **{live}`Interactive Benchmark Dashboard <benchmarks/>`:** Explore empirical metrics comparing payload size (~70–80% savings over MPAs), server render overhead (<0.5 ms), and request-scoped database efficiency (~4.5 avg queries).
-- **{live}`Architectural Guide <guide/>`:** An in-depth guide on hypermedia navigation patterns across Turbo, LiveView, Unpoly, and Django with HTMX.
+```bash
+pip install django-htmx-nav
+```
 
-## Core Capabilities
+### Requirements
+
+- **Python:** 3.10, 3.11, 3.12, 3.13, 3.14
+- **Django:** 4.2, 5.0, 5.1, 6.0+
+- **django-template-partials** *(optional, recommended)*: Native partials support without dividing templates into hundreds of mini-files.
+
+## Core Concepts & Mental Model
 
 ```text
 +-----------------------------------------------------------------------+
@@ -46,62 +43,42 @@ This repository serves as both library documentation and an empirical study. It 
 +-----------------------------------+-----------------------------------+
 ```
 
-### 1. Centralized on the `Swap` Primitive
+1. **`Swap` (The Atomic Unit):** A frozen dataclass specifying a component template, context, and target DOM element. Auto-wraps fragments with `<div id="..." hx-swap-oob="innerHTML">` on delivery without template tags or manual wrapper boilerplate.
+2. **`render_nav`:** A drop-in replacement for Django's `render()`. Renders only requested partial blocks during HTMX requests, and full layouts on initial browser loads, setting `Vary: HX-Request` automatically.
+3. **`make_shell_renderer` & `make_shell_view_mixin`:** Encapsulates recurring application shell navigation (sidebars, breadcrumbs, user badges) into a single reusable factory for function-based or class-based views.
+4. **`assert_shell_parity`:** Test assertions ensuring that partial HTMX navigation and direct full-page browser loads produce 100% identical navigation context and active element state.
 
-At the core of the library is `Swap`, a frozen Python dataclass describing what to render, where to deliver it, and under what conditions.
+## Quickstart at a Glance
 
-- **Zero-Boilerplate Auto-Wrapping:** Point `Swap` directly at clean component templates (like `_sidebar.html`). `Swap` automatically wraps them in `<div id="sidebar" hx-swap-oob="innerHTML">...</div>` or `<hx-partial>` at render time. The exact same template can be rendered inside full-page templates without template tag hacks.
-- **Pythonic Conditionals (`include_if`):** Replace fragile template checks (`{% if request.htmx ... %}`) with Python predicates: `targeting("content")`, `not_targeting("sidebar")`, `has_messages`, or custom lambdas.
-- **Specialized Fast Constructors:**
-  - `Swap.delete(target_id)`: Emits `hx-swap-oob="delete"` instantly without touching Django's template engine.
-  - `Swap.text(target_id, content)`: Sends raw text or numeric counters directly, skipping template rendering entirely.
-  - `has_messages`: Automatically suppresses flash message swaps when no Django messages are pending.
-
-### 2. Universal Python Versatility
-
-- **Function-Based Views (`render_nav`)**: A drop-in replacement for Django's `render()`. Serves partial blocks (`{% partialdef %}`) on HTMX requests and full layouts on direct browser requests, setting appropriate `Vary: HX-Request` headers.
-- **Reusable Shell Renderers (`make_shell_renderer`)**: Encapsulates recurring layout dependencies (sidebars, breadcrumbs, user badges) once into a shared renderer. Views call `render_shell(...)` and can append per-view `extra_swaps`.
-- **Class-Based Views (`make_shell_view_mixin`)**: Deeply integrates into Django generic views (`ListView`, `DetailView`, `UpdateView`). Override `get_extra_swaps()` with access to `self.request` and `self.object`.
-
-### 3. Built-in Visual Debugging
-
-Enable `HTMX_NAV_DEBUG_SWAPS = True` in development settings to have every out-of-band swap automatically flash with a visual CSS highlight (`.hn-swap`) in the browser. See exactly which layout regions updated on every click.
-
-### 4. Automated Parity Testing
-
-Test helpers (`assert_shell_parity` and `assert_shell_composition`) ensure that navigating via HTMX produces the exact same navigation context and active DOM state as a direct full-page browser reload.
-
-## Quick Example
+Define reusable shell navigation once using `make_shell_renderer`:
 
 ```python
 from django.shortcuts import get_object_or_404
 from htmx_nav import Swap, make_shell_renderer
 from .models import Project
 
-# 1. Define reusable shell navigation once (fixed list or request callable):
+# Define shell navigation dependencies:
 render_shell = make_shell_renderer(lambda request: [
     Swap("app/_sidebar.html", {"user": request.user}, target_id="sidebar"),
     Swap("app/_breadcrumbs.html", target_id="breadcrumbs"),
 ])
 
-# 2. Views call render_shell exactly like Django's render():
 def project_detail(request, pk):
     project = get_object_or_404(Project, pk=pk)
     return render_shell(
         request,
         "app/project_detail.html",
         {"project": project},
-        # Optional per-view extra swaps:
+        # Per-view extra swaps:
         extra_swaps=[
             Swap("app/_tabs.html", {"active": "overview"}, target_id="project-tabs"),
         ],
     )
 ```
 
-In your template, use native Django partials for the least boilerplate:
+In your template (`templates/app/project_detail.html`), use standard blocks or `{% partialdef %}`:
 
 ```html
-<!-- templates/app/project_detail.html -->
 {% extends 'base.html' %}
 
 {% block content %}
@@ -114,10 +91,10 @@ In your template, use native Django partials for the least boilerplate:
 {% endblock %}
 ```
 
-See the [Quickstart Guide](quickstart.md) for how `partial=` resolves against `{% partialdef %}` blocks, plus out-of-band swaps, shell rendering, and testing.
+- **Full Page Request (`GET /projects/42/`):** Renders the full `base.html` document with `#sidebar`, `#breadcrumbs`, and `#content`.
+- **HTMX Boosted Request (`HX-Request: true`):** Returns only the `#content` partial, automatically bundling out-of-band swaps for `#sidebar`, `#breadcrumbs`, and `#project-tabs`.
 
-- **Direct browser load (`GET /projects/42/`)**: Renders full `base.html` shell with all navigation components intact.
-- **Boosted HTMX request (`HX-Request: true`)**: Renders only the `#content` partial, automatically appending out-of-band swaps for `#sidebar`, `#breadcrumbs`, and `#project-tabs`.
+For a step-by-step tutorial, see the [Quickstart Guide](quickstart.md).
 
 ## Documentation Index
 

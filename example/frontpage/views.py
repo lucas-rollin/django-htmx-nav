@@ -3,7 +3,6 @@ Showcase landing page, architectural guide, and SEO views for django-htmx-nav.
 """
 
 from pathlib import Path
-
 from urllib.parse import urlsplit
 
 from config.constants import EnvironmentChoices
@@ -20,7 +19,7 @@ def landing(request: HttpRequest) -> HttpResponse:
 
     # Redirect for the demo
     if settings.ENVIRONMENT == EnvironmentChoices.DEMO:
-        redirect("htmx_nav_declarative:overview")
+        return redirect("htmx_nav_declarative:overview")
 
     # Group unique base implementation families
     families = []
