@@ -532,19 +532,10 @@ def ticket_wizard_step(
             messages.add_message(
                 request, messages.SUCCESS, "Ticket submitted! (Not really ;~;)"
             )
-
-            target_url = reverse(
+            return redirect(
                 f"{NAMESPACE}:ticket_detail",
-                kwargs={"ticket_id": fake_new_ticket.id if fake_new_ticket else None},
+                ticket_id=fake_new_ticket.id if fake_new_ticket else None,
             )
-
-            # If it's an HTMX request, instruct HTMX to perform a client-side redirect
-            if request.headers.get("HX-Request"):
-                response = HttpResponse(status=200)
-                response["HX-Redirect"] = target_url
-                return response
-
-            return redirect(target_url)
 
         return redirect(
             f"{NAMESPACE}:ticket_wizard_step",

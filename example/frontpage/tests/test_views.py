@@ -135,7 +135,9 @@ def test_resolve_demo_target_url():
     settings_url = resolve_demo_target_url("htmx_nav_declarative", "project_settings")
     assert settings_url.endswith("/settings/")
 
-    subtab_url = resolve_demo_target_url("htmx_nav_declarative", "project_settings_subtab")
+    subtab_url = resolve_demo_target_url(
+        "htmx_nav_declarative", "project_settings_subtab"
+    )
     assert subtab_url.endswith("/settings/general/")
 
     ticket_url = resolve_demo_target_url("htmx_nav_declarative", "ticket_detail")
@@ -203,4 +205,3 @@ def test_landing_page_demo_environment_redirect(client, monkeypatch):
     assert "/htmx-nav/declarative/orgs/" in response.url
     assert "/projects/" in response.url
     assert "debug-swaps=1" in response.url
-

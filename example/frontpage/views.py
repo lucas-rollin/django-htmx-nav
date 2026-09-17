@@ -78,7 +78,9 @@ def demo_entry(
     url_name: str | None = None,
 ) -> HttpResponse:
     """Redirect to a variant's demo page without needing mock data IDs in URLs."""
-    if variant not in VARIANTS and variant not in {v.namespace for v in VARIANTS.values()}:
+    if variant not in VARIANTS and variant not in {
+        v.namespace for v in VARIANTS.values()
+    }:
         raise Http404(f"Unknown demo variant: '{variant}'")
 
     try:
