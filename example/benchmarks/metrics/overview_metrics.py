@@ -49,12 +49,16 @@ def build_panels() -> list[Panel]:
     payload_rows = _load("payload")
     client_rows = _load("client")
 
+    from .summary import load_benchmark_summary
+
+    summary = load_benchmark_summary()
+
     candidates = [
-        _views_loc(static_rows),
-        _server_latency(server_rows),
-        _transfer_bytes(payload_rows),
-        _queries_vs_swaps(server_rows),
-        _htmx_processing(client_rows),
+        _views_loc(static_rows, summary),
+        _server_latency(server_rows, summary),
+        _transfer_bytes(payload_rows, summary),
+        _queries_vs_swaps(server_rows, summary),
+        _htmx_processing(client_rows, summary),
     ]
     return [p for p in candidates if p is not None]
 
@@ -101,24 +105,29 @@ def _ordered(values: dict[str, float]) -> tuple[list[str], list[float]]:
 # --- individual panels --------------------------------------------------
 
 
-def _views_loc(static_rows) -> Panel | None:
+def _views_loc(static_rows, summary=None) -> Panel | None:
     views = _averaged_base(static_rows, "views_loc")
     attrs = _averaged_base(static_rows, "total_template_hx_attributes")
     variants = [v for v in FAMILY_ORDER if v in views and v in attrs]
     if not variants:
         return None
 
+    if summary is None:
+        from .summary import load_benchmark_summary
+
+        summary = load_benchmark_summary()
+
     labels = [_label(v) for v in variants]
     return Panel(
         key="views_loc",
         title="Code complexity: Views vs. template maintenance",
         caption=(
-            "<b>htmx_nav_declarative</b> achieves the lowest Python view footprint "
-            "(<b>305 LOC</b>, ~<b>30% fewer lines</b> than plain MPA) by offloading context and swap "
-            "logic to a declarative navigation file. In contrast, while Vanilla Unaware views appear identical "
-            "to plain MPA in Python LOC (434), pairing them with <code>hx-select</code> pushes "
-            "routing plumbing into HTML, quadrupling manual <code>hx-*</code> attributes from 6 "
-            "up to <b>27</b>."
+            f"<b>htmx_nav_declarative</b> achieves the lowest Python view footprint "
+            f"(<b>{summary.declarative_loc} LOC</b>, ~<b>{summary.loc_reduction_pct}% fewer lines</b> than plain MPA) by offloading context and swap "
+            f"logic to a declarative navigation file. In contrast, while Vanilla Unaware views appear identical "
+            f"to plain MPA in Python LOC ({summary.unaware_views_loc}), pairing them with <code>hx-select</code> pushes "
+            f"routing plumbing into HTML, quadrupling manual <code>hx-*</code> attributes from {summary.unaware_base_hx_attrs} "
+            f"up to <b>{summary.unaware_hx_attrs}</b>."
         ),
         chart={
             "type": "bar_line",
@@ -131,12 +140,17 @@ def _views_loc(static_rows) -> Panel | None:
     )
 
 
-def _server_latency(server_rows) -> Panel | None:
+def _server_latency(server_rows, summary=None) -> Panel | None:
     p50_map = _averaged_base(server_rows, "render_time_ms_median")
     p95_map = _averaged_base(server_rows, "render_time_ms_p95")
     variants = [v for v in FAMILY_ORDER if v in p50_map and v in p95_map]
     if not variants:
         return None
+
+    if summary is None:
+        from .summary import load_benchmark_summary
+
+        summary = load_benchmark_summary()
 
     labels = [_label(v) for v in variants]
     series = [
@@ -154,10 +168,10 @@ def _server_latency(server_rows) -> Panel | None:
         key="server_latency",
         title="Server render time: Median (P50) vs. tail (P95) latency",
         caption=(
-            "Server-side navigation synchronization in <b>htmx_nav</b> adds <b>near-zero CPU overhead</b> "
-            "(~<b>7.0 ms</b> median across all approaches). Furthermore, partial rendering tightens tail "
-            "latency: full-shell rendering under load spikes to <b>11.9 ms</b> (P95) in Vanilla Unaware, "
-            "while partial and declarative swaps stay consistently below <b>8.2 ms</b>."
+            f"Server-side navigation synchronization in <b>htmx_nav</b> adds <b>near-zero CPU overhead</b> "
+            f"(~<b>{summary.render_latency_median_ms:.1f} ms</b> median across all approaches). Furthermore, partial rendering tightens tail "
+            f"latency: full-shell rendering under load spikes to <b>{summary.p95_unaware_ms:.1f} ms</b> (P95) in Vanilla Unaware, "
+            f"while partial and declarative swaps stay consistently below <b>{summary.p95_partial_max_ms:.1f} ms</b>."
         ),
         chart={
             "type": "grouped_bar",
@@ -168,7 +182,7 @@ def _server_latency(server_rows) -> Panel | None:
     )
 
 
-def _transfer_bytes(payload_rows) -> Panel | None:
+def _transfer_bytes(payload_rows, summary=None) -> Panel | None:
     data_by_scenario: dict[str, dict[str, float]] = {
         sc[0]: {} for sc in SCENARIOS_PAYLOAD
     }
@@ -192,6 +206,11 @@ def _transfer_bytes(payload_rows) -> Panel | None:
     if not present_families:
         return None
 
+    if summary is None:
+        from .summary import load_benchmark_summary
+
+        summary = load_benchmark_summary()
+
     labels = [_label(f) for f in present_families]
     series = [
         {
@@ -205,10 +224,10 @@ def _transfer_bytes(payload_rows) -> Panel | None:
         key="transfer_bytes",
         title="On-wire payload by swap level (gzip)",
         caption=(
-            "Across <b>Main</b>, <b>Tab</b>, and <b>Subtab</b> content swaps, partial rendering "
-            "consistently cuts wire transfer in half (~<b>3.0-3.3 KB</b> vs ~<b>6.1-6.3 KB</b> in Pure MPA & Vanilla Unaware). "
-            "In deeply nested subtab swaps, <b>Atomic</b> and <b>Declarative</b> strategies achieve the lowest payload "
-            "(&lt;<b>3.0 KB</b>) by swapping only the leaf container."
+            f"Across <b>Main</b>, <b>Tab</b>, and <b>Subtab</b> content swaps, partial rendering "
+            f"consistently cuts wire transfer in half (~<b>{summary.swap_min_kb:.1f}-{summary.swap_max_kb:.1f} KB</b> vs ~<b>{summary.full_min_kb:.1f}-{summary.full_max_kb:.1f} KB</b> in Pure MPA & Vanilla Unaware). "
+            f"In deeply nested subtab swaps, <b>Atomic</b> and <b>Declarative</b> strategies achieve the lowest payload "
+            f"(&lt;<b>{summary.subtab_min_kb:.1f} KB</b>) by swapping only the leaf container."
         ),
         chart={
             "type": "grouped_bar",
@@ -219,22 +238,27 @@ def _transfer_bytes(payload_rows) -> Panel | None:
     )
 
 
-def _queries_vs_swaps(server_rows) -> Panel | None:
+def _queries_vs_swaps(server_rows, summary=None) -> Panel | None:
     queries = _averaged_base(server_rows, "db_query_count")
     swaps = _averaged_base(server_rows, "swap_render_count")
     variants = [v for v in FAMILY_ORDER if v in queries and v in swaps]
     if not variants:
         return None
 
+    if summary is None:
+        from .summary import load_benchmark_summary
+
+        summary = load_benchmark_summary()
+
     labels = [_label(v) for v in variants]
     return Panel(
         key="queries_vs_swaps",
         title="DB queries stay flat as OOB swap count rises",
         caption=(
-            "DB queries average <b>4.5</b> across all approaches regardless of "
-            "OOB fragment count. Swap context is built once per request via "
-            "<b>cache_on_request</b> and reused across fragments, avoiding "
-            "per-swap query overhead."
+            f"DB queries average <b>{summary.avg_db_queries:.1f}</b> across all approaches regardless of "
+            f"OOB fragment count. Swap context is built once per request via "
+            f"<b>cache_on_request</b> and reused across fragments, avoiding "
+            f"per-swap query overhead."
         ),
         chart={
             "type": "bar_line",
@@ -247,7 +271,7 @@ def _queries_vs_swaps(server_rows) -> Panel | None:
     )
 
 
-def _htmx_processing(client_rows) -> Panel | None:
+def _htmx_processing(client_rows, summary=None) -> Panel | None:
     htmx_families = [f for f in FAMILY_ORDER if f != "mpa"]
 
     series_defs = [
@@ -284,17 +308,22 @@ def _htmx_processing(client_rows) -> Panel | None:
             data.append(round(mean(matching), 1) if matching else None)
         series.append({"name": name, "data": data})
 
+    if summary is None:
+        from .summary import load_benchmark_summary
+
+        summary = load_benchmark_summary()
+
     labels = [_label(f) for f in htmx_families]
 
     return Panel(
         key="htmx_processing_ms",
         title="Client DOM processing across extensions (hx-select vs. morph)",
         caption=(
-            "Using <code>hx-select</code> delivers a <b>50-63% reduction</b> in client DOM processing "
-            "time (dropping to ~<b>12.7 ms</b> in HTMX-Nav) because the browser only parses the matching subtree. "
-            "In contrast, <b>Idiomorph</b> adds ~<b>5-10 ms</b> of JavaScript DOM diffing on full page shells "
-            "(Vanilla Unaware jumps to <b>53.5 ms</b>). Combining <code>+hx-select</code> with Idiomorph "
-            "provides a balance of morphing state preservation without the large-tree diffing cost."
+            f"Using <code>hx-select</code> delivers a <b>{summary.dom_red_min}-{summary.dom_red_max}% reduction</b> in client DOM processing "
+            f"time (dropping to ~<b>{summary.nav_hx_select_ms:.1f} ms</b> in HTMX-Nav) because the browser only parses the matching subtree. "
+            f"In contrast, <b>Idiomorph</b> adds ~5-10 ms of JavaScript DOM diffing on full page shells "
+            f"(Vanilla Unaware jumps to <b>{summary.unaware_morph_ms:.1f} ms</b>). Combining <code>+hx-select</code> with Idiomorph "
+            f"provides a balance of morphing state preservation without the large-tree diffing cost."
         ),
         chart={
             "type": "grouped_bar",

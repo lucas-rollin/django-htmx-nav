@@ -115,28 +115,6 @@ def landing(request: HttpRequest) -> HttpResponse:
         "families": families,
         "variants_count": len(VARIANTS),
         "families_count": len(families),
-        "headline_metrics": [
-            {
-                "stat": "~32%",
-                "label": "Payload Reduction",
-                "desc": "Average wire size reduction compared to views unaware vanilla HTMX.",
-            },
-            {
-                "stat": "<0.5 ms",
-                "label": "Render Overhead",
-                "desc": "Minimal server-side compute cost for building multi-region OOB swaps.",
-            },
-            {
-                "stat": "4.5 avg",
-                "label": "Flat DB Queries",
-                "desc": "Request-scoped caching prevents duplicate queries across partials.",
-            },
-            {
-                "stat": "23",
-                "label": "Tested Variants",
-                "desc": "Comprehensive comparison across MPA, Vanilla HTMX, hx-select, and Idiomorph.",
-            },
-        ],
     }
     return render(request, "frontpage/landing.html", context)
 

@@ -1,3 +1,5 @@
+{% load benchmark_tags %}
+{% get_benchmark_summary as bench %}
 <section id="benchmarks-findings" class="scroll-mt-24">
   <h2 class="text-2xl sm:text-3xl font-black tracking-tight border-b border-base-200 pb-3">
     5. Empirical Benchmark Findings
@@ -6,9 +8,9 @@
     Data collected from automated Playwright test runs and Django query counters across the Helpdesk reference testbed:
   </p>
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 not-prose my-6">
-    {% include "frontpage/components/_stat_card.html" with label="Average Payload" tone="primary" value="4.1 KB" desc="↓ 32.8% smaller than MPA (6.1 KB)" desc_highlight=True %}
-    {% include "frontpage/components/_stat_card.html" with label="Render Latency" tone="secondary" value="&lt; 0.5 ms" desc="Negligible swap construction cost" %}
-    {% include "frontpage/components/_stat_card.html" with label="Database Queries" tone="base-content" value="4.5 avg" desc="0 query duplication with cache" desc_highlight=True %}
+    {% include "frontpage/components/_stat_card.html" with label="Average Payload" tone="primary" value=bench.payload_value desc=bench.payload_desc desc_highlight=True %}
+    {% include "frontpage/components/_stat_card.html" with label="Render Latency" tone="secondary" value=bench.render_latency_value desc="Negligible swap construction cost" %}
+    {% include "frontpage/components/_stat_card.html" with label="Database Queries" tone="base-content" value=bench.db_queries_value desc="0 query duplication with cache" desc_highlight=True %}
   </div>
   <p class="text-sm text-base-content/80 leading-relaxed">
     Explore interactive charts, ranked variants, and payload distributions in the <a href="{% url 'benchmarks:overview' %}"

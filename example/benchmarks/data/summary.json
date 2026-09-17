@@ -1,0 +1,57 @@
+{
+  "generated_at": "2026-09-17T14:50:42.603813+00:00",
+  "static": {
+    "mpa_views_loc": 434,
+    "unaware_views_loc": 434,
+    "declarative_views_loc": 305,
+    "loc_reduction_pct": 30,
+    "unaware_base_hx_attrs": 6,
+    "unaware_hx_select_attrs": 27,
+    "declarative_hx_attrs": 12
+  },
+  "server": {
+    "median_render_ms": 7.0,
+    "p95_unaware_ms": 11.9,
+    "p95_partial_max_ms": 8.2,
+    "avg_db_queries": 4.5,
+    "render_overhead_ms": "<0.5"
+  },
+  "payload": {
+    "mpa_overall_avg_kb": 6.0,
+    "htmx_nav_overall_avg_kb": 4.2,
+    "overall_reduction_pct": 31,
+    "swap_min_kb": 2.9,
+    "swap_max_kb": 3.3,
+    "full_min_kb": 5.9,
+    "full_max_kb": 6.2,
+    "subtab_min_kb": 2.9
+  },
+  "client": {
+    "hx_select_reduction_pct_min": 54,
+    "hx_select_reduction_pct_max": 63,
+    "htmx_nav_hx_select_ms": 12.8,
+    "unaware_morph_ms": 53.5
+  },
+  "headline_metrics": [
+    {
+      "stat": "~31%",
+      "label": "Payload Reduction",
+      "desc": "Average wire size reduction compared to views unaware vanilla HTMX."
+    },
+    {
+      "stat": "<0.5 ms",
+      "label": "Render Overhead",
+      "desc": "Minimal server-side compute cost for building multi-region OOB swaps."
+    },
+    {
+      "stat": "4.5 avg",
+      "label": "Flat DB Queries",
+      "desc": "Request-scoped caching prevents duplicate queries across partials."
+    },
+    {
+      "stat": "23",
+      "label": "Tested Variants",
+      "desc": "Comprehensive comparison across MPA, Vanilla HTMX, hx-select, and Idiomorph."
+    }
+  ]
+}

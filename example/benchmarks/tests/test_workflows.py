@@ -308,3 +308,67 @@ def test_settings_split_dev_prod_vs_benchmark(monkeypatch):
     monkeypatch.delenv("HTMX_NAV_DEBUG_SWAPS", raising=False)
     monkeypatch.delenv("HTMX_NAV_BENCHMARK_LOCAL_ASSETS", raising=False)
     importlib.reload(app_settings)
+
+
+def test_update_reference_summary_command(tmp_path):
+    """Test generating summary.json via update_reference_summary command."""
+    out_file = tmp_path / "summary.json"
+    out = io.StringIO()
+    call_command("update_reference_summary", "--output", str(out_file), stdout=out)
+
+    assert out_file.exists()
+    content = out.getvalue()
+    assert "Successfully generated benchmark summary" in content
+    assert "Declarative LOC" in content
+    assert "Payload reduction" in content
+
+
+def test_benchmark_summary_properties():
+    """Verify BenchmarkSummary properties and fallback loading."""
+    from benchmarks.metrics.summary import load_benchmark_summary
+
+    load_benchmark_summary.cache_clear()
+    summary = load_benchmark_summary()
+    assert summary.declarative_loc > 0
+    assert summary.mpa_loc > summary.declarative_loc
+    assert summary.loc_reduction_pct > 0
+    assert summary.payload_reduction_pct > 0
+    assert "KB" in summary.payload_value
+    assert len(summary.headline_metrics) == 4
+
+
+def test_benchmark_summary_missing_summary_file_uses_reference(tmp_path):
+    """If summary.json is absent, load_benchmark_summary computes from reference datasets."""
+    from benchmarks.metrics.summary import load_benchmark_summary
+
+    load_benchmark_summary.cache_clear()
+    non_existent = tmp_path / "missing_summary.json"
+    summary = load_benchmark_summary(non_existent)
+    assert summary.declarative_loc > 0
+    assert summary.payload_reduction_pct > 0
+
+
+def test_benchmark_summary_missing_all_files_raises(tmp_path, monkeypatch):
+    """If neither summary.json nor reference datasets exist, raise FileNotFoundError."""
+    from benchmarks.metrics import jsonl, summary
+
+    summary.load_benchmark_summary.cache_clear()
+    monkeypatch.setattr(jsonl, "DATA_DIR", tmp_path)
+    with pytest.raises(FileNotFoundError, match="neither .* nor reference JSONL"):
+        summary.load_benchmark_summary(tmp_path / "summary.json")
+
+
+def test_benchmark_templatetag():
+    """Test benchmark_tags templatetag in a Django template."""
+    from django.template import Context, Template
+
+    t = Template(
+        "{% load benchmark_tags %}"
+        "{% get_benchmark_summary as bench %}"
+        "{{ bench.payload_reduction_pct }}|{{ bench.declarative_loc }}"
+    )
+    rendered = t.render(Context())
+    parts = rendered.split("|")
+    assert len(parts) == 2
+    assert int(parts[0]) > 0
+    assert int(parts[1]) > 0

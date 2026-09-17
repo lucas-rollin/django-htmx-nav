@@ -71,6 +71,16 @@ Open [http://127.0.0.1:8000/benchmarks/](http://127.0.0.1:8000/benchmarks/) in y
 - **Overview Page (`/benchmarks/`)**: Displays cross-category headline findings based on pinned reference datasets (`example/benchmarks/data/reference_*.jsonl`).
 - **Category Dashboards (`/benchmarks/{static,server,payload,client}/`)**: Automatically detects and loads the freshest `.jsonl` run in `data/`, falling back to the reference snapshot if no local run has been recorded.
 
+### Updating Reference Summaries
+
+When you update or commit new reference datasets (`reference_*.jsonl`), recompute the headline metrics and panel prose:
+
+```bash
+python example/manage.py update_reference_summary
+```
+
+This updates `example/benchmarks/data/summary.json`, keeping overview chart captions and frontpage metrics in sync.
+
 ## 4. Extending the Benchmark Suite
 
 To add a new metric category or custom collector:

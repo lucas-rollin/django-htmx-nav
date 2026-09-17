@@ -1,3 +1,5 @@
+{% load benchmark_tags %}
+{% get_benchmark_summary as bench %}
 <section id="example-variants" class="scroll-mt-24 space-y-12">
   <div>
     <h2 class="text-2xl sm:text-3xl font-black tracking-tight border-b border-base-200 pb-3">
@@ -66,7 +68,7 @@
       <pre><code class="language-html">{% include "frontpage/articles/architectural_guide/snippets/shell_overview.html" %}</code></pre>
     </div>
     <div class="text-xs text-base-content/75 bg-base-200/40 p-3 rounded-lg border border-base-200">
-      <strong>Result:</strong> Reduces payload by ~32% to <strong>~4.1 KB</strong>, but forces the team to author and maintain a shadow directory of <code>_*.html</code> shell templates.
+      <strong>Result:</strong> Reduces payload by ~{{ bench.payload_reduction_pct }}% to <strong>~{{ bench.payload_value }}</strong>, but forces the team to author and maintain a shadow directory of <code>_*.html</code> shell templates.
     </div>
   </div>
   <!-- 4.3 htmx-nav Composite -->
@@ -85,7 +87,7 @@
       <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/views_htmx_nav_composite.py" %}</code></pre>
     </div>
     <div class="text-xs text-base-content/75 bg-base-200/40 p-3 rounded-lg border border-base-200">
-      <strong>Result:</strong> Matches the ~32% payload reduction of Vanilla HTMX (down to <strong>~4.1 KB</strong>), but eliminates all parallel shell templates.
+      <strong>Result:</strong> Matches the ~{{ bench.payload_reduction_pct }}% payload reduction of Vanilla HTMX (down to <strong>~{{ bench.payload_value }}</strong>), but eliminates all parallel shell templates.
     </div>
   </div>
   <!-- 4.4 htmx-nav Baseline -->
@@ -124,7 +126,7 @@
     <!-- Toggleable Registry Snippet (Default Hidden) -->
     <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral text-neutral-content not-prose">
       <div class="flex items-center justify-between px-4 py-2.5 border-b border-base-300/30 bg-base-900/40 text-xs">
-        <span class="text-neutral-content/60 font-mono">registry_declarative.py</span>
+        <span class="text-neutral-content/60 font-mono"># example/htmx_nav_demo/registry_declarative.py</span>
         <button @click="showRegistry = !showRegistry"
                 class="btn btn-ghost btn-xs text-primary hover:bg-neutral-focus">
           <span x-text="showRegistry ? 'Hide Registry Code' : 'Show Registry Code'"></span>

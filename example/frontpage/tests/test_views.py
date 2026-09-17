@@ -31,8 +31,9 @@ def test_landing_page(client):
         assert fam.family not in seen_families
         seen_families.add(fam.family)
 
-    # Headline metrics validation
-    metrics = ctx["headline_metrics"]
+    # Headline metrics validation (hydrated via benchmark_tags in template)
+    bench = ctx["bench"]
+    metrics = bench.headline_metrics
     assert len(metrics) >= 4
     for metric in metrics:
         assert "stat" in metric and "label" in metric and "desc" in metric
