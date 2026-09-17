@@ -222,7 +222,7 @@ def _project_tab_swap(request, active: str) -> list[dict]:
         "core/components/_tabs.html",
         {"active_tab": active, "tabs": tabs_context},
         target_id="tabs",
-        include_if=targeting("tab-content"),
+        include_if=targeting("tab-content", "subtab-content"),
     )
 
 

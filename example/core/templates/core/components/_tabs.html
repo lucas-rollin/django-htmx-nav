@@ -1,9 +1,5 @@
-{% load variant_extras %}
 <div role="tablist"
-     class="tabs tabs-lift mb-6"
-     {% if "tabs" in active_variant.component_swaps or active_variant.uses_hx_select %}hx-target="#tab-content" {% endif %}
-     {% hx_select_attrs "tab-content" %}
-     {% morph_attrs "tab-content" %}>
+     class="tabs tabs-lift mb-6">
   {% for tab in tabs %}
     <a role="tab"
        class="tab {% if tab.active %}tab-active font-semibold{% endif %}"
