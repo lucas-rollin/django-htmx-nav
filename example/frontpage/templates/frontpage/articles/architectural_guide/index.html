@@ -15,7 +15,7 @@
       <span>Interactive Testbed</span>
     </div>
     <p class="text-base-content/70">Every pattern analyzed in this guide is implemented and runnable inside this example app.</p>
-    <a href="{{ DEMO_URL }}{% url "htmx_nav_declarative:overview" %}" target="_blank" rel="noopener noreferrer"
+    <a href="{{ DEMO_URL }}{% url "demo_entry" "htmx_nav_declarative" %}" target="_blank" rel="noopener noreferrer"
        class="btn btn-primary btn-xs w-full mt-1">Open Live Demo</a>
   </div>
 {% endblock %}
@@ -37,7 +37,7 @@
       <a href="{{ DOCS_URL }}"
          {% if primary_external %}target="_blank" rel="noopener noreferrer"{% endif %}
          class="btn btn-neutral btn-sm shadow-md group">Read Documentation {% include "frontpage/components/_arrow_icon.html" %}</a>
-      <a href="{{ DEMO_URL }}{% url 'htmx_nav_declarative:overview' %}" target="_blank" rel="noopener noreferrer"
+      <a href="{{ DEMO_URL }}{% url 'demo_entry' 'htmx_nav_declarative' %}" target="_blank" rel="noopener noreferrer"
          class="btn btn-outline btn-sm border-white text-white hover:bg-white hover:text-primary">Launch Live Demo</a>
     </div>
   </div>

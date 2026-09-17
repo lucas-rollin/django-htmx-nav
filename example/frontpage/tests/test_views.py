@@ -120,3 +120,87 @@ def test_sitemap_xml(client):
     assert "http://testserver/benchmarks/payload/" in locs
     assert "http://testserver/benchmarks/client/" in locs
     assert "http://testserver/docs/" in locs
+
+
+@pytest.mark.django_db
+def test_resolve_demo_target_url():
+    from frontpage.views import resolve_demo_target_url
+
+    # Default is project_overview
+    url = resolve_demo_target_url("htmx_nav_declarative")
+    assert "/htmx-nav/declarative/orgs/" in url
+    assert "/projects/" in url
+
+    # Specific url names
+    settings_url = resolve_demo_target_url("htmx_nav_declarative", "project_settings")
+    assert settings_url.endswith("/settings/")
+
+    subtab_url = resolve_demo_target_url("htmx_nav_declarative", "project_settings_subtab")
+    assert subtab_url.endswith("/settings/general/")
+
+    ticket_url = resolve_demo_target_url("htmx_nav_declarative", "ticket_detail")
+    assert "/tickets/" in ticket_url
+
+    overview_url = resolve_demo_target_url("htmx_nav_declarative", "overview")
+    assert overview_url == "/htmx-nav/declarative/"
+
+
+@pytest.mark.django_db
+def test_demo_entry_default(client):
+    url = reverse("demo_entry", args=["htmx_nav_declarative"])
+    response = client.get(url)
+    assert response.status_code == 302
+    assert "/htmx-nav/declarative/orgs/" in response.url
+    assert "/projects/" in response.url
+
+
+@pytest.mark.django_db
+def test_demo_entry_no_args(client):
+    url = reverse("demo_entry")
+    response = client.get(url)
+    assert response.status_code == 302
+    assert "/htmx-nav/declarative/orgs/" in response.url
+    assert "/projects/" in response.url
+
+
+@pytest.mark.django_db
+def test_demo_entry_specific_url_name(client):
+    url = reverse("demo_entry", args=["htmx_nav_declarative", "project_settings"])
+    response = client.get(url)
+    assert response.status_code == 302
+    assert response.url.endswith("/settings/")
+
+
+@pytest.mark.django_db
+def test_demo_entry_query_params(client):
+    url = reverse("demo_entry", args=["htmx_nav_declarative", "project_overview"])
+    response = client.get(f"{url}?debug-swaps=1&foo=bar")
+    assert response.status_code == 302
+    assert "debug-swaps=1" in response.url
+    assert "foo=bar" in response.url
+
+
+def test_demo_entry_unknown_variant_404(client):
+    response = client.get("/demo/unknown_variant_123/")
+    assert response.status_code == 404
+
+
+def test_demo_entry_unknown_url_name_404(client):
+    response = client.get("/demo/htmx_nav_declarative/unknown_route_123/")
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_landing_page_demo_environment_redirect(client, monkeypatch):
+    from config.constants import EnvironmentChoices
+
+    monkeypatch.setattr("frontpage.views.settings.ENVIRONMENT", EnvironmentChoices.DEMO)
+    url = reverse("landing")
+    response = client.get(f"{url}?debug-swaps=1")
+
+    # Single redirect directly to flagship demo
+    assert response.status_code == 302
+    assert "/htmx-nav/declarative/orgs/" in response.url
+    assert "/projects/" in response.url
+    assert "debug-swaps=1" in response.url
+

@@ -8,18 +8,98 @@ from urllib.parse import urlsplit
 from config.constants import EnvironmentChoices
 from core.navigation.registry import VARIANTS
 from django.conf import settings
-from django.http import HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
+
+
+def _get_default_demo_ids() -> tuple[str, str, str]:
+    """Retrieve default mock organization, project, and ticket IDs."""
+    try:
+        from core.models import Project, Ticket
+
+        project = Project.objects.select_related("organization").first()
+        if project:
+            org_id = str(project.organization_id)
+            project_id = str(project.id)
+        else:
+            org_id, project_id = "1", "1"
+
+        ticket = Ticket.objects.first()
+        ticket_id = str(ticket.id) if ticket else "1"
+        return org_id, project_id, ticket_id
+    except Exception:
+        return "1", "1", "1"
+
+
+def resolve_demo_target_url(
+    variant: str = "htmx_nav_declarative",
+    url_name: str | None = None,
+) -> str:
+    """Resolve a concrete demo URL for a variant without requiring callers to supply mock IDs.
+
+    Defaults to 'project_overview' as the primary showcase page.
+    """
+    target = url_name or "project_overview"
+    org_id, project_id, ticket_id = _get_default_demo_ids()
+
+    if target in (
+        "project_overview",
+        "project_team",
+        "project_settings",
+        "ticket_list",
+        "kanban_board",
+    ):
+        args = [org_id, project_id]
+    elif target == "project_settings_subtab":
+        args = [org_id, project_id, "general"]
+    elif target == "ticket_wizard_step":
+        args = [org_id, project_id, "details"]
+    elif target == "org_detail":
+        args = [org_id]
+    elif target in (
+        "ticket_detail",
+        "ticket_comments",
+        "ticket_activity",
+        "ticket_attachments",
+        "ticket_move_status",
+    ):
+        args = [ticket_id]
+    else:
+        args = []
+
+    return reverse(f"{variant}:{target}", args=args)
+
+
+def demo_entry(
+    request: HttpRequest,
+    variant: str = "htmx_nav_declarative",
+    url_name: str | None = None,
+) -> HttpResponse:
+    """Redirect to a variant's demo page without needing mock data IDs in URLs."""
+    if variant not in VARIANTS and variant not in {v.namespace for v in VARIANTS.values()}:
+        raise Http404(f"Unknown demo variant: '{variant}'")
+
+    try:
+        target_url = resolve_demo_target_url(variant=variant, url_name=url_name)
+    except NoReverseMatch:
+        raise Http404(f"Unknown route '{url_name}' for variant '{variant}'")
+
+    if request.GET:
+        target_url = f"{target_url}?{request.GET.urlencode()}"
+    return redirect(target_url)
 
 
 def landing(request: HttpRequest) -> HttpResponse:
     """Project showcase overview landing page."""
 
-    # Redirect for the demo
+    # When deployed on the demo host, redirect directly to the flagship demo page (single redirect)
     if settings.ENVIRONMENT == EnvironmentChoices.DEMO:
-        return redirect("htmx_nav_declarative:overview")
+        target_url = resolve_demo_target_url("htmx_nav_declarative", "project_overview")
+        if request.GET:
+            target_url = f"{target_url}?{request.GET.urlencode()}"
+        return redirect(target_url)
 
     # Group unique base implementation families
     families = []

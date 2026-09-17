@@ -32,7 +32,7 @@
   <div id="code-mpa" class="space-y-3">
     <div class="flex items-center justify-between">
       {% include "frontpage/components/_subsection_heading.html" with number="4.1" text="Pure Multi-Page Application (MPA)" %}
-      <a href="{{ DEMO_URL }}{% url "mpa:overview" %}" target="_blank" rel="noopener noreferrer"
+      <a href="{{ DEMO_URL }}{% url 'demo_entry' 'mpa' %}" target="_blank" rel="noopener noreferrer"
          class="btn btn-neutral btn-xs group">
         Try Live <span class="hidden sm:inline-block">MPA Demo</span> {% include "frontpage/components/_arrow_icon.html" with size="3.5" %}
       </a>
@@ -51,7 +51,7 @@
   <div id="code-vanilla" class="space-y-3">
     <div class="flex items-center justify-between">
       {% include "frontpage/components/_subsection_heading.html" with number="4.2" text="Vanilla HTMX with Shell Templates" %}
-      <a href="{{ DEMO_URL }}{% url "vanilla_htmx_composite:overview" %}" target="_blank" rel="noopener noreferrer"
+      <a href="{{ DEMO_URL }}{% url 'demo_entry' 'vanilla_htmx_composite' %}" target="_blank" rel="noopener noreferrer"
          class="btn btn-secondary btn-xs group">
         Try Live <span class="hidden sm:inline-block">Vanilla Demo</span> {% include "frontpage/components/_arrow_icon.html" with size="3.5" %}
       </a>
@@ -73,7 +73,7 @@
   <div id="code-htmx-nav-composite" class="space-y-3">
     <div class="flex items-center justify-between">
       {% include "frontpage/components/_subsection_heading.html" with number="4.3" text="django-htmx-nav Composite (render_nav with Swaps)" %}
-      <a href="{{ DEMO_URL }}{% url "htmx_nav_composite:overview" %}" target="_blank" rel="noopener noreferrer"
+      <a href="{{ DEMO_URL }}{% url 'demo_entry' 'htmx_nav_composite' %}" target="_blank" rel="noopener noreferrer"
          class="btn btn-primary btn-xs group">
         Try Live <span class="hidden sm:inline-block">Composite Demo</span> {% include "frontpage/components/_arrow_icon.html" with size="3.5" %}
       </a>
@@ -92,7 +92,7 @@
   <div id="code-htmx-nav-baseline" class="space-y-3">
     <div class="flex items-center justify-between">
       {% include "frontpage/components/_subsection_heading.html" with number="4.4" text="django-htmx-nav Baseline (make_shell_renderer)" %}
-      <a href="{{ DEMO_URL }}{% url "htmx_nav_baseline:overview" %}" target="_blank" rel="noopener noreferrer"
+      <a href="{{ DEMO_URL }}{% url 'demo_entry' 'htmx_nav_baseline' %}" target="_blank" rel="noopener noreferrer"
          class="btn btn-primary btn-xs group">
         Try Live <span class="hidden sm:inline-block">Baseline Demo</span> {% include "frontpage/components/_arrow_icon.html" with size="3.5" %}
       </a>
@@ -113,7 +113,7 @@
        x-data="{ showRegistry: false }">
     <div class="flex items-center justify-between">
       {% include "frontpage/components/_subsection_heading.html" with number="4.5" text="django-htmx-nav Declarative Registry" %}
-      <a href="{{ DEMO_URL }}{% url "htmx_nav_declarative:overview" %}" target="_blank" rel="noopener noreferrer"
+      <a href="{{ DEMO_URL }}{% url 'demo_entry' 'htmx_nav_declarative' %}" target="_blank" rel="noopener noreferrer"
          class="btn btn-primary btn-xs group ml-auto">
         Try Live <span class="hidden sm:inline-block">Declarative Demo</span> {% include "frontpage/components/_arrow_icon.html" with size="3.5" %}
       </a>

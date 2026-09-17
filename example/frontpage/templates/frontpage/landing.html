@@ -151,7 +151,7 @@
           </ul>
         </div>
         <div class="p-6 pt-0">
-          <a href="{{ DEMO_URL }}{% url "mpa:overview" %}"
+          <a href="{{ DEMO_URL }}{% url 'demo_entry' 'mpa' %}" target="_blank" rel="noopener noreferrer"
              class="btn btn-neutral btn-sm w-full group justify-center gap-2">
             <span>Launch MPA Demo</span>
             {% include "frontpage/components/_arrow_icon.html" %}
@@ -176,7 +176,7 @@
           </ul>
         </div>
         <div class="p-6 pt-0">
-          <a href="{{ DEMO_URL }}{% url "vanilla_htmx_atomic:overview" %}"
+          <a href="{{ DEMO_URL }}{% url 'demo_entry' 'vanilla_htmx_atomic' %}" target="_blank" rel="noopener noreferrer"
              class="btn btn-secondary btn-sm w-full group justify-center gap-2">
             <span>Launch Vanilla HTMX Demo</span>
             {% include "frontpage/components/_arrow_icon.html" %}
@@ -204,7 +204,7 @@
           </ul>
         </div>
         <div class="p-6 pt-0">
-          <a href="{{ DEMO_URL }}{% url "htmx_nav_declarative:overview" %}"
+          <a href="{{ DEMO_URL }}{% url 'demo_entry' 'htmx_nav_declarative' %}" target="_blank" rel="noopener noreferrer"
              class="btn btn-primary btn-sm w-full group justify-center gap-2">
             <span>Launch django-htmx-nav Demo</span>
             {% include "frontpage/components/_arrow_icon.html" %}

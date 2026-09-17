@@ -70,7 +70,7 @@
                  class="btn btn-ghost btn-sm font-semibold {% if '/guide/' in request.path %}text-primary menu-active{% endif %}">Architecture Guide</a>
               <a href="{% url 'benchmarks:overview' %}"
                  class="btn btn-ghost btn-sm font-semibold {% if '/benchmarks/' in request.path %}text-primary menu-active{% endif %}">Benchmarks</a>
-              <a href="{{ DEMO_URL }}{% url 'htmx_nav_declarative:overview' %}"
+              <a href="{{ DEMO_URL }}{% url 'demo_entry' 'htmx_nav_declarative' %}"
                  target="_blank"
                  rel="noopener noreferrer"
                  class="btn btn-ghost btn-sm font-semibold">Live Demo</a>
@@ -128,38 +128,7 @@
                   </svg>
                 </summary>
                 <ul class="menu dropdown-content bg-base-100 rounded-box z-50 w-80 p-2 shadow-lg border border-base-200 gap-1">
-                  <li>
-                    <a class="flex items-center gap-2 font-semibold {% if request.path == '/' %}text-primary menu-active{% endif %}"
-                       href="{% url 'landing' %}">
-                      <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
-                        </path>
-                      </svg>
-                      Overview Landing Page
-                    </a>
-                  </li>
-                  <li>
-                    <a class="flex items-center gap-2 font-semibold {% if '/guide/' in request.path %}text-primary menu-active{% endif %}"
-                       href="{% url 'guide' %}">
-                      <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
-                        </path>
-                      </svg>
-                      Architecture Guide
-                    </a>
-                  </li>
-                  <li>
-                    <a class="flex items-center gap-2 font-semibold {% if '/benchmarks/' in request.path %}text-primary menu-active{% endif %}"
-                       href="{% url 'benchmarks:overview' %}">
-                      <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
-                        </path>
-                      </svg>
-                      Benchmarks Dashboard
-                    </a>
-                  </li>
-                  <li class="divider my-1"></li>
-                  <li class="menu-title pb-0">Live Demo Variants</li>
+                  <li class="menu-title pb-0">Live Demo | All Variants</li>
                   {% for family in variant_families %}
                     <li class="menu-title pb-0">{{ family.label }}</li>
                     <li>
@@ -188,7 +157,7 @@
                 <li><a href="{% url 'landing' %}">Overview</a></li>
                 <li><a href="{% url 'guide' %}">Architecture Guide</a></li>
                 <li><a href="{% url 'benchmarks:overview' %}">Benchmarks</a></li>
-                <li><a href="{{ DEMO_URL }}{% url 'htmx_nav_declarative:overview' %}" target="_blank" rel="noopener noreferrer">Live Demo</a></li>
+                <li><a href="{{ DEMO_URL }}{% url 'demo_entry' 'htmx_nav_declarative' %}" target="_blank" rel="noopener noreferrer">Live Demo</a></li>
                 <li class="divider my-1"></li>
                 <li>
                   <a href="{{ DOCS_SITE }}"
@@ -242,7 +211,7 @@
           <div class="flex flex-wrap items-center gap-4">
             <a href="{% url 'landing' %}" class="link link-hover">Overview</a>
             <a href="{% url 'guide' %}" class="link link-hover">Architecture Guide</a>
-            <a href="{{ DEMO_URL }}{% url 'htmx_nav_declarative:overview' %}"
+            <a href="{{ DEMO_URL }}{% url 'demo_entry' 'htmx_nav_declarative' %}"
                target="_blank"
                rel="noopener noreferrer"
                class="link link-hover">Live Demo</a>
