@@ -39,6 +39,7 @@ bench = [
     "radon>=6.0",
     "beautifulsoup4>=4.12",
     "requests",
+    "psutil",
 ]
 lint = [
     "ruff==0.16.2",

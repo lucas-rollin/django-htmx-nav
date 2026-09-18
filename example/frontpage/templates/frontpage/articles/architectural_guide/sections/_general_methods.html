@@ -48,7 +48,7 @@
   <div id="method-template-oob" class="mt-10 space-y-3">
     {% include "frontpage/components/_subsection_heading.html" with number="2.2" text="Pinpoint Swaps via Template Logic (Hand written OOB)" %}
     <p class="text-sm text-base-content/80 leading-relaxed">
-      Here, the template layer inspects whether the request came from HTMX (via <code>request.htmx</code> or custom headers) and conditionally includes out-of-band (OOB) containers.
+      Here, the template layer inspects whether the request came from HTMX (via the <code>django-htmx</code> library middleware or custom header checks) and conditionally includes out-of-band (OOB) containers.
     </p>
     <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-3">
       {% verbatim %}

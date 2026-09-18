@@ -39,11 +39,12 @@ services:
   # Benchmark & Metrics Collector (Playwright + Payload + Static + Server metrics)
   bench:
     image: django-htmx-nav:test
+    cpuset: "${BENCH_CPUSET:-0-3}"
     build:
       context: .
       target: test
     working_dir: /workspace/example
-    command: python manage.py collect_all_metrics
+    command: python manage.py collect_all_metrics --repeats 30 --timeout-ms 12000
     volumes:
       - ./example/benchmarks/data:/workspace/example/benchmarks/data
     environment:

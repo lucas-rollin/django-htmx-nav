@@ -40,6 +40,7 @@
             </fieldset>
             <div class="card-actions justify-end">
               <a href="{% url request.resolver_match.namespaces|last|add:':project_overview' org.id project.id %}"
+                 {% if "steps" in active_variant.component_swaps or active_variant.uses_hx_select %}hx-target="#main-content" {% endif %}
                  class="btn btn-ghost">Cancel</a>
               <button type="submit" class="btn btn-primary">Continue</button>
             </div>

@@ -112,9 +112,9 @@ def landing(request: HttpRequest) -> HttpResponse:
             families.append(variant)
 
     context = {
-        "families": families,
         "variants_count": len(VARIANTS),
-        "families_count": len(families),
+        "variant_families": families,
+        "variant_families_count": len(families),
     }
     return render(request, "frontpage/landing.html", context)
 

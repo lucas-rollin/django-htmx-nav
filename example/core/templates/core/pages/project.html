@@ -169,13 +169,15 @@
         </div>
       {% endpartialdef team %}
       {% partialdef settings %}
-        <div class="flex gap-6">
+        <!-- Changed to flex-col on mobile, flex-row on md screens and up -->
+        <div class="flex flex-col md:flex-row gap-6">
           {# ------------------------------------------------------------- #}
           {# --- Call the Swap, this time defined here                 --- #}
           {# ------------------------------------------------------------- #}
-          <div id="subtabs">
+          <div id="subtabs" class="w-full md:w-auto">
             {% partialdef settings_subtabs inline %}
-              <ul class="menu w-48 shrink-0 bg-base-100 rounded-box border border-base-300 h-fit"
+              <!-- Updated menu to be w-full on mobile, w-48 on md+ -->
+              <ul class="menu w-full md:w-48 shrink-0 bg-base-100 rounded-box border border-base-300 h-fit"
                   {% if "subtabs" in active_variant.component_swaps or active_variant.uses_hx_select %}hx-target="#subtab-content" {% endif %}
                   {% hx_select_attrs "subtab-content" %}
                   {% morph_attrs "subtab-content" %}>
@@ -215,25 +217,25 @@
           {% endpartialdef settings-general %}
           {% partialdef settings-permissions %}
             <h2 class="card-title text-base mb-2">Permissions</h2>
-            <div class="space-y-3">
+            <div class="flex flex-col gap-2.5">
               <label class="label cursor-pointer justify-start gap-3">
                 <input type="checkbox" checked disabled class="checkbox checkbox-sm">
-                <span>Team members can create tickets</span>
+                <span class="text-wrap">Team members can create tickets</span>
               </label>
               <label class="label cursor-pointer justify-start gap-3">
                 <input type="checkbox" disabled class="checkbox checkbox-sm">
-                <span>Team members can delete tickets</span>
+                <span class="text-wrap">Team members can delete tickets</span>
               </label>
               <label class="label cursor-pointer justify-start gap-3">
                 <input type="checkbox" checked disabled class="checkbox checkbox-sm">
-                <span>Customers can view ticket status</span>
+                <span class="text-wrap">Customers can view ticket status</span>
               </label>
             </div>
           {% endpartialdef settings-permissions %}
           {% partialdef settings-danger %}
             <h2 class="card-title text-base text-error mb-2">Danger zone</h2>
             <div class="alert alert-error">
-              <span>Archiving this project hides it from active views. This is a demo — nothing is actually persisted.</span>
+              <span>Archiving this project hides it from active views. This is a demo, nothing is actually persisted.</span>
             </div>
             <button class="btn btn-error btn-outline mt-3 w-fit" disabled>Archive project</button>
           {% endpartialdef settings-danger %}

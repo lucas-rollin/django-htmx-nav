@@ -1,7 +1,8 @@
-<div role="tablist" class="tabs tabs-lift mb-6">
+<div role="tablist"
+     class="tabs tabs-lift mb-6 overflow-x-auto overflow-y-hidden flex-nowrap">
   {% for tab in tabs %}
     <a role="tab"
-       class="tab {% if tab.active %}tab-active font-semibold{% endif %}"
+       class="tab shrink-0 {% if tab.active %}tab-active font-semibold{% endif %}"
        href="{{ tab.url }}">{{ tab.label }}</a>
   {% endfor %}
 </div>

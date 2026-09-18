@@ -31,7 +31,7 @@ RUN pip install -e .[example,test,bench,lint]
 COPY . /workspace/
 
 RUN python example/manage.py vendor_client_assets
-
+RUN python example/manage.py collectstatic --noinput
 CMD ["pytest"]
 
 # ==========================================

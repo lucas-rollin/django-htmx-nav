@@ -2,14 +2,14 @@
 
 **Server-driven hypermedia navigation for Django and HTMX, with the URL as the single source of truth.**
 
-`django-htmx-nav` provides declarative out-of-band (OOB) swaps, zero-boilerplate component auto-wrapping, reusable shell renderers, and automated parity testing for Django applications using HTMX. It ensures that secondary navigation regions—such as sidebars, breadcrumbs, tab bars, notifications, and badges—remain strictly synchronized with the current route during partial page swaps without UI state drift.
+`django-htmx-nav` provides declarative out-of-band (OOB) swaps, zero-boilerplate component auto-wrapping, reusable shell renderers, and automated parity testing for Django applications using HTMX. It ensures that secondary navigation regions, such as sidebars, breadcrumbs, tab bars, notifications, and badges, remain strictly synchronized with the current route during partial page swaps without UI state drift.
 
 ```{tip}
 **Looking for project overviews or live benchmarks?**
 * <a href="../">Showcase Overview</a>: High-level overview, feature summary, and quick links.
-* <a href="../guide/">Architectural Guide</a>: Deep dive into hypermedia state synchronization across Turbo, LiveView, Unpoly, and Django.
-* <a href="../benchmarks/">Benchmark Dashboard</a>: Empirical measurements of payload compression (~70–80%), server overhead (<0.5 ms), and flat DB query counts across 23 variants.
-* {demo}`Live Helpdesk Sandbox <htmx-nav/declarative/>`: Interactive demo application hosted on Render.
+* <a href="../guide/">Architectural Guide</a>: Deep dive into solutions to hypermedia state synchronization.
+* <a href="../benchmarks/">Benchmark Dashboard</a>: Empirical measurements of payload compression, server overhead, and flat DB query counts across 23 variant implementations.
+* {demo}`Live Helpdesk Sandbox <htmx-nav/declarative/>`: Interactive demo application.
 ```
 
 ## Installation
@@ -24,7 +24,8 @@ pip install django-htmx-nav
 
 - **Python:** 3.10, 3.11, 3.12, 3.13, 3.14
 - **Django:** 4.2, 5.0, 5.1, 6.0+
-- **django-template-partials** *(optional, recommended)*: Native partials support without dividing templates into hundreds of mini-files.
+- **django-template-partials** *(optional, unnecessary with django 6.0+)*.
+- **django-htmx** *(optional)*.
 
 ## Core Concepts & Mental Model
 

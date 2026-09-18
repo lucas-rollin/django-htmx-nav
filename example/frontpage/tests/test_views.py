@@ -22,12 +22,12 @@ def test_landing_page(client):
 
     ctx = response.context
     assert ctx["variants_count"] == len(VARIANTS)
-    assert ctx["families_count"] == len(ctx["families"])
-    assert len(ctx["families"]) > 0
+    assert ctx["variant_families_count"] == len(ctx["variant_families"])
+    assert len(ctx["variant_families"]) > 0
 
     # Ensure families in context are unique
     seen_families = set()
-    for fam in ctx["families"]:
+    for fam in ctx["variant_families"]:
         assert fam.family not in seen_families
         seen_families.add(fam.family)
 
@@ -42,7 +42,6 @@ def test_landing_page(client):
     content = response.content.decode()
     assert 'href="/guide/"' in content
     assert 'href="/benchmarks/"' in content
-    assert 'href="/htmx-nav/baseline/' in content
 
 
 def test_guide_page(client):

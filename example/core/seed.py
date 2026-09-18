@@ -10,6 +10,12 @@ from faker import Faker
 
 from .models import Employee, Organization, Project, Ticket
 
+# NOTE: Benchmark metrics are sensitive to Organization and project counts
+ORG_COUNT = 8
+EMPLOYEE_COUNT = 8
+PROJECT_COUNT_RANGE = (2, 6)
+TICKET_COUNT_RANGE = (2, 12)
+
 ANIMALS = (
     "Capybara",
     "Fox",
@@ -75,7 +81,7 @@ def populate_mock_data() -> None:
     tickets: list[Ticket] = []
 
     # Employees
-    for _ in range(8):
+    for _ in range(EMPLOYEE_COUNT):
         employees.append(
             Employee(
                 id=employee_id_gen(),
@@ -88,14 +94,14 @@ def populate_mock_data() -> None:
     Employee.objects.bulk_create(employees)
 
     # Organizations, Projects, and Tickets
-    for _ in range(12):
+    for _ in range(ORG_COUNT):
         org_id = org_id_gen()
         org = Organization(
             id=org_id, name=fake.company(), plan=random.choice(Organization.Plan.values)
         )
         organizations.append(org)
 
-        for _ in range(random.randint(2, 6)):
+        for _ in range(random.randint(*PROJECT_COUNT_RANGE)):
             project_id = project_id_gen()
             project_name = f"{random.choice(COLORS)} {random.choice(ANIMALS)}"
 
@@ -107,7 +113,7 @@ def populate_mock_data() -> None:
             )
             projects.append(project)
 
-            for _ in range(random.randint(2, 15)):
+            for _ in range(random.randint(*TICKET_COUNT_RANGE)):
                 assignee = random.choice(employees)
 
                 tickets.append(
