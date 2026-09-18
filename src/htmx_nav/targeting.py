@@ -79,6 +79,12 @@ def htmx_target_is(request: HttpRequest, *dom_ids: str) -> bool:
 def targeting(*dom_ids: str) -> Callable[[HttpRequest], bool]:
     """Creates a predicate checking if a request targets any specified DOM ID.
 
+    Args:
+        *dom_ids: Target DOM element IDs to match against.
+
+    Returns:
+        A callable taking `HttpRequest` and returning True if target matches.
+
     Example:
         .. code-block:: python
 
@@ -96,7 +102,13 @@ def targeting(*dom_ids: str) -> Callable[[HttpRequest], bool]:
 
 
 def not_targeting(*dom_ids: str) -> Callable[[HttpRequest], bool]:
-    """Creates a predicate checking that a request does NOT target specified DOM IDs.
+    """Creates a predicate checking that a request does not target specified DOM IDs.
+
+    Args:
+        *dom_ids: DOM element IDs to exclude.
+
+    Returns:
+        A callable taking `HttpRequest` and returning True if target does not match.
 
     Example:
         .. code-block:: python
@@ -128,10 +140,13 @@ def _eval_target(spec: Target, request: HttpRequest) -> bool:
 
 
 def has_messages(request: HttpRequest) -> bool:
-    """Predicate that returns True if there are pending Django messages for the request.
+    """Checks whether the request has pending Django messages.
 
-    Checks the message storage backend. Like Django's own message checks,
-    calling this marks pending messages as read for this response.
+    Args:
+        request: The incoming HTTP request.
+
+    Returns:
+        True if pending messages exist in the storage backend.
 
     Example:
         .. code-block:: python
@@ -139,7 +154,7 @@ def has_messages(request: HttpRequest) -> bool:
             Swap(
                 "partials/messages.html",
                 target_id="messages",
-                include_if=has_messages
+                include_if=has_messages,
             )
     """
     messages = get_messages(request)

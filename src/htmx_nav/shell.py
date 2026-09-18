@@ -29,24 +29,21 @@ class ShellRenderer(Protocol):
         extra_swaps: Swaps = None,
         partial: PartialSpec = "#content",
         **kwargs: Any,
-    ) -> TemplateResponse: ...
+    ) -> TemplateResponse:
+        """Renders a template with recurring shell Swaps always included.
 
-    """
-    Renders a template with a fixed set of navigational Swaps always
-    included.
+        Args:
+            request: The HTTP request object.
+            template_name: Path to the main content template.
+            context: Optional context for the main template.
+            extra_swaps: Additional per-call Swaps included alongside shell Swaps.
+            partial: Specifies the partial to render for HTMX requests.
+            **kwargs: Additional arguments passed to `render_nav`.
 
-    Args:
-        request: The HTTP request object.
-        template_name: Path to the main content template.
-        context: Optional context for the main template.
-        extra_swaps: Additional, per-call Swaps included alongside the
-            fixed shell Swaps.
-        partial: Specifies the partial to render for HTMX requests.
-        **kwargs: Additional arguments passed to `render_nav`.
-
-    Returns:
-        A TemplateResponse with the shell Swaps included.
-    """
+        Returns:
+            A TemplateResponse with the shell Swaps included.
+        """
+        ...
 
 
 def make_shell_renderer(
@@ -54,16 +51,16 @@ def make_shell_renderer(
     *,
     partial: PartialSpec = "#content",
 ) -> ShellRenderer:
-    """
-    Creates a renderer that always includes a fixed set of Swaps.
+    """Creates a renderer that always includes a fixed set of Swaps.
 
     Args:
-        swaps: Swaps inclued in this request by default. Using a Callable
-            allows the swap context to vary based on the request.
+        swaps: Swaps included on each request, or a callable receiving
+            request and returning Swaps.
         partial: Default PartialSpec used unless overridden per-call.
+            Defaults to "#content".
 
     Returns:
-        A `render_shell` function with the signature of `ShellRenderer`.
+        A `render_shell` function matching the `ShellRenderer` protocol.
 
     Example:
         .. code-block:: python

@@ -28,26 +28,24 @@ def make_shell_view_mixin(
     default_swaps: Swaps = None,
     default_partial: PartialSpec = "#content",
 ) -> type:
-    """Build a mixin that routes a CBV's response through `render_nav` —
-    directly by default, or through a shell renderer if one is supplied.
+    """Creates a class mixin that routes CBV rendering through a shell renderer.
 
     Args:
-        render: Optional render function, usually created by
-            `make_shell_renderer`. When omitted, the mixin calls
-            `render_nav` directly — no `make_shell_renderer` required for
-            a CBV to use swaps.
-        default_swaps: Swap(s) applied on every view using this mixin,
-            combined with (not replaced by) each view's own
-            `get_extra_swaps()`.
-        default_partial: Partial spec used unless a view overrides
-            `get_partial()`.
+        render: Optional render function, typically created by
+            `make_shell_renderer`. When omitted, calls `render_nav` directly.
+        default_swaps: Default Swap(s) applied across all views using this mixin.
+        default_partial: Partial spec used unless overridden per view.
+            Defaults to "#content".
 
-    Override points on the view:
-        - `get_extra_swaps()`: this view's Swap(s), runs after
-          `self.request`/`self.object` are set.
-        - `get_title()` / `title` class attribute.
-        - `get_partial()`: overrides `default_partial` per-view.
-        - `get_shell_template_name()`: defaults to `get_template_names()[0]`.
+    Returns:
+        A mixin class providing `render_to_response` and swap customization hooks.
+
+    Notes:
+        Override points on the resulting view class:
+            - `get_extra_swaps()`: Returns per-view swaps (runs with `self.object` available).
+            - `get_title()` or `title`: Page title override.
+            - `get_partial()`: Overrides `default_partial` for the view.
+            - `get_shell_template_name()`: Defaults to `get_template_names()[0]`.
 
     Example:
         .. code-block:: python

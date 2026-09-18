@@ -29,9 +29,14 @@ def _build_marker_script(target_id: str) -> str:
 
 
 def debug_swap_marker(target_id: str) -> str:
-    """Adds a inline `<script>` to the to flash swap animations.
+    """Returns an inline <script> tag to trigger a swap highlight animation.
 
-    Checks the setting `HTMX_NAV_DEBUG_SWAPS` to add the animation.
+    Args:
+        target_id: The DOM element ID to highlight.
+
+    Returns:
+        An HTML script string if `HTMX_NAV_DEBUG_SWAPS` is enabled, otherwise
+        an empty string.
     """
     from .settings import _debug_swaps_enabled
 
