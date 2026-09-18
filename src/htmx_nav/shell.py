@@ -1,24 +1,9 @@
 """
-make_shell_renderer: a render_nav wrapper that always includes a fixed
-list of navigational Swaps alongside whatever extra_swaps the caller
-passes per-call.
+Create ShellRenderers, a reusable wrapper around a render_nav.
 
-Earlier versions took a single `shell_template` + `context_builder` and
-built exactly one Swap internally. That collapsed every navigational
-region into one fragment, which meant giving up what Swap already does
-per-region for free: independent target_id, independent include_if for
-conditional inclusion, and independent debug-swap highlighting (the
-debug marker in swaps.py is emitted per Swap, keyed on that Swap's own
-target_id — one shell Swap means one marker for the whole shell).
-
-This version takes a `swaps` builder instead: a callable that returns
-whatever Swap(s) should always accompany this shell for a given
-request. Each returned Swap is a full Swap — its own template, context,
-target_id, include_if — so per-region conditional rendering and
-per-region debug highlighting both fall out for free, the same way they
-would for any hand-written `render_nav(..., swaps=[...])` call.
-make_shell_renderer's only remaining job is merging that fixed list
-with per-call extra_swaps and forwarding to render_nav.
+Allows the definition of a shell (e.g. sidebar and breadcrumbs)
+as the regions that need to always be synced in htmx requests
+for that endpoint.
 """
 
 from collections.abc import Callable, Mapping

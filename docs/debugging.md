@@ -108,3 +108,8 @@ Use `{% htmx_nav_debug_marker %}` instead, placed *inside* the wrapper (same wra
 ```
 
 It respects `HTMX_NAV_DEBUG_SWAPS` the same way (empty when disabled) and is the same script `Swap` would've emitted, one implementation either way.
+
+## Related Resources
+
+- **[Debugging Utilities API Reference](api/debugging.md):** Detailed signatures for `inject_debug_marker` and `DebugMarkerConfig`.
+- **{demo}`Live Demo in Debug Mode <htmx-nav/declarative/?debug-swaps=1>`:** Test visual swap highlighting in real time in the live sandbox.

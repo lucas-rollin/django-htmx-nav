@@ -1,11 +1,9 @@
 """
 Rendering shortcuts.
 
-`render_with_swaps` is the htmx-aware counterpart to
-django.shortcuts.render, for any HTMX view that wants to piggyback
-out-of-band swaps — no navigation concept required. `render_nav` adds
-PartialSpec-driven partial/block resolution on top, for views that
-participate in this package's tab/nav-state model.
+`render_with_swaps` is the htmx-aware counterpart to django.shortcuts.render, 
+for any HTMX view that wants to piggyback out-of-band swaps. `render_nav` 
+adds PartialSpec-driven partial/block resolution on top.
 """
 
 from collections.abc import Mapping

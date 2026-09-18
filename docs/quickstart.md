@@ -10,10 +10,18 @@ Install `django-htmx-nav` from PyPI:
 pip install django-htmx-nav
 ```
 
-Optionally, add `django-htmx` if you use its middleware or header helpers:
+Optionally, if you want [visual debugging](debugging.md), register the app and activate the setting.
 
-```bash
-pip install "django-htmx-nav[htmx]"
+```python
+# settings.py
+INSTALLED_APPS = [
+    ...,
+    "htmx_nav",
+    ...,
+]
+
+# Activate it in development
+HTMX_NAV_DEBUG_SWAPS = True
 ```
 
 ## 2. Basic Partial Rendering (`render_nav`)
@@ -49,7 +57,9 @@ In your HTML template, define the partial block using native Django 6 inline par
 {% endblock %}
 ```
 
-> **Note**: `partial` defaults to `"#content"`, so on HTMX requests `"app/project_list.html"` becomes `"app/project_list.html#content"`, matched by Django's `{% partialdef content %}` block. Name your block `content` to match, or override via `partial="#your_block"` / `partial="path/to/template.html"`.
+```{tip}
+`partial` defaults to `"#content"`, so on HTMX requests `"app/project_list.html"` becomes `"app/project_list.html#content"`, matched by Django's `{% partialdef content %}` block. Name your block `content` to match, or override via `partial="#your_block"` / `partial="path/to/template.html"`.
+```
 
 ### Behavior Under the Hood
 
@@ -90,11 +100,6 @@ def project_detail(request, pk):
         ],
     )
 ```
-
-### Key Advantages of `Swap`
-
-- **Zero-Boilerplate Auto-Wrapping:** Your partial templates (`_sidebar.html`) remain 100% clean HTML. `Swap` automatically wraps them into `<div id="sidebar" hx-swap-oob="innerHTML">...</div>` or `<hx-partial>` at render time.
-- **Pythonic Conditionals (`include_if`):** Use `targeting(...)`, `not_targeting(...)`, `has_messages`, or custom lambdas instead of fragile `{% if request.htmx ... %}` blocks in templates.
 
 ## 4. Reusable Shell Rendering (`make_shell_renderer`)
 
@@ -138,6 +143,10 @@ def project_detail(request, pk):
     )
 ```
 
+```{note}
+**Request-Scoped Memoization:** If your shell builder queries the database (e.g. fetching an organization, project, or user permissions), use `cache_on_request(request, "key", fetch_func)` from `htmx_nav.helpers` to prevent duplicate database hits on the same request.
+```
+
 ## 5. Class-Based View Integration (`make_shell_view_mixin`)
 
 For projects utilizing Django generic Class-Based Views (`DetailView`, `ListView`, `CreateView`), generate a mixin with `make_shell_view_mixin`:
@@ -147,8 +156,8 @@ For projects utilizing Django generic Class-Based Views (`DetailView`, `ListView
 from django.views.generic import DetailView
 from htmx_nav import Swap, make_shell_view_mixin
 from .models import Project
-from .renderers import render_shell
-
+from .renderers import render_shell 
+ 
 ProjectShellMixin = make_shell_view_mixin(render_shell)
 
 
@@ -163,21 +172,10 @@ class ProjectDetailView(ProjectShellMixin, DetailView):
         ]
 ```
 
-## 6. Visual Swap Debugging
-
-Catching stale state or verifying which regions swap during development is trivial. Add one setting in `settings.py`:
-
-```python
-# settings.py (development only)
-HTMX_NAV_DEBUG_SWAPS = True
-```
-
-Whenever an out-of-band swap arrives in the browser, `django-htmx-nav` injects a micro-script that momentarily flashes the targeted DOM element with an animated highlight outline (`.hn-swap`).
-
 ## Next Steps
 
-- Explore the deployed {demo}`Live Demo Testbed <htmx-nav/declarative/>` and compare all 8 architectural variants.
+- Explore the deployed {demo}`Live Demo Testbed <htmx-nav/declarative/>` and compare multiple implementations.
 - Check out the <a href="../benchmarks/">Interactive Benchmark Suite</a> for empirical payload and latency metrics.
-- Read the [Architectural Navigation Patterns Guide](nav_context_patterns.md).
+- Read the <a href="../guide/">Architectural Guide</a> for an in-depth exploration of state drift solutions.
 - Learn about automated parity verification in the [Testing Guide](testing.md).
-- Reference full signatures in the [API Reference](api.md).
+- Reference full signatures in the [API Reference](api/core.md).
