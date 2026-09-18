@@ -1,4 +1,3 @@
-# example/htmx_nav_demo/views_declarative.py
 from .registry_declarative import render_shell
 
 def overview(request: HttpRequest) -> HttpResponse:

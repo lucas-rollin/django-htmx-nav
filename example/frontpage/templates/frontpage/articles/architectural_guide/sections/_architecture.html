@@ -20,12 +20,13 @@
       <code>Swap</code> solves this through <strong>automatic wrapping</strong>. You point <code>Swap</code> directly at your existing, standard component template. At render time, <code>Swap</code> automatically wraps the rendered markup in the appropriate HTMX wire envelope:
     </p>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 not-prose my-4">
-      <div class="bg-base-200/50 border border-base-300 rounded-xl p-4">
+      <div data-theme="dark"
+           class="bg-base-200/50 border border-base-300 rounded-xl p-4 bg-neutral">
         <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-2 flex items-center justify-between">
           <span>Clean Component Template</span>
           <span class="badge badge-sm badge-ghost font-mono">_sidebar.html</span>
         </div>
-        <pre><code class="language-html">{% verbatim %}&lt;!-- Clean, standard HTML partial --&gt;
+        <pre><code class="language-django">{% verbatim %}&lt;!-- Clean, standard HTML partial --&gt;
 &lt;!-- Reusable in {% include %} or OOB! --&gt;
 &lt;ul class="menu p-4"&gt;
   &lt;li class="menu-title"&gt;Projects&lt;/li&gt;
@@ -34,7 +35,8 @@
   {% endfor %}
 &lt;/ul&gt;{% endverbatim %}</code></pre>
       </div>
-      <div class="bg-base-200/50 border border-base-300 rounded-xl p-4">
+      <div data-theme="dark"
+           class="bg-base-200/50 border border-base-300 rounded-xl p-4 bg-neutral">
         <div class="text-xs font-bold uppercase tracking-wider text-primary mb-2 flex items-center justify-between">
           <span>Auto-Wrapped by Swap</span>
           <span class="badge badge-sm badge-primary font-mono">Wire Output</span>
@@ -199,7 +201,8 @@ HTMX_NAV_DEBUG_SWAPS = True</code></pre>
     </p>
     <div class="pt-2">
       <a href="{{ DEMO_URL }}{% url 'demo_entry' 'htmx_nav_declarative' 'project_settings' %}?debug-swaps=1"
-         target="_blank" rel="noopener noreferrer"
+         target="_blank"
+         rel="noopener noreferrer"
          class="btn btn-primary btn-sm gap-2 no-underline">
         <svg xmlns="http://www.w3.org/2000/svg"
              class="size-4"

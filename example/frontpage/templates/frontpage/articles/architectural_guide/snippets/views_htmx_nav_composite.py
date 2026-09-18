@@ -1,4 +1,3 @@
-# example/htmx_nav_demo/views_composite.py
 from htmx_nav import Swap, render_nav
 
 # Swap helper functions

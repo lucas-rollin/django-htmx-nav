@@ -1,4 +1,3 @@
-# example/mpa/views.py
 from django.shortcuts import render
 
 def overview(request: HttpRequest) -> HttpResponse:

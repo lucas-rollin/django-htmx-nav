@@ -6,10 +6,10 @@
       4. Code Walkthrough by Implementation Variant
     </h2>
     <p class="text-base text-base-content/85 leading-relaxed mt-4">
-      To empirically compare these approaches under identical conditions, the example project implements the exact same Helpdesk application across several architectural paradigms. Here is how the <code>overview</code> dashboard view is written in each:
+      To empirically compare these approaches under identical conditions, the example project implements the same Helpdesk application across several navigation architectures. The first five variants show different server-side implementations of the <code>overview</code> dashboard; the final section covers two orthogonal client-side enhancements.
     </p>
   </div>
-  <!-- Optional Toggleable Section for Context Helpers & Imports -->
+  <!-- Shared Context -->
   <div x-data="{ showHelpers: false }"
        class="border border-base-300 rounded-xl bg-base-200/30 p-4 not-prose">
     <div class="flex items-center justify-between">
@@ -25,142 +25,232 @@
     <div x-show="showHelpers"
          x-cloak
          class="mt-3 pt-3 border-t border-base-300">
-      <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content">
-        <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/context_helpers.py" %}</code></pre>
+      <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral text-neutral-content not-prose">
+        <div class="p-4">
+          <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/context_helpers.py" %}</code></pre>
+        </div>
       </div>
     </div>
   </div>
   <!-- 4.1 Pure MPA -->
   <div id="code-mpa" class="space-y-3">
-    <div class="flex items-center justify-between">
-      {% include "frontpage/components/_subsection_heading.html" with number="4.1" text="Pure Multi-Page Application (MPA)" %}
-      <a href="{{ DEMO_URL }}{% url 'demo_entry' 'mpa' %}" target="_blank" rel="noopener noreferrer"
-         class="btn btn-neutral btn-xs group">
-        Try Live <span class="hidden sm:inline-block">MPA Demo</span> {% include "frontpage/components/_arrow_icon.html" with size="3.5" %}
+    <div class="flex items-center justify-between gap-4">
+      {% include "frontpage/components/_subsection_heading.html" with number="4.1" text="Pure Multi-Page Application" %}
+      <a href="{{ DEMO_URL }}{% url 'demo_entry' 'mpa' %}"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="btn btn-neutral btn-xs group shrink-0">
+        Try Live
+        <span class="hidden sm:inline-block">MPA Demo</span>
+        {% include "frontpage/components/_arrow_icon.html" with size="3.5" %}
       </a>
     </div>
-    <p class="text-xs text-base-content/70">
-      Source: <code>example/mpa/views.py</code>
+    <p class="text-sm text-base-content/80 leading-relaxed">
+      The baseline implementation uses Django's conventional full-page rendering: each navigation request renders the complete document and replaces the current page.
     </p>
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose">
-      <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/views_mpa.py" %}</code></pre>
+    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral text-neutral-content not-prose">
+      <div class="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-slate-800/30 text-xs">
+        <code data-theme="dark" class="font-mono text-neutral-content/70">example/mpa/views.py</code>
+        <a href="https://github.com/lucas-rollin/django-htmx-nav/blob/main/example/mpa/views.py"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="link link-primary">View on GitHub</a>
+      </div>
+      <div class="p-4">
+        <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/views_mpa.py" %}</code></pre>
+      </div>
     </div>
     <div class="text-xs text-base-content/75 bg-base-200/40 p-3 rounded-lg border border-base-200">
-      <strong>Result:</strong> Reliable and standard, but browser performs a full repaint. <strong>Wire payload: ~6.1 KB</strong> on every click.
+      <strong>Trade-off:</strong>
+      Full-page rendering keeps the implementation straightforward, but every navigation returns the complete page.
+      <strong>Wire payload: ~6.1 KB</strong> on every click.
     </div>
   </div>
-  <!-- 4.2 Vanilla HTMX Composite -->
+  <!-- 4.2 Vanilla HTMX -->
   <div id="code-vanilla" class="space-y-3">
-    <div class="flex items-center justify-between">
-      {% include "frontpage/components/_subsection_heading.html" with number="4.2" text="Vanilla HTMX with Shell Templates" %}
-      <a href="{{ DEMO_URL }}{% url 'demo_entry' 'vanilla_htmx_composite' %}" target="_blank" rel="noopener noreferrer"
-         class="btn btn-secondary btn-xs group">
-        Try Live <span class="hidden sm:inline-block">Vanilla Demo</span> {% include "frontpage/components/_arrow_icon.html" with size="3.5" %}
+    <div class="flex items-center justify-between gap-4">
+      {% include "frontpage/components/_subsection_heading.html" with number="4.2" text="Vanilla HTMX + Shell Templates" %}
+      <a href="{{ DEMO_URL }}{% url 'demo_entry' 'vanilla_htmx_composite' %}"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="btn btn-secondary btn-xs group shrink-0">
+        Try Live
+        <span class="hidden sm:inline-block">Vanilla Demo</span>
+        {% include "frontpage/components/_arrow_icon.html" with size="3.5" %}
       </a>
     </div>
-    <p class="text-xs text-base-content/70">
-      Source: <code>example/vanilla_htmx_composite/views.py</code> and <code>templates/vanilla_htmx_composite/_overview.html</code>
+    <p class="text-sm text-base-content/80 leading-relaxed">
+      Vanilla HTMX can reduce the response to the content that needs updating, but the application must maintain separate shell templates containing the out-of-band navigation regions.
     </p>
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose">
-      <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/views_vanilla_htmx_composite.py" %}</code></pre>
+    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral text-neutral-content not-prose">
+      <div class="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-slate-800/30 text-xs">
+        <code data-theme="dark" class="font-mono text-neutral-content/70">example/vanilla_htmx_composite/views.py</code>
+        <a href="https://github.com/lucas-rollin/django-htmx-nav/blob/main/example/vanilla_htmx_composite/views.py"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="link link-primary">View on GitHub</a>
+      </div>
+      <div class="p-4">
+        <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/views_vanilla_htmx_composite.py" %}</code></pre>
+      </div>
     </div>
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose">
-      <pre><code class="language-html">{% include "frontpage/articles/architectural_guide/snippets/shell_overview.html" %}</code></pre>
+    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral text-neutral-content not-prose">
+      <div class="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-slate-800/30 text-xs">
+        <code data-theme="dark" class="font-mono text-neutral-content/70">templates/vanilla_htmx_composite/_overview.html</code>
+        <a href="https://github.com/lucas-rollin/django-htmx-nav/blob/main/example/vanilla_htmx_composite/templates/vanilla_htmx_composite/_overview.html"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="link link-primary">View on GitHub</a>
+      </div>
+      <div class="p-4">
+        <pre><code class="language-django">{% include "frontpage/articles/architectural_guide/snippets/shell_overview.html" %}</code></pre>
+      </div>
     </div>
     <div class="text-xs text-base-content/75 bg-base-200/40 p-3 rounded-lg border border-base-200">
-      <strong>Result:</strong> Reduces payload by ~{{ bench.payload_reduction_pct }}% to <strong>~{{ bench.payload_value }}</strong>, but forces the team to author and maintain a shadow directory of <code>_*.html</code> shell templates.
+      <strong>Trade-off:</strong>
+      The response drops by ~{{ bench.payload_reduction_pct }}% to <strong>~{{ bench.payload_value }}</strong>, but the navigation shell must be authored and maintained in a parallel <code>_*.html</code> template.
     </div>
   </div>
-  <!-- 4.3 htmx-nav Composite -->
+  <!-- 4.3 Composite Swaps -->
   <div id="code-htmx-nav-composite" class="space-y-3">
-    <div class="flex items-center justify-between">
-      {% include "frontpage/components/_subsection_heading.html" with number="4.3" text="django-htmx-nav Composite (render_nav with Swaps)" %}
-      <a href="{{ DEMO_URL }}{% url 'demo_entry' 'htmx_nav_composite' %}" target="_blank" rel="noopener noreferrer"
-         class="btn btn-primary btn-xs group">
-        Try Live <span class="hidden sm:inline-block">Composite Demo</span> {% include "frontpage/components/_arrow_icon.html" with size="3.5" %}
+    <div class="flex items-center justify-between gap-4">
+      {% include "frontpage/components/_subsection_heading.html" with number="4.3" text="Composite Swaps" %}
+      <a href="{{ DEMO_URL }}{% url 'demo_entry' 'htmx_nav_composite' %}"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="btn btn-primary btn-xs group shrink-0">
+        Try Live
+        <span class="hidden sm:inline-block">Composite Demo</span>
+        {% include "frontpage/components/_arrow_icon.html" with size="3.5" %}
       </a>
     </div>
-    <p class="text-xs text-base-content/70">
-      Source: <code>example/htmx_nav_demo/views_composite.py</code>
+    <p class="text-sm text-base-content/80 leading-relaxed">
+      <code>django-htmx-nav</code> lets the view describe secondary navigation regions as explicit <code>Swap</code> objects, keeping the partial templates separate without requiring parallel shell pages.
     </p>
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose">
-      <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/views_htmx_nav_composite.py" %}</code></pre>
+    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral text-neutral-content not-prose">
+      <div class="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-slate-800/30 text-xs">
+        <code data-theme="dark" class="font-mono text-neutral-content/70">example/htmx_nav_demo/views_composite.py</code>
+        <a href="https://github.com/lucas-rollin/django-htmx-nav/blob/main/example/htmx_nav_demo/views_composite.py"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="link link-primary">View on GitHub</a>
+      </div>
+      <div class="p-4">
+        <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/views_htmx_nav_composite.py" %}</code></pre>
+      </div>
     </div>
     <div class="text-xs text-base-content/75 bg-base-200/40 p-3 rounded-lg border border-base-200">
-      <strong>Result:</strong> Matches the ~{{ bench.payload_reduction_pct }}% payload reduction of Vanilla HTMX (down to <strong>~{{ bench.payload_value }}</strong>), but eliminates all parallel shell templates.
+      <strong>Trade-off:</strong>
+      It achieves the same ~{{ bench.payload_reduction_pct }}% payload reduction as Vanilla HTMX, down to <strong>~{{ bench.payload_value }}</strong>, while keeping navigation fragments independent from the page template.
     </div>
   </div>
-  <!-- 4.4 htmx-nav Baseline -->
+  <!-- 4.4 Shared Shell Renderer -->
   <div id="code-htmx-nav-baseline" class="space-y-3">
-    <div class="flex items-center justify-between">
-      {% include "frontpage/components/_subsection_heading.html" with number="4.4" text="django-htmx-nav Baseline (make_shell_renderer)" %}
-      <a href="{{ DEMO_URL }}{% url 'demo_entry' 'htmx_nav_baseline' %}" target="_blank" rel="noopener noreferrer"
-         class="btn btn-primary btn-xs group">
-        Try Live <span class="hidden sm:inline-block">Baseline Demo</span> {% include "frontpage/components/_arrow_icon.html" with size="3.5" %}
+    <div class="flex items-center justify-between gap-4">
+      {% include "frontpage/components/_subsection_heading.html" with number="4.4" text="Shared Shell Renderer" %}
+      <a href="{{ DEMO_URL }}{% url 'demo_entry' 'htmx_nav_baseline' %}"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="btn btn-primary btn-xs group shrink-0">
+        Try Live
+        <span class="hidden sm:inline-block">Baseline Demo</span>
+        {% include "frontpage/components/_arrow_icon.html" with size="3.5" %}
       </a>
     </div>
-    <p class="text-xs text-base-content/70">
-      Source: <code>example/htmx_nav_demo/views_baseline.py</code>
+    <p class="text-sm text-base-content/80 leading-relaxed">
+      The shell renderer moves the repeated <code>Swap</code> configuration out of individual views. The resulting view stays close to a conventional Django view and only changes the rendering function.
     </p>
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose">
-      <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/views_htmx_nav_baseline.py" %}</code></pre>
+    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral text-neutral-content not-prose">
+      <div class="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-slate-800/30 text-xs">
+        <code data-theme="dark" class="font-mono text-neutral-content/70">example/htmx_nav_demo/views_baseline.py</code>
+        <a href="https://github.com/lucas-rollin/django-htmx-nav/blob/main/example/htmx_nav_demo/views_baseline.py"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="link link-primary">View on GitHub</a>
+      </div>
+      <div class="p-4">
+        <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/views_htmx_nav_baseline.py" %}</code></pre>
+      </div>
     </div>
     <div class="text-xs text-base-content/75 bg-base-200/40 p-3 rounded-lg border border-base-200">
-      <strong>Result:</strong> Same payload reduction as previous variant but the view is closer to pure MPA, it only changes the render function.
+      <strong>Trade-off:</strong>
+      The navigation behavior is centralized while the view retains the shape of a normal Django view; only the renderer changes from <code>render()</code> to the configured shell renderer.
     </div>
   </div>
-  <!-- 4.5 htmx-nav Declarative -->
+  <!-- 4.5 Declarative Registry -->
   <div id="code-htmx-nav-declarative"
        class="space-y-3"
        x-data="{ showRegistry: false }">
-    <div class="flex items-center justify-between">
-      {% include "frontpage/components/_subsection_heading.html" with number="4.5" text="django-htmx-nav Declarative Registry" %}
-      <a href="{{ DEMO_URL }}{% url 'demo_entry' 'htmx_nav_declarative' %}" target="_blank" rel="noopener noreferrer"
-         class="btn btn-primary btn-xs group ml-auto">
-        Try Live <span class="hidden sm:inline-block">Declarative Demo</span> {% include "frontpage/components/_arrow_icon.html" with size="3.5" %}
+    <div class="flex items-center justify-between gap-4">
+      {% include "frontpage/components/_subsection_heading.html" with number="4.5" text="Declarative Navigation Registry" %}
+      <a href="{{ DEMO_URL }}{% url 'demo_entry' 'htmx_nav_declarative' %}"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="btn btn-primary btn-xs group shrink-0">
+        Try Live
+        <span class="hidden sm:inline-block">Declarative Demo</span>
+        {% include "frontpage/components/_arrow_icon.html" with size="3.5" %}
       </a>
     </div>
-    <p class="text-xs text-base-content/70">
-      Source: <code>example/htmx_nav_demo/registry_declarative.py</code> &amp; <code>views_declarative.py</code>
+    <p class="text-sm text-base-content/80 leading-relaxed">
+      The declarative variant moves route-specific navigation metadata into a registry, allowing views to focus on their own application data while the navigation shell is resolved automatically from the current route.
     </p>
-    <!-- Toggleable Registry Snippet (Default Hidden) -->
+    <!-- Registry -->
     <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral text-neutral-content not-prose">
-      <div class="flex items-center justify-between px-4 py-2.5 border-b border-base-300/30 bg-base-900/40 text-xs">
-        <span class="text-neutral-content/60 font-mono"># example/htmx_nav_demo/registry_declarative.py</span>
-        <button @click="showRegistry = !showRegistry"
-                class="btn btn-ghost btn-xs text-primary hover:bg-neutral-focus">
-          <span x-text="showRegistry ? 'Hide Registry Code' : 'Show Registry Code'"></span>
-        </button>
+      <div class="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-slate-800/30 text-xs">
+        <code data-theme="dark" class="font-mono text-neutral-content/70">example/htmx_nav_demo/registry_declarative.py</code>
+        <div class="flex items-center gap-3">
+          <button @click="showRegistry = !showRegistry"
+                  class="btn btn-ghost btn-xs text-primary hover:bg-neutral-focus">
+            <span x-text="showRegistry ? 'Hide Registry' : 'Show Registry'"></span>
+          </button>
+          <a href="https://github.com/lucas-rollin/django-htmx-nav/blob/main/example/htmx_nav_demo/registry_declarative.py"
+             target="_blank"
+             rel="noopener noreferrer"
+             class="link link-primary">View on GitHub</a>
+        </div>
       </div>
       <div x-show="showRegistry" x-cloak class="p-4">
         <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/registry_declarative.py" %}</code></pre>
       </div>
     </div>
-    <!-- Views Snippet -->
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose">
-      <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/views_declarative.py" %}</code></pre>
+    <!-- Views -->
+    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral text-neutral-content not-prose">
+      <div class="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-slate-800/30 text-xs">
+        <code data-theme="dark" class="font-mono text-neutral-content/70">example/htmx_nav_demo/views_declarative.py</code>
+        <a href="https://github.com/lucas-rollin/django-htmx-nav/blob/main/example/htmx_nav_demo/views_declarative.py"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="link link-primary">View on GitHub</a>
+      </div>
+      <div class="p-4">
+        <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/views_declarative.py" %}</code></pre>
+      </div>
     </div>
     <div class="text-xs text-base-content/75 bg-base-200/40 p-3 rounded-lg border border-base-200">
-      <strong>Result:</strong> Maximum separation of concerns. Navigation structures live in a single registry, and views contain zero lines of breadcrumb/sidebar boilerplate.
+      <strong>Trade-off:</strong>
+      Navigation metadata is centralized in a route-driven registry, while views contain no breadcrumb or sidebar configuration.
     </div>
   </div>
   <!-- 4.6 Orthogonal Axes -->
   <div id="code-orthogonal-axes" class="space-y-3">
-    {% include "frontpage/components/_subsection_heading.html" with number="4.6" text="Orthogonal Add-ons: +hx-select (+HS) and +morph (+M)" %}
+    {% include "frontpage/components/_subsection_heading.html" with number="4.6" text="Orthogonal Client-Side Axes" %}
     <p class="text-sm text-base-content/80 leading-relaxed">
-      In the demo app, any variant can be combined with two orthogonal client-side axes:
+      These two client-side enhancements are independent of the server-side navigation architecture, so they can be combined with any of the variants above.
     </p>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 not-prose my-3 text-xs">
       <div class="p-4 rounded-xl border border-base-300 bg-base-200/30">
-        <div class="font-mono font-bold text-primary text-sm">+HS (hx-select-oob)</div>
+        <div class="font-mono font-bold text-primary text-sm">
+          +HS · <code>hx-select-oob</code>
+        </div>
         <p class="mt-2 text-base-content/75 leading-normal">
-          When enabled, the client uses <code>hx-select-oob</code> to pluck out secondary regions if the backend didn't supply them. Useful when migrating legacy views that still return full pages.
+          Selects secondary regions from a response when the backend does not explicitly provide them as out-of-band swaps. This can be useful when incrementally migrating existing full-page views to HTMX.
         </p>
       </div>
       <div class="p-4 rounded-xl border border-base-300 bg-base-200/30">
-        <div class="font-mono font-bold text-secondary text-sm">+M (Idiomorph)</div>
+        <div class="font-mono font-bold text-secondary text-sm">+M · Idiomorph</div>
         <p class="mt-2 text-base-content/75 leading-normal">
-          Replaces HTMX's standard <code>innerHTML</code> replacement with Idiomorph's DOM morphing algorithm. Crucial for preserving input focus in search inputs and preventing scroll jumps.
+          Replaces HTMX's standard <code>innerHTML</code> swap with DOM morphing, which can preserve elements such as input focus and reduce unnecessary DOM replacement.
         </p>
       </div>
     </div>

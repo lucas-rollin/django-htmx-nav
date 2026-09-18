@@ -1,4 +1,3 @@
-# example/htmx_nav_demo/views_baseline.py
 from htmx_nav import Swap, make_shell_renderer
 
 # Define standard application shell swaps once, supply context in the view

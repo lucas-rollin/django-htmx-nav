@@ -3,14 +3,24 @@
     2. The Landscape of General Solutions
   </h2>
   <p class="text-base text-base-content/85 leading-relaxed mt-4">
-    Across the web development ecosystem, three primary architectural strategies have emerged to address multi-region navigation updates.
+    Across the web development ecosystem, several architectural strategies have emerged to address multi-region navigation updates.
   </p>
-  <!-- 2.1 Full Render & Idiomorph -->
+  <!-- 2.1 Full Render & Client Slicing or DOM Morphing -->
   <div id="method-full-render" class="mt-8 space-y-3">
     {% include "frontpage/components/_subsection_heading.html" with number="2.1" text="Full Render + Client Slicing or DOM Morphing (Idiomorph)" %}
     <p class="text-sm text-base-content/80 leading-relaxed">
       In this approach, the server continues to render the complete HTML document on every single navigation request. The client then either extracts fragments using <code>hx-select</code> or compares the entire incoming DOM against the live DOM using a morphing algorithm like <strong>Idiomorph</strong>.
     </p>
+    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-3">
+      <pre><code class="language-html">&lt;!-- Client-side extraction: pull only what changed out of a full-page response --&gt;
+&lt;a hx-get="/projects/42/board/"
+   hx-target="#main-content"
+   hx-select="#main-content"
+   hx-select-oob="#sidebar,#breadcrumbs"&gt;
+  Kanban Board
+&lt;/a&gt;
+&lt;!-- Server still returns the full document; the client picks these fragments out of it --&gt;</code></pre>
+    </div>
     <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-3">
       <pre><code class="language-html">&lt;!-- Client-side morphing on boosted body --&gt;
 &lt;body hx-boost="true" hx-ext="morph" hx-swap="morph"&gt;
@@ -23,14 +33,12 @@
         <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
           <li>Zero view-layer changes on the backend.</li>
           <li>Preserves form focus, text selection, and scroll positions.</li>
-          <li>Simple mental model for small sites.</li>
         </ul>
       </div>
       <div class="p-3 bg-base-200/50 rounded-lg border border-base-300">
         <div class="font-bold text-error">✗ Trade-offs</div>
         <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
           <li>Highest wire payload: sends full layout HTML every click.</li>
-          <li>Server executes all layout database queries needlessly.</li>
           <li>DOM diffing costs client CPU cycles on large table views.</li>
         </ul>
       </div>
@@ -44,15 +52,15 @@
     </p>
     <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-3">
       {% verbatim %}
-        <pre><code class="language-html">{# Manual branching inside Django templates #}
-{% if request.htmx %}
-  &lt;div id="sidebar" hx-swap-oob="innerHTML"&gt;{% include "components/_sidebar.html" %}&lt;/div&gt;
-  &lt;div id="breadcrumbs" hx-swap-oob="innerHTML"&gt;{% include "components/_breadcrumbs.html" %}&lt;/div&gt;
-  {% block content %}{% endblock %}
-{% else %}
-  {% extends "base.html" %}
-  ...
-{% endif %}</code></pre>
+        <pre><code class="language-django">&lt;!-- Manual branching inside Django templates --&gt;
+{% extends "base.html" %}
+{% block content %}
+  {% if request.htmx %}
+    &lt;div id="sidebar" hx-swap-oob="innerHTML"&gt;{% include "components/_sidebar.html" %}&lt;/div&gt;
+    &lt;div id="breadcrumbs" hx-swap-oob="innerHTML"&gt;{% include "components/_breadcrumbs.html" %}&lt;/div&gt;
+  {% endif %}
+  &lt;!-- Page content goes here... --&gt;
+{% endblock %}</code></pre>
       {% endverbatim %}
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs not-prose">
@@ -107,6 +115,159 @@ def project_board(request, project_id):
           <li>Significant repetitive view boilerplate across the codebase.</li>
           <li>High risk of duplicate DB queries (sidebar re-fetching active org/project).</li>
           <li>Easy for view authors to forget breadcrumbs or title updates.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="text-xs text-base-content/70 leading-relaxed mt-2">
+      A middleware that inspects every response and appends the same OOB fragments
+      automatically is the same strategy centralized outside the view &mdash; it trades
+      per-view locality (a view no longer fully describes what it returns) for avoiding
+      repeated boilerplate, without changing the underlying push-based sync model.
+    </p>
+  </div>
+  <!-- 2.4 Event-Driven Re-fetch -->
+  <div id="method-event-driven" class="mt-10 space-y-3">
+    {% include "frontpage/components/_subsection_heading.html" with number="2.4" text="Event-Driven Sync (HX-Trigger + Client Re-fetch)" %}
+    <p class="text-sm text-base-content/80 leading-relaxed">
+      Every method above is <em>push-based</em>: one response carries the primary content
+      plus whatever secondary regions the server decided to include. This method inverts
+      that. The primary response fires a named event via the <code>HX-Trigger</code> header;
+      any region on the page listening for that event independently re-fetches itself.
+      Regions don't need to know about each other, and the primary view doesn't need to
+      know which regions exist.
+    </p>
+    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-3">
+      <pre><code class="language-python"># The primary view has no knowledge of the sidebar or breadcrumbs at all
+def project_board(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+    response = render(request, "pages/board_partial.html", {"project": project})
+    response["HX-Trigger"] = "nav-changed"
+    return response</code></pre>
+    </div>
+    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-3">
+      <pre><code class="language-html">&lt;!-- Each region independently listens and re-fetches on the event --&gt;
+&lt;div id="sidebar"
+     hx-get="/nav/sidebar/"
+     hx-trigger="nav-changed from:body"&gt;
+  ...
+&lt;/div&gt;
+&lt;div id="breadcrumbs"
+     hx-get="/nav/breadcrumbs/"
+     hx-trigger="nav-changed from:body"&gt;
+  ...
+&lt;/div&gt;</code></pre>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs not-prose">
+      <div class="p-3 bg-base-200/50 rounded-lg border border-base-300">
+        <div class="font-bold text-success">✓ Advantages</div>
+        <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
+          <li>Primary view stays fully decoupled from secondary regions.</li>
+          <li>New regions can listen for existing events with no changes to any view.</li>
+          <li>Well suited to widely-reused, cross-cutting regions (e.g. a notification badge).</li>
+        </ul>
+      </div>
+      <div class="p-3 bg-base-200/50 rounded-lg border border-base-300">
+        <div class="font-bold text-error">✗ Trade-offs</div>
+        <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
+          <li>Each listening region is an additional round trip, not a single response.</li>
+          <li>No guaranteed ordering or atomicity across the resulting fetches.</li>
+          <li>Harder to reason about "what updates on this navigation" from the view alone.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <!-- 2.5 Template Substitution -->
+  <div id="method-template-substitution" class="mt-10 space-y-3">
+    {% include "frontpage/components/_subsection_heading.html" with number="2.5" text="Template Substitution (Dispatch Before Render)" %}
+    <p class="text-sm text-base-content/80 leading-relaxed">
+      Sections 2.2 and 2.3 each pay a cost: template-level branching couples markup to
+      the transport layer, and backend orchestration means hand-joining response strings
+      in the view. A middle path swaps the <em>entire template</em> before rendering,
+      based on a single request header, then calls Django's normal <code>render()</code>
+      unmodified.
+    </p>
+    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-3">
+      <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/get_template_dispatch.py" %}</code></pre>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs not-prose">
+      <div class="p-3 bg-base-200/50 rounded-lg border border-base-300">
+        <div class="font-bold text-success">✓ Advantages</div>
+        <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
+          <li>No conditional logic inside template markup.</li>
+          <li>No manual OOB string-joining in the view.</li>
+          <li>The full-page and partial templates each stay simple on their own.</li>
+        </ul>
+      </div>
+      <div class="p-3 bg-base-200/50 rounded-lg border border-base-300">
+        <div class="font-bold text-error">✗ Trade-offs</div>
+        <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
+          <li>Works cleanly for one target region and one decision point.</li>
+          <li>
+            A second independent region (e.g. a tab <em>and</em> a subtab) needs another
+            dispatch check, or a move to another approach above.
+          </li>
+          <li>The partial template still has to be authored and kept in sync with the full page.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="text-xs text-base-content/70 leading-relaxed">
+      See <code>get_template()</code> applied to the full <code>overview</code> view in
+      <a href="#code-vanilla" class="link link-secondary font-semibold">Section 4.2</a>.
+    </p>
+  </div>
+  <!-- 2.6 Native Template Partials -->
+  <div id="method-native-partials" class="mt-10 space-y-3">
+    {% include "frontpage/components/_subsection_heading.html" with number="2.6" text="Native Template Partials (Django 6.0+)" %}
+    <p class="text-sm text-base-content/80 leading-relaxed">
+      Beginning in Django 6.0, native template partials (formerly available via the
+      third-party package <code>django-template-partials</code>) allows defining reusable
+      inline fragments directly within a single template file using
+      <code>{% templatetag openblock %} partialdef {% templatetag closeblock %}</code> tags.
+      Rather than maintaining separate files for full-page and fragment renderings, one
+      template defines both the complete document structure and its nested partials.
+    </p>
+    <p class="text-sm text-base-content/80 leading-relaxed">
+      This is a <strong>complementary primitive</strong>, not a competing sync strategy:
+      it changes how a fragment is defined, not how the server decides which fragment
+      to send. Any of the methods above, backend orchestration
+      (<a href="#method-backend-oob" class="link link-primary">2.3</a>) or template
+      substitution (<a href="#method-template-substitution" class="link link-primary">2.5</a>),
+      can target a named partial instead of a whole separate file.
+    </p>
+    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-3">
+      {% verbatim %}
+        <pre><code class="language-django">{% extends 'base.html' %}
+{% block content %}
+{% partialdef content inline %}
+  &lt;div&gt;Page content&lt;/div&gt;
+{% endpartialdef %}
+{% endblock %}</code></pre>
+      {% endverbatim %}
+    </div>
+    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-3">
+      <pre><code class="language-python"># template substitution (section 2.5), retargeted at a partial
+def get_template(request, template_name: str) -> str:
+    if request.headers.get("HX-Request") == "true":
+        return f"{template_name}#content"  # render only the named partial
+    return template_name</code></pre>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs not-prose">
+      <div class="p-3 bg-base-200/50 rounded-lg border border-base-300">
+        <div class="font-bold text-success">✓ Advantages</div>
+        <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
+          <li>Single-file locality: layout and partial definitions live together.</li>
+          <li>Removes the parallel-shell-file cost noted in 2.5's trade-offs.</li>
+          <li>Composes with 2.3's orchestration or 2.5's dispatch without changing either.</li>
+        </ul>
+      </div>
+      <div class="p-3 bg-base-200/50 rounded-lg border border-base-300">
+        <div class="font-bold text-error">✗ Trade-offs</div>
+        <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
+          <li>Requires a consistent partial-naming convention across templates.</li>
+          <li>
+            Still needs one of the dispatch methods above to decide which partial
+            to render on a given request, it doesn't solve routing by itself.
+          </li>
         </ul>
       </div>
     </div>

@@ -3,46 +3,125 @@
     6. Architectural Decision Tree
   </h2>
   <p class="text-base text-base-content/85 leading-relaxed mt-4">
-    Use this guide to choose the right strategy for your Django project:
+    Use this guide to choose the navigation strategy that best fits your Django project:
   </p>
   <div class="space-y-4 not-prose my-6 text-sm">
+    <!-- Tier 1 -->
     <div class="collapse collapse-arrow bg-base-200/50 border border-base-300 rounded-xl">
       <input type="radio" name="decision-accordion" checked="checked">
       <div class="collapse-title font-bold flex items-center gap-2">
-        <span class="badge badge-neutral badge-sm font-mono">1</span>
+        <span class="badge badge-soft badge-sm font-mono">1</span>
         Simple marketing sites, blogs, or mostly static documents
       </div>
       <div class="collapse-content text-xs text-base-content/80 leading-relaxed">
-        <p><strong>Recommendation:</strong> Use <strong>Pure MPA</strong> or plain <code>hx-boost="true"</code> on <code>&lt;body&gt;</code>.</p>
+        <p>
+          <span class="badge badge-neutral badge-sm align-middle">MPA</span>
+          <strong class="ml-1">Recommendation:</strong>
+          Use <strong>Pure MPA</strong>, or add plain <code>hx-boost="true"</code> to
+          <code>&lt;body&gt;</code> for progressively enhanced navigation.
+        </p>
         <p class="mt-1">
-          Without complex nested dashboards or dynamic layout controls, the simplicity of traditional full-page loads outweighs any wire payload optimization.
+          Without complex nested dashboards or dynamic layout controls, the simplicity
+          of traditional full-page rendering outweighs the benefits of partial navigation.
         </p>
       </div>
     </div>
+    <!-- Tier 2 -->
     <div class="collapse collapse-arrow bg-base-200/50 border border-base-300 rounded-xl">
       <input type="radio" name="decision-accordion">
       <div class="collapse-title font-bold flex items-center gap-2">
-        <span class="badge badge-secondary badge-sm font-mono">2</span>
+        <span class="badge badge-soft badge-sm font-mono">2</span>
         Small SaaS apps with 1-2 layout regions (e.g. fixed sidebar, 1 tab bar)
       </div>
       <div class="collapse-content text-xs text-base-content/80 leading-relaxed">
-        <p><strong>Recommendation:</strong> Use <strong><code>django-htmx-nav</code> Baseline</strong> (via <code>make_shell_renderer</code>).</p>
-        <p class="mt-1">
-          Define your 2-3 standard layout swaps once in a <code>render_shell</code> helper. Views remain completely standard Django views, while network payload drops by over 30%.
+        {# djlint:off #}
+        <p>
+          <span class="badge badge-primary badge-sm align-middle">django-htmx-nav</span>
+          <strong class="ml-1">Recommendation:</strong>
+          Use the <a href="#code-htmx-nav-baseline" class="link link-primary font-semibold">Shared Shell Renderer</a>
+          pattern (<code>make_shell_renderer</code>).
         </p>
+        {# djlint:on #}
+        <p class="mt-1">
+          Define your 2-3 standard layout swaps once and reuse <code>render_shell</code>
+          in place of <code>render()</code>. Views stay standard Django views, with no
+          parallel directory of shell templates to maintain.
+        </p>
+        <div class="mt-3 pt-2 border-t border-base-300/70">
+          {# djlint:off #}
+          <p>
+            <span class="badge badge-secondary badge-sm align-middle">Vanilla HTMX</span>
+            <strong class="ml-1">Alternative:</strong>
+            Prefer no extra dependency? The
+            <a href="#code-vanilla" class="link link-secondary font-semibold">Vanilla HTMX &amp; Shell Templates</a>
+            pattern works well here.
+          </p>
+          {# djlint:on #}
+          <p class="mt-1">
+            With only one HX-Target to branch on, <code>get_template()</code> can swap in the
+            right shell partial in a single line. The conditional stays contained and
+            never needs to leak into templates or balloon the view.
+          </p>
+        </div>
       </div>
     </div>
+    <!-- Tier 3 -->
     <div class="collapse collapse-arrow bg-base-200/50 border border-base-300 rounded-xl">
       <input type="radio" name="decision-accordion">
       <div class="collapse-title font-bold flex items-center gap-2">
-        <span class="badge badge-primary badge-sm font-mono">3</span>
-        Complex web apps with deep nesting (organizations, projects, subtabs, wizards)
+        <span class="badge badge-soft badge-sm font-mono">3</span>
+        Complex web apps with deep nesting (organizations, projects, subtabs, wizard steps)
       </div>
       <div class="collapse-content text-xs text-base-content/80 leading-relaxed">
-        <p><strong>Recommendation:</strong> Use <strong><code>django-htmx-nav</code> Declarative Registry</strong> with <code>cache_on_request</code>.</p>
-        <p class="mt-1">
-          Decoupling navigation state resolution into a central registry keeps views razor-thin, eliminates copy-pasted breadcrumb code, and guarantees zero redundant database queries across partials.
+        {# djlint:off #}
+        <p>
+          <span class="badge badge-primary badge-sm align-middle">django-htmx-nav</span>
+          <strong class="ml-1">Recommendation:</strong>
+          Use the <a href="#code-htmx-nav-declarative" class="link link-primary font-semibold">Declarative Navigation Registry</a> with <code>cache_on_request</code>.
         </p>
+        {# djlint:on #}
+        <p class="mt-1">
+          A central navigation registry keeps views focused on application logic.
+          With <code>cache_on_request</code>, resolved navigation state can be reused
+          across components within the same request instead of being resolved repeatedly.
+        </p>
+        <div class="mt-3 pt-2 border-t border-base-300/70">
+          {# djlint:off #}
+          <p>
+            <span class="badge badge-primary badge-sm align-middle">django-htmx-nav</span>
+            <strong class="ml-1">Alternative:</strong>
+            Want no registry overhead? Extend the
+            <a href="#code-htmx-nav-baseline" class="link link-primary font-semibold">Shared Shell Renderer</a>
+            or <a href="#code-htmx-nav-composite" class="link link-primary font-semibold">Composite Swaps</a>
+            pattern to cover every region.
+          </p>
+          {# djlint:on #}
+          <p class="mt-1">
+            This skips the registry's route-metadata layer at the cost of listing
+            every <code>Swap</code> explicitly per view (or per shell) rather than deriving it
+            from the current route.
+          </p>
+        </div>
+        <div class="mt-3 pt-2 border-t border-base-300/70">
+          <p>
+            <span class="badge badge-secondary badge-sm align-middle">Vanilla HTMX</span>
+            <strong class="ml-1">Alternative:</strong>
+            The equivalent atomic-OOB vanilla approach
+            <a href="https://github.com/lucas-rollin/django-htmx-nav/tree/main/example/vanilla_htmx_atomic"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="link link-secondary font-semibold inline-flex items-center gap-1">
+              (view source
+              {% include "frontpage/components/_arrow_icon.html" with size="3" %})
+            </a>
+            can still get you there without the dependency.
+          </p>
+          <p class="mt-1">
+            The trade-off scales with nesting depth: every additional decision point
+            (org → project → subtab/wizard) means either more branching inside templates
+            (Section 2.2) or more repeated OOB assembly across views (Section 2.3).
+          </p>
+        </div>
       </div>
     </div>
   </div>

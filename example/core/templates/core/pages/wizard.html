@@ -66,7 +66,8 @@
               <label class="label" for="id_priority">Priority</label>
               <select id="id_priority" name="priority" class="select w-full">
                 {% for p in "12345" %}
-                  <option value="{{ p }}" {% if collected.priority == p or not collected.priority and forloop.first %}selected{% endif %}>Priority {{ p }}</option>
+                  <option value="{{ p }}"
+                          {% if collected.priority == p or not collected.priority and forloop.first %}selected{% endif %}>Priority {{ p }}</option>
                 {% endfor %}
               </select>
             </fieldset>
@@ -104,7 +105,8 @@
             <div class="alert alert-warning mt-2">
               <span>Demo only! Submitting won't actually create a ticket; it'll redirect to an existing sample ticket instead.</span>
             </div>
-            <form method="post" class="card-actions justify-between mt-2"
+            <form method="post"
+                  class="card-actions justify-between mt-2"
                   {% if "steps" in active_variant.component_swaps or active_variant.uses_hx_select %}hx-target="#main-content" {% endif %}>
               {% csrf_token %}
               <a href="{% url request.resolver_match.namespaces|last|add:':ticket_wizard_step' org.id project.id 'assignment' %}"

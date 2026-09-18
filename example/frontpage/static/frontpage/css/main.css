@@ -1,0 +1,60 @@
+html {
+  scroll-padding-top: 80px; 
+  scroll-behavior: smooth; 
+}
+
+p code {
+  font-size: 0.875em;
+}
+
+/* Highlight.js & Code Blocks */
+pre code.hljs {
+  background: transparent !important;
+  padding: 0 !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+@media (width >= 768px) {
+  pre code.hljs {
+    font-size: 0.825rem;
+  }
+}
+
+/* DaisyUI Mockup Code & Line Numbers */
+.mockup-code pre code.hljs {
+  background: transparent !important;
+  padding: 0 !important;
+  font-family: inherit;
+}
+
+.mockup-code pre::before {
+  content: none;
+}
+
+/* Style highlightjs-line-numbers table to match DaisyUI */
+.hljs-ln {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.hljs-ln td {
+  padding: 0 !important;
+}
+
+.hljs-ln-numbers {
+  user-select: none;
+  text-align: right;
+  opacity: 0.5;
+  padding-right: 1.25rem !important;
+  width: 3rem;
+}
+
+.hljs-ln-n {
+  margin-right: 1rem;
+}
+
+.hljs-ln-code {
+  padding-left: 0.5rem !important;
+}
