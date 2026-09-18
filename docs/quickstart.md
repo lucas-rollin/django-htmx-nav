@@ -10,7 +10,7 @@ Install `django-htmx-nav` from PyPI:
 pip install django-htmx-nav
 ```
 
-Optionally, if you want [visual debugging](debugging.md), register the app and activate the setting.
+(Optional) If you want to use [visual debugging](debugging.md), register the app in your settings and activate the development flag:
 
 ```python
 # settings.py
@@ -20,13 +20,13 @@ INSTALLED_APPS = [
     ...,
 ]
 
-# Activate it in development
+# Enable visual debugging in development
 HTMX_NAV_DEBUG_SWAPS = True
 ```
 
 ## 2. Basic Partial Rendering (`render_nav`)
 
-Use `render_nav` in your view functions as a drop-in replacement for Django's standard `render()`:
+Use `render_nav` in your views as a drop-in replacement for Django's standard `render()` function:
 
 ```python
 # views.py
@@ -58,19 +58,19 @@ In your HTML template, define the partial block using native Django 6 inline par
 ```
 
 ```{tip}
-`partial` defaults to `"#content"`, so on HTMX requests `"app/project_list.html"` becomes `"app/project_list.html#content"`, matched by Django's `{% partialdef content %}` block. Name your block `content` to match, or override via `partial="#your_block"` / `partial="path/to/template.html"`.
+The `partial` argument defaults to `"#content"`. During an HTMX request, `"app/project_list.html"` automatically resolves to `"app/project_list.html#content"`, matching your `{% partialdef content %}` block. You can change this block name to match your preference, or override it via `partial="#your_block"` or `partial="path/to/template.html"`.
 ```
 
 ### Behavior Under the Hood
 
-- **Direct Browser Navigation (GET):** Renders the entire document including `base.html`.
-- **HTMX Partial Request (`HX-Request: true`):** Extracts and renders only the targeted partial block, setting `Vary: HX-Request` for correct HTTP caching.
+- **Direct Browser Navigation (GET):** Renders the entire document, including `base.html`.
+- **HTMX Partial Request (`HX-Request: true`):** Extracts and renders only the targeted partial block, automatically setting the `Vary: HX-Request` header for correct browser and proxy caching.
 
 ## 3. Out-of-Band Swaps (`Swap`)
 
-When navigating within an application shell, updating only the center container causes surrounding controls (sidebars, breadcrumbs, counter badges) to go stale.
+When navigating within an application shell, updating only the main content area can leave surrounding controls (such as sidebars, breadcrumbs, and counter badges) out of sync.
 
-Use `Swap` to append synchronized out-of-band updates alongside your response:
+Use `Swap` to append synchronized out-of-band updates to your response:
 
 ```python
 from django.shortcuts import get_object_or_404
@@ -89,21 +89,22 @@ def project_detail(request, pk):
             Swap("app/_sidebar.html", {"active_pk": project.pk}, target_id="sidebar"),
             Swap("app/_breadcrumbs.html", {"project": project}, target_id="breadcrumbs"),
 
-            # High-performance raw string update (skips template engine):
+            # High-performance raw string update (bypasses the template engine):
             Swap.text("unread-badge", "3"),
 
-            # Delete directive (removes element from DOM):
+            # Delete directive (removes the element from the DOM):
             Swap.delete("flash-notification"),
 
-            # Django messages integration (only sent if messages are pending):
+            # Conditional Django messages integration (sent only if messages are pending):
             Swap("app/_messages.html", target_id="messages", include_if=has_messages),
         ],
     )
+
 ```
 
 ## 4. Reusable Shell Rendering (`make_shell_renderer`)
 
-To avoid declaring the same sidebar and breadcrumb `Swap`s repeatedly across dozens of views, encapsulate them into a reusable `render_shell` helper:
+To avoid duplicating sidebar and breadcrumb `Swap` configurations across dozens of views, encapsulate them into a reusable `render_shell` helper:
 
 ```python
 # renderers.py
@@ -120,7 +121,7 @@ def build_shell_swaps(request):
 render_shell = make_shell_renderer(build_shell_swaps)
 ```
 
-Now any view in your application calls `render_shell` directly:
+Now, any view in your application can call `render_shell` directly:
 
 ```python
 # views.py
@@ -144,12 +145,12 @@ def project_detail(request, pk):
 ```
 
 ```{note}
-**Request-Scoped Memoization:** If your shell builder queries the database (e.g. fetching an organization, project, or user permissions), use `cache_on_request(request, "key", fetch_func)` from `htmx_nav.helpers` to prevent duplicate database hits on the same request.
+**Request-Scoped Memoization:** If your shell builder performs database queries (such as fetching an organization, active project, or user permissions), use `cache_on_request(request, "key", fetch_func)` from `htmx_nav.helpers` to prevent redundant database hits during the same request lifecycle.
 ```
 
 ## 5. Class-Based View Integration (`make_shell_view_mixin`)
 
-For projects utilizing Django generic Class-Based Views (`DetailView`, `ListView`, `CreateView`), generate a mixin with `make_shell_view_mixin`:
+For projects utilizing Django's generic Class-Based Views (`DetailView`, `ListView`, `CreateView`), you can generate a corresponding mixin using `make_shell_view_mixin`:
 
 ```python
 # views.py
@@ -157,7 +158,8 @@ from django.views.generic import DetailView
 from htmx_nav import Swap, make_shell_view_mixin
 from .models import Project
 from .renderers import render_shell 
- 
+
+# Reuse render_shell, or instantiate the mixin without parameters if preset swaps aren't needed.
 ProjectShellMixin = make_shell_view_mixin(render_shell)
 
 
@@ -166,16 +168,17 @@ class ProjectDetailView(ProjectShellMixin, DetailView):
     template_name = "app/project_detail.html"
 
     def get_extra_swaps(self):
-        # Access self.object and self.request dynamically
+        # Dynamically access self.object and self.request
         return [
             Swap("app/_tabs.html", {"active": "overview"}, target_id="project-tabs"),
         ]
+
 ```
 
 ## Next Steps
 
 - Explore the deployed {demo}`Live Demo Testbed <htmx-nav/declarative/>` and compare multiple implementations.
-- Check out the <a href="../benchmarks/">Interactive Benchmark Suite</a> for empirical payload and latency metrics.
+- Review the <a href="../benchmarks/">Interactive Benchmark Suite</a> for empirical payload and latency metrics.
 - Read the <a href="../guide/">Architectural Guide</a> for an in-depth exploration of state drift solutions.
 - Learn about automated parity verification in the [Testing Guide](testing.md).
-- Reference full signatures in the [API Reference](api/core.md).
+- Reference full function signatures in the [API Reference](https://www.google.com/search?q=api/core.md&utm_source=gemini).

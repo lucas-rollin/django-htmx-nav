@@ -23,9 +23,11 @@ _DEBUG_MARKER_RE = re.compile(
 
 
 def _strip_debug_markers(html: str) -> str:
-    """Removes htmx_nav's HTMX_NAV_DEBUG_SWAPS marker <script> tags. The
-    marker is only ever emitted on swap responses (see Swap.render), so
-    its presence is noise for structural comparison, not real content."""
+    """Removes htmx_nav's HTMX_NAV_DEBUG_SWAPS marker <script> tags. 
+    
+    The marker is only ever emitted on swap responses (see Swap.render), 
+    so its presence is noise for structural comparison.
+    """
     return _DEBUG_MARKER_RE.sub("", html)
 
 
@@ -94,11 +96,9 @@ def assert_html_equal(
 
     Normalizes both inputs with Django's `parse_html` (whitespace/attribute-
     order insensitive) and strips htmx_nav debug-swap markers before
-    comparing, so mismatches reflect real content differences. On failure,
-    raises with a unified diff rather than a raw string/byte comparison,
-    which is unreadable for anything beyond trivial fragments.
-
-    Useful directly when comparing two full response bodies (e.g. verifying
+    comparing.
+    
+    Useful when comparing two full response bodies (e.g. verifying
     a response is identical regardless of `HX-Target`); `assert_shell_composition`
     uses the same comparison internally for its fragment-level checks.
 
