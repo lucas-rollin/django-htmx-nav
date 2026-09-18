@@ -33,7 +33,6 @@ NAV_CONCERN_PATTERN = re.compile(
             r"Swap\(",
             r"Swap\.",
             r"render_nav\(",
-            r"render_with_swaps\(",
             r"render_shell\(",
             r"make_shell_renderer\(",
             r"make_shell_view_mixin\(",

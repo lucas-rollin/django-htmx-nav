@@ -19,7 +19,6 @@ from htmx_nav import (
     has_messages,
     make_shell_view_mixin,
     render_nav,
-    render_with_swaps,
 )
 
 NAMESPACE = "htmx_nav_composite"
@@ -292,7 +291,7 @@ def project_settings(
 def ticket_move_status(request: HttpRequest, ticket_id: str) -> HttpResponse:
     """Update a ticket's status and redirect back to the Kanban board.
 
-    Uses `render_with_swaps` to not navigate and do pinpoint swaps.
+    Uses `render_nav` with `partial=None` to do pinpoint swaps without navigation.
     """
     ticket = Ticket.objects.get(id=ticket_id)
     old_status = ticket.status
@@ -309,8 +308,12 @@ def ticket_move_status(request: HttpRequest, ticket_id: str) -> HttpResponse:
             ).count()
             swaps.append(Swap.text(f"column-count-{status}", str(count)))
 
-    response = render_with_swaps(
-        request, "core/pages/_board.html#ticket-card", {"ticket": ticket}, swaps=swaps
+    response = render_nav(
+        request,
+        "core/pages/_board.html#ticket-card",
+        {"ticket": ticket},
+        partial=None,
+        swaps=swaps,
     )
     response["HX-Retarget"] = f"#column-{ticket.status}"
     response["HX-Push-Url"] = "false"

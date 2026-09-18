@@ -24,23 +24,12 @@ Examples:
 
 
 def _is_htmx_request(request: HttpRequest) -> bool:
-    """Determines whether the request is an HTMX request."""
-    htmx_attr = getattr(request, "htmx", None)
-    if htmx_attr is not None:
-        return bool(htmx_attr)
+    """Determines whether the request is an HTMX request based on HTTP headers."""
     return request.headers.get("HX-Request", "") == "true"
 
 
 def _htmx_target_header(request: HttpRequest) -> str | None:
-    """Resolve the effective HX-Target value for this request.
-
-    Prefers request.htmx.target (django-htmx) when django-htmx's middleware
-    has populated it; otherwise falls back to reading the raw HX-Target
-    header directly.
-    """
-    htmx = getattr(request, "htmx", None)
-    if htmx is not None:
-        return getattr(htmx, "target", None)
+    """Resolves the HX-Target header for this request."""
     return request.headers.get("HX-Target")
 
 

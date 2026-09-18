@@ -289,3 +289,13 @@ def test_explicit_title_kwarg_wins_over_shell_swap_context_title():
 
     response = render_shell(request, "tests/_page.html", {}, title="Explicit")
     assert response.context_data["title"] == "Explicit"  # type: ignore
+
+
+def test_make_shell_renderer_respects_custom_default_partial_setting():
+    from django.test import override_settings
+
+    with override_settings(HTMX_NAV_DEFAULT_PARTIAL="#custom_shell_block"):
+        render_shell = make_shell_renderer([])
+        request = htmx_request(RequestFactory())
+        response = render_shell(request, "tests/_page.html", {"content": "hi"})
+        assert response.template_name == "tests/_page.html#custom_shell_block"

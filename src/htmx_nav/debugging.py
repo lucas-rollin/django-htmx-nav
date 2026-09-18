@@ -1,8 +1,8 @@
 """
-Debug-swap marker: Add an inline <script> to flash a target element 
+Debug-swap marker: Add an inline <script> to flash a target element
 when HTMX_NAV_DEBUG_SWAPS is enabled.
 
-`_build_marker_script` is used both by Swap.render() internally and by 
+`_build_marker_script` is used both by Swap.render() internally and by
 the public `debug_swap_marker` templatetag
 """
 
@@ -15,7 +15,7 @@ def _build_marker_script(target_id: str) -> str:
     """Unconditionally builds the marker script for `target_id`.
 
     Reapplies a class to the element so animations retrigger upon
-    repeated swaps. Used both by Swap.render() internally and by the public 
+    repeated swaps. Used both by Swap.render() internally and by the public
     `debug_swap_marker` templatetag.
     """
     return (

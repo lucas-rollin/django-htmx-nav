@@ -7,10 +7,19 @@ navigation parity and HTML fragment composition.
 import difflib
 import re
 from collections.abc import Callable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from django.test import Client
 from django.test.html import parse_html
+
+if TYPE_CHECKING:
+    from bs4 import BeautifulSoup, Tag
+else:
+    try:
+        from bs4 import BeautifulSoup, Tag
+    except ImportError:
+        BeautifulSoup = None
+        Tag = None
 
 __all__ = ["assert_shell_parity", "assert_shell_composition", "assert_html_equal"]
 
@@ -130,22 +139,20 @@ class _HTMLDocument:
     """Helper for parsing response HTML and extracting DOM fragments."""
 
     def __init__(self, raw_html: bytes | str):
-        try:
-            from bs4 import BeautifulSoup
-        except ImportError as exc:
+        if BeautifulSoup is None or Tag is None:
             raise ImportError(
                 "assert_shell_composition requires beautifulsoup4. "
                 "Install it with: pip install beautifulsoup4"
-            ) from exc
+            )
 
         if isinstance(raw_html, bytes):
             raw_html = raw_html.decode("utf-8")
 
         self.soup = BeautifulSoup(_strip_debug_markers(raw_html), "html.parser")
 
-    def _find_element(self, element_id: str):
+    def _find_element(self, element_id: str) -> Tag:
         element = self.soup.find(id=element_id)
-        if element is None:
+        if element is None or not isinstance(element, Tag):
             raise AssertionError(
                 f"Could not find any element with id={element_id!r} in the response HTML."
             )
@@ -153,7 +160,7 @@ class _HTMLDocument:
 
     def inner_html(self, element_id: str) -> str:
         """Returns the serialized child nodes of the element."""
-        return self._find_element(element_id).decode_contents()
+        return str(self._find_element(element_id).decode_contents())
 
     def outer_html(self, element_id: str) -> str:
         """Returns the serialized element including its opening and closing tags."""
@@ -161,7 +168,9 @@ class _HTMLDocument:
 
     def container_html(self, element_id: str, *, self_wrapped: bool) -> str:
         """Returns outer HTML if self_wrapped is True, otherwise inner HTML."""
-        return self.outer_html(element_id) if self_wrapped else self.inner_html(element_id)
+        return (
+            self.outer_html(element_id) if self_wrapped else self.inner_html(element_id)
+        )
 
     def split_fragments(self) -> tuple[str, dict[str, str]]:
         """Splits the document into primary content and out-of-band swap fragments."""
@@ -169,17 +178,28 @@ class _HTMLDocument:
         primary_parts: list[str] = []
 
         for node in list(self.soup.contents):
-            name = getattr(node, "name", None)
-            attrs = getattr(node, "attrs", {}) or {}
+            if not isinstance(node, Tag):
+                primary_parts.append(str(node))
+                continue
+
+            name = node.name
+            attrs = node.attrs or {}
 
             if name == "title":
                 node.extract()
             elif attrs.get("hx-swap-oob") and attrs.get("id"):
-                fragments[attrs["id"]] = node.decode_contents()
+                elem_id = attrs["id"]
+                elem_id_str = elem_id if isinstance(elem_id, str) else str(elem_id)
+                fragments[elem_id_str] = str(node.decode_contents())
                 node.extract()
-            elif name == "hx-partial" and attrs.get("hx-target", "").lstrip("#"):
-                fragments[attrs["hx-target"].lstrip("#")] = node.decode_contents()
-                node.extract()
+            elif name == "hx-partial" and (hx_target := attrs.get("hx-target")):
+                hx_target_str = (
+                    hx_target if isinstance(hx_target, str) else str(hx_target)
+                )
+                target_id = hx_target_str.lstrip("#")
+                if target_id:
+                    fragments[target_id] = str(node.decode_contents())
+                    node.extract()
             else:
                 primary_parts.append(str(node))
 

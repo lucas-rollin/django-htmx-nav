@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.3.2 — 2026-09-18
+
+**Added:**
+
+- **`htmx_nav.settings`**:
+  - `HTMX_NAV_DEFAULT_PARTIAL`: Added setting to configure the default `PartialSpec` (defaults to `"#content"`), dynamically resolved across `render_nav`, `make_shell_renderer`, and `make_shell_view_mixin`.
+
+**Changed:**
+
+- **`htmx_nav.targeting`**:
+  - Removed `django-htmx` middleware checks (`request.htmx` and `request.htmx.target`) in favor of relying directly on standard HTTP headers (`HX-Request` and `HX-Target`).
+
+**Removed:**
+
+- **`htmx_nav.shortcuts`**:
+  - Removed `render_with_swaps`. Use `render_nav(..., partial=None)` for responses that append out-of-band swaps without partial resolution.
+- **Dependencies**:
+  - Removed optional `django-htmx` dependency extra (`[htmx]`) from `pyproject.toml`.
+
 ## 0.3.1 — 2026-09-12
 
 **Added:**

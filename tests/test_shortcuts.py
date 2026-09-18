@@ -3,7 +3,7 @@ from unittest.mock import patch
 import pytest
 from django.test import RequestFactory, override_settings
 
-from htmx_nav.shortcuts import render_nav, render_with_swaps
+from htmx_nav.shortcuts import render_nav
 from htmx_nav.swaps import Swap
 from htmx_nav.targeting import not_targeting, targeting
 
@@ -302,32 +302,32 @@ def test_no_title_anywhere_defaults_to_none_and_no_tag_appended():
 
 
 # =============================================================================
-# render_with_swaps — the non-navigation building block
+# render_nav(partial=None) — verbatim rendering with swaps
 # =============================================================================
 
 
-def test_render_with_swaps_renders_template_verbatim_no_partial_resolution():
+def test_render_nav_with_partial_none_renders_template_verbatim_no_partial_resolution():
     request = htmx_request(RequestFactory())
-    response = render_with_swaps(request, "tests/_minimal.html", {"value": "x"})
+    response = render_nav(request, "tests/_minimal.html", {"value": "x"}, partial=None)
     response.render()
     assert response.template_name == "tests/_minimal.html"
     assert response.content.strip() == b"x"
 
 
-def test_render_with_swaps_still_appends_swaps_on_htmx_request():
+def test_render_nav_with_partial_none_appends_swaps():
     request = htmx_request(RequestFactory())
     swap = Swap("tests/_notification.html", {"message": "Saved"}, target_id="alerts")
-    response = render_with_swaps(
-        request, "tests/_minimal.html", {"value": "x"}, swaps=swap
+    response = render_nav(
+        request, "tests/_minimal.html", {"value": "x"}, partial=None, swaps=swap
     )
     response.render()
     assert b'<div id="alerts"' in response.content
 
 
-def test_render_nav_delegates_resolved_template_to_render_with_swaps():
+def test_render_nav_respects_custom_default_partial_setting():
+    from django.test import override_settings
+
     request = htmx_request(RequestFactory())
-    response = render_nav(
-        request, "tests/_page.html", {"content": "hi"}, partial="#content"
-    )
-    response.render()
-    assert response.template_name == "tests/_page.html#content"
+    with override_settings(HTMX_NAV_DEFAULT_PARTIAL="#custom_block"):
+        response = render_nav(request, "tests/_page.html", {"content": "hi"})
+        assert response.template_name == "tests/_page.html#custom_block"

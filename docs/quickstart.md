@@ -87,14 +87,13 @@ def project_detail(request, pk):
         swaps=[
             # Auto-wrapped template swap:
             Swap("app/_sidebar.html", {"active_pk": project.pk}, target_id="sidebar"),
-            Swap("app/_breadcrumbs.html", {"project": project}, target_id="breadcrumbs"),
-
+            Swap(
+                "app/_breadcrumbs.html", {"project": project}, target_id="breadcrumbs"
+            ),
             # High-performance raw string update (bypasses the template engine):
             Swap.text("unread-badge", "3"),
-
             # Delete directive (removes the element from the DOM):
             Swap.delete("flash-notification"),
-
             # Conditional Django messages integration (sent only if messages are pending):
             Swap("app/_messages.html", target_id="messages", include_if=has_messages),
         ],
@@ -172,7 +171,6 @@ class ProjectDetailView(ProjectShellMixin, DetailView):
         return [
             Swap("app/_tabs.html", {"active": "overview"}, target_id="project-tabs"),
         ]
-
 ```
 
 ## Next Steps

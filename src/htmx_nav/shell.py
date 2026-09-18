@@ -13,6 +13,7 @@ from django.http import HttpRequest
 from django.template.response import TemplateResponse
 
 from .partials import PartialSpec
+from .settings import _UNSET, _default_partial_spec
 from .shortcuts import render_nav
 from .swaps import Swaps, _normalize_swaps
 
@@ -27,7 +28,7 @@ class ShellRenderer(Protocol):
         context: Mapping[str, Any] | None = None,
         *,
         extra_swaps: Swaps = None,
-        partial: PartialSpec = "#content",
+        partial: PartialSpec | object = _UNSET,
         **kwargs: Any,
     ) -> TemplateResponse:
         """Renders a template with recurring shell Swaps always included.
@@ -49,7 +50,7 @@ class ShellRenderer(Protocol):
 def make_shell_renderer(
     swaps: Swaps | Callable[[HttpRequest], Swaps],
     *,
-    partial: PartialSpec = "#content",
+    partial: PartialSpec | object = _UNSET,
 ) -> ShellRenderer:
     """Creates a renderer that always includes a fixed set of Swaps.
 
@@ -57,7 +58,7 @@ def make_shell_renderer(
         swaps: Swaps included on each request, or a callable receiving
             request and returning Swaps.
         partial: Default PartialSpec used unless overridden per-call.
-            Defaults to "#content".
+            Defaults to the `HTMX_NAV_DEFAULT_PARTIAL` setting (`"#content"`).
 
     Returns:
         A `render_shell` function matching the `ShellRenderer` protocol.
@@ -77,7 +78,9 @@ def make_shell_renderer(
                 project = get_object_or_404(Project, pk=pk)
                 return render_shell(request, "app/project_detail.html", {"project": project})
     """
-    default_partial: PartialSpec = partial
+    default_partial: PartialSpec = (
+        _default_partial_spec() if partial is _UNSET else partial  # type: ignore[assignment]
+    )
 
     def render_shell(
         request: HttpRequest,
@@ -85,15 +88,16 @@ def make_shell_renderer(
         context: Mapping[str, Any] | None = None,
         *,
         extra_swaps: Swaps = None,
-        partial: PartialSpec = default_partial,
+        partial: PartialSpec | object = _UNSET,
         **kwargs: Any,
     ) -> TemplateResponse:
+        effective_partial = default_partial if partial is _UNSET else partial
         resolved = swaps(request) if callable(swaps) else swaps
         return render_nav(
             request,
             template_name,
             context,
-            partial=partial,
+            partial=effective_partial,
             swaps=[*_normalize_swaps(resolved), *_normalize_swaps(extra_swaps)],
             **kwargs,
         )

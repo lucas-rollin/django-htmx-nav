@@ -7,6 +7,7 @@ from django.http import HttpRequest
 from django.template.response import TemplateResponse
 
 from .partials import PartialSpec
+from .settings import _UNSET, _default_partial_spec
 from .shell import ShellRenderer
 from .shortcuts import render_nav
 from .swaps import Swaps, _normalize_swaps
@@ -26,7 +27,7 @@ def make_shell_view_mixin(
     render: ShellRenderer | None = None,
     *,
     default_swaps: Swaps = None,
-    default_partial: PartialSpec = "#content",
+    default_partial: PartialSpec | object = _UNSET,
 ) -> type:
     """Creates a class mixin that routes CBV rendering through a shell renderer.
 
@@ -35,7 +36,7 @@ def make_shell_view_mixin(
             `make_shell_renderer`. When omitted, calls `render_nav` directly.
         default_swaps: Default Swap(s) applied across all views using this mixin.
         default_partial: Partial spec used unless overridden per view.
-            Defaults to "#content".
+            Defaults to the `HTMX_NAV_DEFAULT_PARTIAL` setting (`"#content"`).
 
     Returns:
         A mixin class providing `render_to_response` and swap customization hooks.
@@ -61,6 +62,9 @@ def make_shell_view_mixin(
     defaults = _normalize_swaps(default_swaps)
     render_fn: Callable[..., TemplateResponse] = render or render_nav
     swaps_kwarg = "extra_swaps" if render is not None else "swaps"
+    resolved_default_partial: PartialSpec = (
+        _default_partial_spec() if default_partial is _UNSET else default_partial  # type: ignore[assignment]
+    )
 
     class ShellViewMixin:
         title: str | None = None
@@ -72,7 +76,7 @@ def make_shell_view_mixin(
             return self.title
 
         def get_partial(self) -> PartialSpec:
-            return default_partial
+            return resolved_default_partial
 
         def get_shell_template_name(self: _ShellViewProtocol) -> str:
             return self.get_template_names()[0]
