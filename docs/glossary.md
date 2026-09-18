@@ -38,13 +38,12 @@ which DOM element will receive the partial. `htmx_target_is(request, "foo")`
 ## shell / shell renderer
 
 A `ShellRenderer` (built by `make_shell_renderer`) always includes a
-fixed set of navigational `Swap`s, sidebar, breadcrumbs, etc, chosen
-by request. "Shell" refers to that fixed set + it's wrapping renderer,
+fixed set of navigational `Swap`s (sidebar, breadcrumbs, etc.) chosen
+by request. "Shell" refers to that fixed set plus its wrapping renderer,
 not any single template file.
 
 ## variant
 
-Example-project-only term: one of the three (or more) full
-implementations under `example/` being compared, `mpa`, `vanilla_htmx` and
-`htmx_nav_*`. Not used anywhere in the `htmx_nav` package
-itself.
+Example-project-only term: one of the 8 full implementations under
+`example/` being compared (`mpa`, `vanilla_htmx_*`, and `htmx_nav_*`).
+Not used anywhere in the `htmx_nav` package itself.

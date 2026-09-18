@@ -140,3 +140,17 @@ def test_default_swaps_combine_with_view_extra_swaps():
     response.render()
     assert b'id="shell"' in response.content
     assert b'id="alerts"' in response.content
+
+
+def test_make_shell_view_mixin_respects_custom_default_partial_setting():
+    from django.test import override_settings
+
+    with override_settings(HTMX_NAV_DEFAULT_PARTIAL="#custom_cbv_block"):
+        Mixin = make_shell_view_mixin()
+
+        class DemoView4(Mixin, TemplateView):
+            template_name = "tests/_page.html"
+
+        request = RequestFactory().get("/demo/", HTTP_HX_REQUEST="true")
+        response = DemoView4.as_view()(request)
+        assert response.template_name == "tests/_page.html#custom_cbv_block"

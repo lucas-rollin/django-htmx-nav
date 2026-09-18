@@ -15,7 +15,7 @@ TAB_SHELL_KWARGS = {"HTTP_HX_REQUEST": "true", "HTTP_HX_TARGET": "tab-content"}
 
 
 # =============================================================================
-# Real Swap-based fixtures — exercise render_nav/render_with_swaps directly,
+# Real Swap-based fixtures — exercise render_nav directly,
 # so these tests fail if the Swap splitting logic breaks, not just if
 # hand-rolled HttpResponse fixtures happen to agree.
 # =============================================================================

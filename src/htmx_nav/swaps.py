@@ -39,6 +39,18 @@ class Swap:
     Raises:
         ValueError: If both or neither of `template_name`/`content` are given
             for a non-delete swap, or if `target_id` is omitted for a delete swap.
+
+    Example:
+        .. code-block:: python
+
+            # Standard partial swap
+            Swap("partials/sidebar.html", {"active": "home"}, target_id="sidebar")
+
+            # Static string swap
+            Swap.text("badge-count", "5")
+
+            # Conditional deletion
+            Swap.delete("flash-banner", include_if=targeting("main"))
     """
 
     template_name: str | None = None
@@ -50,8 +62,7 @@ class Swap:
     include_if: Target = True
 
     def __post_init__(self) -> None:
-        """Applies the configured swap-wrap default and validates field
-        combinations that can't be expressed in the type signature alone."""
+        """Applies configured swap-wrap default and validates field combinations."""
         if self.wrap is None:
             object.__setattr__(self, "wrap", _default_swap_wrap())
         if self.swap_style == "delete":
@@ -111,7 +122,14 @@ class Swap:
         )
 
     def applies_to(self, request: HttpRequest) -> bool:
-        """Evaluates `include_if` against `request` to decide inclusion."""
+        """Evaluates `include_if` against the request to determine inclusion.
+
+        Args:
+            request: The incoming HTTP request.
+
+        Returns:
+            True if this swap applies to the request.
+        """
         return _eval_target(self.include_if, request)
 
     def render(
@@ -122,12 +140,13 @@ class Swap:
     ) -> str:
         """Renders the swap to an HTML string.
 
-        Delete swaps render immediately without touching the template
-        engine. Swaps built with `content` skip rendering too, escaping
-        the value as a template variable would. All others render
-        `template_name` with `context` merged over `parent_context`. In
-        every non-delete case the result is then wrapped for OOB or
-        `hx-partial` delivery when `target_id` is set.
+        Args:
+            request: The incoming HTTP request.
+            parent_context: Optional parent context to merge with swap context.
+            using: Optional template engine name.
+
+        Returns:
+            The rendered HTML string, auto-wrapped if `target_id` is set.
         """
         if self.swap_style == "delete":
             # htmx removes the target outright; no body, no wrapper choice,

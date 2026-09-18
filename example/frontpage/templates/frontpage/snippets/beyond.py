@@ -1,5 +1,5 @@
 from django.contrib import messages
-from htmx_nav import Swap, render_with_swaps, has_messages
+from htmx_nav import Swap, render_nav, has_messages
 
 
 def delete_ticket(request, ticket_id):
@@ -8,9 +8,10 @@ def delete_ticket(request, ticket_id):
     messages.success(request, f"Ticket #{ticket_id} deleted.")
 
     # No navigation involved, just OOB updates alongside the response
-    return render_with_swaps(
+    return render_nav(
         request,
         "tickets/empty_state.html",
+        partial=None,
         swaps=[
             # Remove the row (hx-swap-oob="delete")
             Swap.delete(f"ticket-row-{ticket_id}"),

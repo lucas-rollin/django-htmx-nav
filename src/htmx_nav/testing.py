@@ -1,18 +1,25 @@
-"""
-Testing utilities for projects that use htmx_nav.
+"""Testing utilities for django-htmx-nav.
 
-Provides assertion helpers for Django and HTMX test suites to ensure that
-full-page reloads, HTMX page-shell swaps, and HTMX partial-tab swaps yield
-identical context state and rendered HTML markup.
+Provides assertion helpers for Django and HTMX test suites to verify
+navigation parity and HTML fragment composition.
 """
 
 import difflib
 import re
 from collections.abc import Callable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from django.test import Client
 from django.test.html import parse_html
+
+if TYPE_CHECKING:
+    from bs4 import BeautifulSoup, Tag
+else:
+    try:
+        from bs4 import BeautifulSoup, Tag
+    except ImportError:
+        BeautifulSoup = None
+        Tag = None
 
 __all__ = ["assert_shell_parity", "assert_shell_composition", "assert_html_equal"]
 
@@ -23,9 +30,7 @@ _DEBUG_MARKER_RE = re.compile(
 
 
 def _strip_debug_markers(html: str) -> str:
-    """Removes htmx_nav's HTMX_NAV_DEBUG_SWAPS marker <script> tags. The
-    marker is only ever emitted on swap responses (see Swap.render), so
-    its presence is noise for structural comparison, not real content."""
+    """Removes debug-swap marker <script> tags from HTML for comparison."""
     return _DEBUG_MARKER_RE.sub("", html)
 
 
@@ -36,28 +41,25 @@ def assert_shell_parity(
     requests: dict[str, dict[str, Any]],
     checks: dict[str, Callable[[Any], Any]],
 ) -> dict[str, Any]:
-    """Verify that context state remains consistent across different swap modes.
+    """Asserts that template context remains consistent across request modes.
 
-    Issues a GET request to `url` for every entry in `requests` and executes
-    assertion callbacks against response contexts to ensure shell state
-    parity (e.g. active navigation links, breadcrumbs, sidebar items).
+    Issues GET requests for each scenario in `requests` and executes
+    extraction callbacks against response contexts to verify shell state
+    parity (e.g. active links, breadcrumbs, sidebar items).
 
     Args:
-        client: The Django test client instance used to execute GET requests.
-        url: The target URL endpoint to test.
-        requests: A mapping of request scenario labels to keyword arguments
-            passed directly to `client.get` (e.g. HTMX headers).
-        checks: A mapping of check labels to extraction callables. Each
-            callable receives `response.context` and returns an extracted
-            value to compare.
+        client: The Django test client instance.
+        url: The target URL to request.
+        requests: Mapping of scenario labels to kwargs passed to `client.get`.
+        checks: Mapping of check labels to extraction functions receiving
+            `response.context`.
 
     Returns:
-        dict[str, Any]: A mapping of request labels to their corresponding
-        Django HTTP response objects.
+        Mapping of scenario labels to their Django response objects.
 
     Raises:
-        AssertionError: If any context value produced by a check fails to
-            match the baseline value established by the first request.
+        AssertionError: If any check produces a value that differs from the
+            baseline established by the first request.
 
     Example:
         .. code-block:: python
@@ -67,6 +69,7 @@ def assert_shell_parity(
                 "page_shell": {"HTTP_HX_REQUEST": "true", "HTTP_HX_TARGET": "page-content"},
             }
             checks = {
+                "active_tab": lambda ctx: ctx["active_tab"],
                 "breadcrumbs": lambda ctx: [c["label"] for c in ctx["nav"]["breadcrumbs"]],
             }
             responses = assert_shell_parity(
@@ -90,27 +93,25 @@ def assert_shell_parity(
 def assert_html_equal(
     a: bytes | str, b: bytes | str, *, label_a: str = "a", label_b: str = "b"
 ) -> None:
-    """Asserts two HTML documents/fragments are structurally equal.
+    """Asserts that two HTML documents or fragments are structurally equal.
 
-    Normalizes both inputs with Django's `parse_html` (whitespace/attribute-
-    order insensitive) and strips htmx_nav debug-swap markers before
-    comparing, so mismatches reflect real content differences. On failure,
-    raises with a unified diff rather than a raw string/byte comparison,
-    which is unreadable for anything beyond trivial fragments.
-
-    Useful directly when comparing two full response bodies (e.g. verifying
-    a response is identical regardless of `HX-Target`); `assert_shell_composition`
-    uses the same comparison internally for its fragment-level checks.
+    Normalizes whitespace and attribute ordering using Django's `parse_html`
+    and strips debug marker scripts before comparing.
 
     Args:
-        a: First HTML document or fragment, bytes or str.
-        b: Second HTML document or fragment, bytes or str.
-        label_a: Label for `a` used in the diff output on mismatch.
-        label_b: Label for `b` used in the diff output on mismatch.
+        a: First HTML document or fragment.
+        b: Second HTML document or fragment.
+        label_a: Label for `a` in unified diff output. Defaults to "a".
+        label_b: Label for `b` in unified diff output. Defaults to "b".
 
     Raises:
-        AssertionError: If the two documents differ structurally, with a
-            unified diff of the normalized HTML.
+        AssertionError: If the two documents differ structurally, including
+            a unified diff.
+
+    Example:
+        .. code-block:: python
+
+            assert_html_equal(response.content, "<div id='main'>Hello</div>")
     """
     if isinstance(a, bytes):
         a = a.decode("utf-8")
@@ -135,88 +136,70 @@ def assert_html_equal(
 
 
 class _HTMLDocument:
-    """Parses a response body once and exposes id-scoped extraction.
-
-    render_with_swaps appends each applicable Swap as a sibling fragment
-    onto the response body — `<div id=X hx-swap-oob=...>` (Swap.wrap="oob")
-    or `<hx-partial hx-target="#X" ...>` (Swap.wrap="hx-partial") — never
-    nested inside the primary target's own markup, plus a trailing
-    `<title>` when title= is set. A swap response is therefore not one
-    fragment but several: the primary (non-wrapped) content, and zero or
-    more independently addressed fragments each destined for their own id
-    elsewhere in the DOM. `split_fragments` performs that separation.
-    """
+    """Helper for parsing response HTML and extracting DOM fragments."""
 
     def __init__(self, raw_html: bytes | str):
-        try:
-            from bs4 import BeautifulSoup
-        except ImportError as exc:
+        if BeautifulSoup is None or Tag is None:
             raise ImportError(
                 "assert_shell_composition requires beautifulsoup4. "
                 "Install it with: pip install beautifulsoup4"
-            ) from exc
+            )
 
         if isinstance(raw_html, bytes):
             raw_html = raw_html.decode("utf-8")
 
         self.soup = BeautifulSoup(_strip_debug_markers(raw_html), "html.parser")
 
-    def _find_element(self, element_id: str):
+    def _find_element(self, element_id: str) -> Tag:
         element = self.soup.find(id=element_id)
-        if element is None:
+        if element is None or not isinstance(element, Tag):
             raise AssertionError(
                 f"Could not find any element with id={element_id!r} in the response HTML."
             )
         return element
 
     def inner_html(self, element_id: str) -> str:
-        """The children of the element with `element_id`, serialized."""
-        return self._find_element(element_id).decode_contents()
+        """Returns the serialized child nodes of the element."""
+        return str(self._find_element(element_id).decode_contents())
 
     def outer_html(self, element_id: str) -> str:
-        """The element with `element_id`, including its own tag."""
+        """Returns the serialized element including its opening and closing tags."""
         return str(self._find_element(element_id))
 
     def container_html(self, element_id: str, *, self_wrapped: bool) -> str:
-        """`outer_html` if the container re-emits its own wrapper
-        (`hx-swap="outerHTML"` convention), else `inner_html` — the
-        default, matching render_nav/Swap and Django 6 `{% partialdef %}`,
-        where htmx swaps into an already-present container via
-        `hx-swap="innerHTML"` and the swap response never repeats the
-        wrapper it's swapping into."""
-        return self.outer_html(element_id) if self_wrapped else self.inner_html(element_id)
+        """Returns outer HTML if self_wrapped is True, otherwise inner HTML."""
+        return (
+            self.outer_html(element_id) if self_wrapped else self.inner_html(element_id)
+        )
 
     def split_fragments(self) -> tuple[str, dict[str, str]]:
-        """Splits this document into (primary_html, fragments_by_id).
-
-        Recognizes `hx-swap-oob` containers (id on the wrapper) and
-        `<hx-partial hx-target="#id">` elements (id on hx-target). Drops
-        a trailing `<title>` — it isn't part of any single container.
-        Everything else is the primary (non-wrapped) content.
-
-        Note: `Swap.delete(...)` also produces an `hx-swap-oob` element
-        and will be picked up here as an (empty) fragment. Comparing a
-        delete swap's fragment against a full-reload's live rendering of
-        that id isn't generally meaningful — assert_shell_composition is
-        built for verifying nav/shell regions stay in sync, not for
-        delete-swap semantics — so avoid it for views whose swap list
-        includes a delete.
-        """
+        """Splits the document into primary content and out-of-band swap fragments."""
         fragments: dict[str, str] = {}
         primary_parts: list[str] = []
 
         for node in list(self.soup.contents):
-            name = getattr(node, "name", None)
-            attrs = getattr(node, "attrs", {}) or {}
+            if not isinstance(node, Tag):
+                primary_parts.append(str(node))
+                continue
+
+            name = node.name
+            attrs = node.attrs or {}
 
             if name == "title":
                 node.extract()
             elif attrs.get("hx-swap-oob") and attrs.get("id"):
-                fragments[attrs["id"]] = node.decode_contents()
+                elem_id = attrs["id"]
+                elem_id_str = elem_id if isinstance(elem_id, str) else str(elem_id)
+                fragments[elem_id_str] = str(node.decode_contents())
                 node.extract()
-            elif name == "hx-partial" and attrs.get("hx-target", "").lstrip("#"):
-                fragments[attrs["hx-target"].lstrip("#")] = node.decode_contents()
-                node.extract()
+            elif name == "hx-partial" and (hx_target := attrs.get("hx-target")):
+                hx_target_str = (
+                    hx_target if isinstance(hx_target, str) else str(hx_target)
+                )
+                target_id = hx_target_str.lstrip("#")
+                if target_id:
+                    fragments[target_id] = str(node.decode_contents())
+                    node.extract()
             else:
                 primary_parts.append(str(node))
 
@@ -234,59 +217,46 @@ def assert_shell_composition(
     tab_container_id: str = "tab-content",
     self_wrapped: bool = False,
 ) -> dict[str, Any]:
-    """Assert that full-page reloads and HTMX swap variants compose identical HTML.
+    """Asserts that full-page reloads and HTMX swap responses compose identical HTML.
 
-    Performs requests across three HTMX interaction tiers (full page reload,
-    page-shell swap, and component/tab swap) and verifies the resulting
-    markup actually nests and matches — catching bugs `assert_shell_parity`
-    can't see: a partial response missing the wrapper element its
-    `hx-target` expects to swap into, template branching on request headers
-    that produces different markup from identical context, or an OOB/
-    hx-partial fragment (sidebar, breadcrumbs, tabs, ...) whose content has
-    silently drifted from what the full page renders for that same region.
-
-    Verifies, in order:
-        1. Full-reload's `#{page_container_id}` vs. page_shell's primary
-           (non-fragment) content.
-        2. Each OOB/hx-partial fragment on the page_shell response vs. the
-           matching id's contents on the full-reload response.
-        3. Page_shell's `#{tab_container_id}` vs. tab_shell's primary
-           content — the actual nesting check.
-        4. Full-reload's `#{tab_container_id}` vs. tab_shell's primary
-           content — transitive; catches drift that 1+3 alone could miss
-           if page_shell and full reload happened to agree by coincidence.
-        5. Each OOB/hx-partial fragment on the tab_shell response vs. the
-           matching id's contents on the full-reload response.
-
-    Requires beautifulsoup4 (`pip install beautifulsoup4`).
+    Performs requests across three interaction tiers (full page reload,
+    page-level shell swap, and tab/component swap) and verifies that HTML
+    fragments nest and match structurally without state drift.
 
     Args:
         client: The Django test client instance.
         url: The target endpoint URL.
-        page_shell_kwargs: kwargs for `client.get` representing a
-            page-level swap (e.g. `{"HTTP_HX_REQUEST": "true",
-            "HTTP_HX_TARGET": "page-content"}`).
-        tab_shell_kwargs: kwargs for `client.get` representing a
-            component/tab-level swap.
-        full_reload_kwargs: kwargs for a standard browser GET. Defaults to `{}`.
-        page_container_id: The element id targeted by page-level swaps.
-        tab_container_id: The element id targeted by tab-level swaps.
-        self_wrapped: Whether swap responses re-emit their own container
-            wrapper (`hx-swap="outerHTML"` convention) rather than
-            rendering only the container's children (the default —
-            matches render_nav/Swap and Django 6 `{% partialdef %}`). Only
-            affects the primary content comparison; extracted OOB/
-            hx-partial fragments are always compared by inner content,
-            since Swap.render never re-emits the wrapper it produces.
+        page_shell_kwargs: Kwargs for `client.get` representing a page-level swap.
+        tab_shell_kwargs: Kwargs for `client.get` representing a tab-level swap.
+        full_reload_kwargs: Optional kwargs for a standard browser GET.
+            Defaults to `{}`.
+        page_container_id: DOM element ID targeted by page-level swaps.
+            Defaults to "page-content".
+        tab_container_id: DOM element ID targeted by tab-level swaps.
+            Defaults to "tab-content".
+        self_wrapped: Set to True if swap responses re-emit their outer
+            container tag (`hx-swap="outerHTML"`). Defaults to False.
 
     Returns:
-        dict[str, Any]: `{"full_reload": resp, "page_shell": resp, "tab_shell": resp}`
-        for further assertions.
+        Mapping containing `"full_reload"`, `"page_shell"`, and `"tab_shell"`
+        response objects.
 
     Raises:
-        AssertionError: If any request returns a non-200 status code, if a
-            referenced container id isn't found, or if HTML markup diverges
-            between response modes.
+        AssertionError: If any response status is not 200, a container ID is
+            missing, or fragment markup diverges.
+        ImportError: If `beautifulsoup4` is not installed.
+
+    Example:
+        .. code-block:: python
+
+            responses = assert_shell_composition(
+                client,
+                "/projects/1/",
+                page_shell_kwargs={"HTTP_HX_REQUEST": "true", "HTTP_HX_TARGET": "page-content"},
+                tab_shell_kwargs={"HTTP_HX_REQUEST": "true", "HTTP_HX_TARGET": "tab-content"},
+                page_container_id="page-content",
+                tab_container_id="tab-content",
+            )
     """
     full_reload_kwargs = full_reload_kwargs or {}
 

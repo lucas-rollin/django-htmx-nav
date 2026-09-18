@@ -63,6 +63,7 @@ autodoc_default_options = {
 html_theme = "furo"
 html_title = "django-htmx-nav"
 html_static_path = ["_static"]
+html_favicon = "_static/favicon.svg"
 html_theme_options = {
     "footer_icons": [
         {

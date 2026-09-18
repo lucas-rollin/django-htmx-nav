@@ -37,10 +37,13 @@ from django.shortcuts import get_object_or_404
 from htmx_nav import Swap, make_shell_renderer
 from .models import Project
 
-render_shell = make_shell_renderer(lambda request: [
-    Swap("app/_sidebar.html", {"user": request.user}, target_id="sidebar"),
-    Swap("app/_breadcrumbs.html", target_id="breadcrumbs"),
-])
+render_shell = make_shell_renderer(
+    lambda request: [
+        Swap("app/_sidebar.html", {"user": request.user}, target_id="sidebar"),
+        Swap("app/_breadcrumbs.html", target_id="breadcrumbs"),
+    ]
+)
+
 
 def project_detail(request, pk):
     project = get_object_or_404(Project, pk=pk)

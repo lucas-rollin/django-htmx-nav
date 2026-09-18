@@ -25,7 +25,7 @@ from htmx_nav import (
     has_messages,
     htmx_target_is,
     make_shell_view_mixin,
-    render_with_swaps,
+    render_nav,
     targeting,
 )
 
@@ -191,8 +191,12 @@ def ticket_move_status(request: HttpRequest, ticket_id: str) -> HttpResponse:
             ).count()
             swaps.append(Swap.text(f"column-count-{status}", str(count)))
 
-    response = render_with_swaps(
-        request, "core/pages/_board.html#ticket-card", {"ticket": ticket}, swaps=swaps
+    response = render_nav(
+        request,
+        "core/pages/_board.html#ticket-card",
+        {"ticket": ticket},
+        partial=None,
+        swaps=swaps,
     )
     response["HX-Retarget"] = f"#column-{ticket.status}"
     response["HX-Push-Url"] = "false"

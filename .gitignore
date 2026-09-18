@@ -13,3 +13,4 @@ vendor/
 .env
 *.tmp
 tmp/*
+htmlcov/

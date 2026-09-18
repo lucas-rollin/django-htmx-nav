@@ -1,24 +1,9 @@
 """
-make_shell_renderer: a render_nav wrapper that always includes a fixed
-list of navigational Swaps alongside whatever extra_swaps the caller
-passes per-call.
+Create ShellRenderers, a reusable wrapper around a render_nav.
 
-Earlier versions took a single `shell_template` + `context_builder` and
-built exactly one Swap internally. That collapsed every navigational
-region into one fragment, which meant giving up what Swap already does
-per-region for free: independent target_id, independent include_if for
-conditional inclusion, and independent debug-swap highlighting (the
-debug marker in swaps.py is emitted per Swap, keyed on that Swap's own
-target_id — one shell Swap means one marker for the whole shell).
-
-This version takes a `swaps` builder instead: a callable that returns
-whatever Swap(s) should always accompany this shell for a given
-request. Each returned Swap is a full Swap — its own template, context,
-target_id, include_if — so per-region conditional rendering and
-per-region debug highlighting both fall out for free, the same way they
-would for any hand-written `render_nav(..., swaps=[...])` call.
-make_shell_renderer's only remaining job is merging that fixed list
-with per-call extra_swaps and forwarding to render_nav.
+Allows the definition of a shell (e.g. sidebar and breadcrumbs)
+as the regions that need to always be synced in htmx requests
+for that endpoint.
 """
 
 from collections.abc import Callable, Mapping
@@ -28,6 +13,7 @@ from django.http import HttpRequest
 from django.template.response import TemplateResponse
 
 from .partials import PartialSpec
+from .settings import _UNSET, _default_partial_spec
 from .shortcuts import render_nav
 from .swaps import Swaps, _normalize_swaps
 
@@ -42,43 +28,40 @@ class ShellRenderer(Protocol):
         context: Mapping[str, Any] | None = None,
         *,
         extra_swaps: Swaps = None,
-        partial: PartialSpec = "#content",
+        partial: PartialSpec | object = _UNSET,
         **kwargs: Any,
-    ) -> TemplateResponse: ...
+    ) -> TemplateResponse:
+        """Renders a template with recurring shell Swaps always included.
 
-    """
-    Renders a template with a fixed set of navigational Swaps always
-    included.
+        Args:
+            request: The HTTP request object.
+            template_name: Path to the main content template.
+            context: Optional context for the main template.
+            extra_swaps: Additional per-call Swaps included alongside shell Swaps.
+            partial: Specifies the partial to render for HTMX requests.
+            **kwargs: Additional arguments passed to `render_nav`.
 
-    Args:
-        request: The HTTP request object.
-        template_name: Path to the main content template.
-        context: Optional context for the main template.
-        extra_swaps: Additional, per-call Swaps included alongside the
-            fixed shell Swaps.
-        partial: Specifies the partial to render for HTMX requests.
-        **kwargs: Additional arguments passed to `render_nav`.
-
-    Returns:
-        A TemplateResponse with the shell Swaps included.
-    """
+        Returns:
+            A TemplateResponse with the shell Swaps included.
+        """
+        ...
 
 
 def make_shell_renderer(
     swaps: Swaps | Callable[[HttpRequest], Swaps],
     *,
-    partial: PartialSpec = "#content",
+    partial: PartialSpec | object = _UNSET,
 ) -> ShellRenderer:
-    """
-    Creates a renderer that always includes a fixed set of Swaps.
+    """Creates a renderer that always includes a fixed set of Swaps.
 
     Args:
-        swaps: Swaps inclued in this request by default. Using a Callable
-            allows the swap context to vary based on the request.
+        swaps: Swaps included on each request, or a callable receiving
+            request and returning Swaps.
         partial: Default PartialSpec used unless overridden per-call.
+            Defaults to the `HTMX_NAV_DEFAULT_PARTIAL` setting (`"#content"`).
 
     Returns:
-        A `render_shell` function with the signature of `ShellRenderer`.
+        A `render_shell` function matching the `ShellRenderer` protocol.
 
     Example:
         .. code-block:: python
@@ -95,7 +78,9 @@ def make_shell_renderer(
                 project = get_object_or_404(Project, pk=pk)
                 return render_shell(request, "app/project_detail.html", {"project": project})
     """
-    default_partial: PartialSpec = partial
+    default_partial: PartialSpec = (
+        _default_partial_spec() if partial is _UNSET else partial  # type: ignore[assignment]
+    )
 
     def render_shell(
         request: HttpRequest,
@@ -103,15 +88,16 @@ def make_shell_renderer(
         context: Mapping[str, Any] | None = None,
         *,
         extra_swaps: Swaps = None,
-        partial: PartialSpec = default_partial,
+        partial: PartialSpec | object = _UNSET,
         **kwargs: Any,
     ) -> TemplateResponse:
+        effective_partial = default_partial if partial is _UNSET else partial
         resolved = swaps(request) if callable(swaps) else swaps
         return render_nav(
             request,
             template_name,
             context,
-            partial=partial,
+            partial=effective_partial,
             swaps=[*_normalize_swaps(resolved), *_normalize_swaps(extra_swaps)],
             **kwargs,
         )

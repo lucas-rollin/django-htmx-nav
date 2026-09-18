@@ -14,12 +14,11 @@ class FakeHtmxDetails:
 
 
 def htmx_request(rf: RequestFactory, target=None, path="/workspace/"):
-    request = rf.get(path, HTTP_HX_REQUEST="true")
-    request.htmx = FakeHtmxDetails(target=target)
-    return request
+    extra = {"HTTP_HX_REQUEST": "true"}
+    if target is not None:
+        extra["HTTP_HX_TARGET"] = target
+    return rf.get(path, **extra)
 
 
 def non_htmx_request(rf: RequestFactory, path="/workspace/"):
-    request = rf.get(path)
-    request.htmx = False
-    return request
+    return rf.get(path)
