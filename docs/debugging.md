@@ -15,7 +15,7 @@ INSTALLED_APPS = [
 
 ```python
 # settings.py
-HTMX_NAV_DEBUG_SWAPS = True
+HTMX_NAV_DEBUG_SWAPS = DEBUG # active during development
 ```
 
 Two stylesheets are provided, depending on whether you want a client-side on/off toggle:
@@ -111,5 +111,5 @@ It respects `HTMX_NAV_DEBUG_SWAPS` the same way (empty when disabled) and is the
 
 ## Related Resources
 
-- **[Debugging Utilities API Reference](api/debugging.md):** Detailed signatures for `inject_debug_marker` and `DebugMarkerConfig`.
+- **[Debugging Utilities API Reference](api/debugging.md):** Detailed signatures for `debug_swap_marker` and `{% htmx_nav_debug_marker %}`.
 - **{demo}`Live Demo in Debug Mode <htmx-nav/declarative/?debug-swaps=1>`:** Test visual swap highlighting in real time in the live sandbox.

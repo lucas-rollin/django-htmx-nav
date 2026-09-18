@@ -1,6 +1,6 @@
 # Quickstart Guide
 
-This guide walks you through installing `django-htmx-nav` and implementing partial rendering, out-of-band updates, reusable shell renderers, and visual debugging in Django.
+This guide walks you through installing `django-htmx-nav` and implementing partial rendering, out-of-band updates, reusable shell renderers in Django.
 
 ## 1. Installation
 
@@ -8,20 +8,6 @@ Install `django-htmx-nav` from PyPI:
 
 ```bash
 pip install django-htmx-nav
-```
-
-(Optional) If you want to use [visual debugging](debugging.md), register the app in your settings and activate the development flag:
-
-```python
-# settings.py
-INSTALLED_APPS = [
-    ...,
-    "htmx_nav",
-    ...,
-]
-
-# Enable visual debugging in development
-HTMX_NAV_DEBUG_SWAPS = True
 ```
 
 ## 2. Basic Partial Rendering (`render_nav`)
@@ -178,5 +164,5 @@ class ProjectDetailView(ProjectShellMixin, DetailView):
 - Explore the deployed {demo}`Live Demo Testbed <htmx-nav/declarative/>` and compare multiple implementations.
 - Review the <a href="../benchmarks/">Interactive Benchmark Suite</a> for empirical payload and latency metrics.
 - Read the <a href="../guide/">Architectural Guide</a> for an in-depth exploration of state drift solutions.
-- Learn about automated parity verification in the [Testing Guide](testing.md).
+- Learn how to get instant visual feedback with Swaps in [Debugging](debugging.md).
 - Reference full function signatures in the [API Reference](https://www.google.com/search?q=api/core.md&utm_source=gemini).

@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <rect width="100" height="100" rx="20" fill="#6754DD" />
+  <rect width="100" height="100" rx="20" fill="#1A1C1E" />
   <text x="50" y="50" text-anchor="middle" dominant-baseline="central"
         font-family="ui-monospace, Menlo, Consolas, monospace"
         font-weight="700" font-size="55" fill="#ffffff">hn</text>

@@ -1,5 +1,5 @@
 """
-Debug-swap marker: Add an inline <script> to flash a target element
+Debug-swap marker: Add an inline ``<script>`` to flash a target element
 when ``HTMX_NAV_DEBUG_SWAPS`` is enabled.
 
 ``_build_marker_script`` is used both by ``Swap.render()`` internally and by
@@ -29,7 +29,7 @@ def _build_marker_script(target_id: str) -> str:
 
 
 def debug_swap_marker(target_id: str) -> str:
-    """Return an inline <script> tag to trigger a swap highlight animation.
+    """Return an inline ``<script>`` tag to trigger a swap highlight animation.
 
     Args:
         target_id: The DOM element ID to highlight.

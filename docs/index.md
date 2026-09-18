@@ -9,6 +9,7 @@ This library provides lightweight primitives to synchronize multi-region navigat
 If you are new to `django-htmx-nav`, start here:
 
 - **[Quickstart Guide](quickstart.md):** Step-by-step setup, template partials, `render_nav`, and reusable shells.
+- **[Configuration & Settings](settings.md):** Available Django settings to customize defaults.
 - **[Example Project & Demo](example_project.md):** Overview of the reference Helpdesk application, live sandbox, and source links.
 - **<a href="../guide/">Architectural Guide</a>:** Conceptual deep dive into state drift solutions, pattern comparisons, and decision trees.
 
@@ -18,6 +19,7 @@ If you are new to `django-htmx-nav`, start here:
 :hidden:
 
 quickstart
+settings
 example_project
 glossary
 ```
