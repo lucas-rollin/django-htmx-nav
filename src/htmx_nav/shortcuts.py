@@ -26,7 +26,7 @@ def render_nav(
     swaps: Swaps = None,
     title: str | None = None,
 ) -> TemplateResponse:
-    """Renders a Django template with HTMX partial resolution and OOB swaps.
+    """Render a Django template with HTMX partial resolution and OOB swaps.
 
     Args:
         request: The HTTP request object.

@@ -12,7 +12,7 @@ __all__ = ["debug_swap_marker"]
 
 
 def _build_marker_script(target_id: str) -> str:
-    """Unconditionally builds the marker script for ``target_id``.
+    """Build the marker script for ``target_id`` unconditionally.
 
     Reapplies a class to the element so animations retrigger upon
     repeated swaps. Used both by ``Swap.render()`` internally and by the public
@@ -29,7 +29,7 @@ def _build_marker_script(target_id: str) -> str:
 
 
 def debug_swap_marker(target_id: str) -> str:
-    """Returns an inline <script> tag to trigger a swap highlight animation.
+    """Return an inline <script> tag to trigger a swap highlight animation.
 
     Args:
         target_id: The DOM element ID to highlight.

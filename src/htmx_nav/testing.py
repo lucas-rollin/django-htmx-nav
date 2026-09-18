@@ -30,7 +30,7 @@ _DEBUG_MARKER_RE = re.compile(
 
 
 def _strip_debug_markers(html: str) -> str:
-    """Removes debug-swap marker <script> tags from HTML for comparison."""
+    """Remove debug-swap marker <script> tags from HTML for comparison."""
     return _DEBUG_MARKER_RE.sub("", html)
 
 
@@ -41,7 +41,7 @@ def assert_shell_parity(
     requests: dict[str, dict[str, Any]],
     checks: dict[str, Callable[[Any], Any]],
 ) -> dict[str, Any]:
-    """Asserts that template context remains consistent across request modes.
+    """Assert that template context remains consistent across request modes.
 
     Issues GET requests for each scenario in ``requests`` and executes
     extraction callbacks against response contexts to verify shell state
@@ -93,7 +93,7 @@ def assert_shell_parity(
 def assert_html_equal(
     a: bytes | str, b: bytes | str, *, label_a: str = "a", label_b: str = "b"
 ) -> None:
-    """Asserts that two HTML documents or fragments are structurally equal.
+    """Assert that two HTML documents or fragments are structurally equal.
 
     Normalizes whitespace and attribute ordering using Django's ``parse_html``
     and strips debug marker scripts before comparing.
@@ -159,21 +159,21 @@ class _HTMLDocument:
         return element
 
     def inner_html(self, element_id: str) -> str:
-        """Returns the serialized child nodes of the element."""
+        """Return the serialized child nodes of the element."""
         return str(self._find_element(element_id).decode_contents())
 
     def outer_html(self, element_id: str) -> str:
-        """Returns the serialized element including its opening and closing tags."""
+        """Return the serialized element including its opening and closing tags."""
         return str(self._find_element(element_id))
 
     def container_html(self, element_id: str, *, self_wrapped: bool) -> str:
-        """Returns outer HTML if self_wrapped is True, otherwise inner HTML."""
+        """Return outer HTML if self_wrapped is True, otherwise inner HTML."""
         return (
             self.outer_html(element_id) if self_wrapped else self.inner_html(element_id)
         )
 
     def split_fragments(self) -> tuple[str, dict[str, str]]:
-        """Splits the document into primary content and out-of-band swap fragments."""
+        """Split the document into primary content and out-of-band swap fragments."""
         fragments: dict[str, str] = {}
         primary_parts: list[str] = []
 
@@ -217,7 +217,7 @@ def assert_shell_composition(
     tab_container_id: str = "tab-content",
     self_wrapped: bool = False,
 ) -> dict[str, Any]:
-    """Asserts that full-page reloads and HTMX swap responses compose identical HTML.
+    """Assert that full-page reloads and HTMX swap responses compose identical HTML.
 
     Performs requests across three interaction tiers (full page reload,
     page-level shell swap, and tab/component swap) and verifies that HTML

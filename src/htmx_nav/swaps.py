@@ -62,7 +62,7 @@ class Swap:
     include_if: Target = True
 
     def __post_init__(self) -> None:
-        """Applies configured swap-wrap default and validates field combinations."""
+        """Apply configured swap-wrap default and validate field combinations."""
         if self.wrap is None:
             object.__setattr__(self, "wrap", _default_swap_wrap())
         if self.swap_style == "delete":
@@ -77,7 +77,7 @@ class Swap:
 
     @classmethod
     def delete(cls, target_id: str, include_if: Target = True) -> "Swap":
-        """Builds an OOB delete swap that removes ``target_id`` from the DOM.
+        """Build an OOB delete swap that removes ``target_id`` from the DOM.
 
         Equivalent to ``<div id="{target_id}" hx-swap-oob="delete"></div>``.
 
@@ -101,7 +101,7 @@ class Swap:
         wrap: Literal["oob", "hx-partial"] | None = None,
         include_if: Target = True,
     ) -> "Swap":
-        """Builds a swap from a ready-made string, skipping template rendering.
+        """Build a swap from a ready-made string, skipping template rendering.
 
         Args:
             target_id: Target DOM element ID.
@@ -122,7 +122,7 @@ class Swap:
         )
 
     def applies_to(self, request: HttpRequest) -> bool:
-        """Evaluates ``include_if`` against the request to determine inclusion.
+        """Evaluate ``include_if`` against the request to determine inclusion.
 
         Args:
             request: The incoming HTTP request.
@@ -138,7 +138,7 @@ class Swap:
         parent_context: Mapping[str, Any] | None = None,
         using: str | None = None,
     ) -> str:
-        """Renders the swap to an HTML string.
+        """Render the swap to an HTML string.
 
         Args:
             request: The incoming HTTP request.
@@ -190,7 +190,7 @@ Swaps: TypeAlias = Swap | list[Swap] | tuple[Swap, ...] | None
 
 
 def _normalize_swaps(swaps: Swaps) -> list[Swap]:
-    """Normalizes a ``Swaps`` input into a flat list of ``Swap`` instances.
+    """Normalize a ``Swaps`` input into a flat list of ``Swap`` instances.
 
     Args:
         swaps: ``None``, a single ``Swap``, or a sequence of swaps.

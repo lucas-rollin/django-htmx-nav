@@ -39,7 +39,7 @@ Examples:
 
 
 def _resolve_partial_name(partial: PartialSpec, request: HttpRequest) -> str | None:
-    """Resolves the active partial or template name for a request."""
+    """Resolve the active partial or template name for a request."""
     if partial is None:
         return None
     if isinstance(partial, str):
@@ -59,7 +59,7 @@ def _resolve_template_name(
     partial_name: str | None,
     is_htmx: bool,
 ) -> str:
-    """Resolves the final template path or block string to render."""
+    """Resolve the final template path or block string to render."""
     if not is_htmx or not partial_name:
         return template_name
     if partial_name.startswith("#"):

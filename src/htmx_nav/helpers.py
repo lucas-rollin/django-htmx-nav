@@ -9,7 +9,7 @@ _MISSING = object()
 
 
 def cache_on_request(request: HttpRequest, key: str, builder: Callable[[], T]) -> T:
-    """Caches and returns a computed value on the Django request object.
+    """Cache and return a computed value on the Django request object.
 
     Args:
         request: The Django HTTP request.

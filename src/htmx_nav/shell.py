@@ -31,7 +31,7 @@ class ShellRenderer(Protocol):
         partial: PartialSpec | object = _UNSET,
         **kwargs: Any,
     ) -> TemplateResponse:
-        """Renders a template with recurring shell Swaps always included.
+        """Render a template with recurring shell Swaps always included.
 
         Args:
             request: The HTTP request object.
@@ -52,7 +52,7 @@ def make_shell_renderer(
     *,
     partial: PartialSpec | object = _UNSET,
 ) -> ShellRenderer:
-    """Creates a renderer that always includes a fixed set of Swaps.
+    """Create a renderer that always includes a fixed set of Swaps.
 
     Args:
         swaps: Swaps included on each request, or a callable receiving

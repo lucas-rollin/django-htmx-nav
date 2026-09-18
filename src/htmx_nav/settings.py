@@ -29,6 +29,5 @@ def _default_partial_spec() -> str:
 
 
 def _debug_swaps_enabled() -> bool:
-    """Resolved lazily (not cached), same pattern as the other settings
-    getters, so override_settings works in tests."""
+    """Resolve whether debug swaps are enabled lazily for test override support."""
     return bool(getattr(settings, "HTMX_NAV_DEBUG_SWAPS", False))

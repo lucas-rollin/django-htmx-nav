@@ -24,29 +24,29 @@ Examples:
 
 
 def _is_htmx_request(request: HttpRequest) -> bool:
-    """Determines whether the request is an HTMX request based on HTTP headers."""
+    """Determine whether the request is an HTMX request based on HTTP headers."""
     return request.headers.get("HX-Request", "") == "true"
 
 
 def _htmx_target_header(request: HttpRequest) -> str | None:
-    """Resolves the HX-Target header for this request."""
+    """Resolve the HX-Target header for this request."""
     return request.headers.get("HX-Target")
 
 
 def _dom_id(value: str) -> str:
-    """Normalizes selector strings like 'div#foo' or '#foo' to 'foo'."""
+    """Normalize selector strings like 'div#foo' or '#foo' to 'foo'."""
     return value.rsplit("#", 1)[-1]
 
 
 def _htmx_target_is(target: str | None, dom_id: str) -> bool:
-    """Checks if an HX-Target header matches a DOM ID across HTMX versions."""
+    """Check if an HX-Target header matches a DOM ID across HTMX versions."""
     if not target:
         return False
     return _dom_id(target) == _dom_id(dom_id)
 
 
 def htmx_target_is(request: HttpRequest, *dom_ids: str) -> bool:
-    """Checks if the request's ``HX-Target`` header matches any given DOM ID.
+    """Check if the request's ``HX-Target`` header matches any given DOM ID.
 
     Args:
         request: The incoming HTTP request.
@@ -66,7 +66,7 @@ def htmx_target_is(request: HttpRequest, *dom_ids: str) -> bool:
 
 
 def targeting(*dom_ids: str) -> Callable[[HttpRequest], bool]:
-    """Creates a predicate checking if a request targets any specified DOM ID.
+    """Create a predicate checking if a request targets any specified DOM ID.
 
     Args:
         *dom_ids: Target DOM element IDs to match against.
@@ -91,7 +91,7 @@ def targeting(*dom_ids: str) -> Callable[[HttpRequest], bool]:
 
 
 def not_targeting(*dom_ids: str) -> Callable[[HttpRequest], bool]:
-    """Creates a predicate checking that a request does not target specified DOM IDs.
+    """Create a predicate checking that a request does not target specified DOM IDs.
 
     Args:
         *dom_ids: DOM element IDs to exclude.
@@ -116,7 +116,7 @@ def not_targeting(*dom_ids: str) -> Callable[[HttpRequest], bool]:
 
 
 def _eval_target(spec: Target, request: HttpRequest) -> bool:
-    """Evaluates a ``Target`` specification against an HTTP request."""
+    """Evaluate a ``Target`` specification against an HTTP request."""
     if spec is True:
         return True
     if spec is False:
@@ -129,7 +129,7 @@ def _eval_target(spec: Target, request: HttpRequest) -> bool:
 
 
 def has_messages(request: HttpRequest) -> bool:
-    """Checks whether the request has pending Django messages.
+    """Check whether the request has pending Django messages.
 
     Args:
         request: The incoming HTTP request.

@@ -29,7 +29,7 @@ def make_shell_view_mixin(
     default_swaps: Swaps = None,
     default_partial: PartialSpec | object = _UNSET,
 ) -> type:
-    """Creates a class mixin that routes CBV rendering through a shell renderer.
+    """Create a class mixin that routes CBV rendering through a shell renderer.
 
     Args:
         render: Optional render function, typically created by
