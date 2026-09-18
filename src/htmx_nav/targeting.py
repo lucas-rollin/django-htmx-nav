@@ -46,11 +46,11 @@ def _htmx_target_is(target: str | None, dom_id: str) -> bool:
 
 
 def htmx_target_is(request: HttpRequest, *dom_ids: str) -> bool:
-    """Checks if the request's `HX-Target` header matches any given DOM ID.
+    """Checks if the request's ``HX-Target`` header matches any given DOM ID.
 
     Args:
         request: The incoming HTTP request.
-        *dom_ids: DOM element IDs to match against (e.g., `"content"`, `"#content"`).
+        *dom_ids: DOM element IDs to match against (e.g., ``"content"``, ``"#content"``).
 
     Returns:
         True if the request target matches any provided ID.
@@ -72,7 +72,7 @@ def targeting(*dom_ids: str) -> Callable[[HttpRequest], bool]:
         *dom_ids: Target DOM element IDs to match against.
 
     Returns:
-        A callable taking `HttpRequest` and returning True if target matches.
+        A callable taking ``HttpRequest`` and returning True if target matches.
 
     Example:
         .. code-block:: python
@@ -97,7 +97,7 @@ def not_targeting(*dom_ids: str) -> Callable[[HttpRequest], bool]:
         *dom_ids: DOM element IDs to exclude.
 
     Returns:
-        A callable taking `HttpRequest` and returning True if target does not match.
+        A callable taking ``HttpRequest`` and returning True if target does not match.
 
     Example:
         .. code-block:: python
@@ -116,7 +116,7 @@ def not_targeting(*dom_ids: str) -> Callable[[HttpRequest], bool]:
 
 
 def _eval_target(spec: Target, request: HttpRequest) -> bool:
-    """Evaluates a `Target` specification against an HTTP request."""
+    """Evaluates a ``Target`` specification against an HTTP request."""
     if spec is True:
         return True
     if spec is False:

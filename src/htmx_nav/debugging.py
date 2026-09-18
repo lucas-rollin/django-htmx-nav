@@ -1,9 +1,9 @@
 """
 Debug-swap marker: Add an inline <script> to flash a target element
-when HTMX_NAV_DEBUG_SWAPS is enabled.
+when ``HTMX_NAV_DEBUG_SWAPS`` is enabled.
 
-`_build_marker_script` is used both by Swap.render() internally and by
-the public `debug_swap_marker` templatetag
+``_build_marker_script`` is used both by ``Swap.render()`` internally and by
+the public ``debug_swap_marker`` templatetag.
 """
 
 import json
@@ -12,11 +12,11 @@ __all__ = ["debug_swap_marker"]
 
 
 def _build_marker_script(target_id: str) -> str:
-    """Unconditionally builds the marker script for `target_id`.
+    """Unconditionally builds the marker script for ``target_id``.
 
     Reapplies a class to the element so animations retrigger upon
-    repeated swaps. Used both by Swap.render() internally and by the public
-    `debug_swap_marker` templatetag.
+    repeated swaps. Used both by ``Swap.render()`` internally and by the public
+    ``debug_swap_marker`` templatetag.
     """
     return (
         "<script>(function(){"
@@ -35,7 +35,7 @@ def debug_swap_marker(target_id: str) -> str:
         target_id: The DOM element ID to highlight.
 
     Returns:
-        An HTML script string if `HTMX_NAV_DEBUG_SWAPS` is enabled, otherwise
+        An HTML script string if ``HTMX_NAV_DEBUG_SWAPS`` is enabled, otherwise
         an empty string.
     """
     from .settings import _debug_swaps_enabled

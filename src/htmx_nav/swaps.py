@@ -1,5 +1,5 @@
 """
-Swap: an out-of-band or <hx-partial> fragment rendered alongside the main
+Swap: an out-of-band or ``<hx-partial>`` fragment rendered alongside the main
 content of an HTMX response.
 """
 
@@ -19,26 +19,26 @@ from .targeting import Target, _eval_target
 
 @dataclass(frozen=True)
 class Swap:
-    """Represents an out-of-band (OOB) or `<hx-partial>` fragment for HTMX responses.
+    """Represents an out-of-band (OOB) or ``<hx-partial>`` fragment for HTMX responses.
 
     Args:
-        template_name: Path to the template or partial (e.g., `"nav.html#sidebar"`).
-            Mutually exclusive with `content`. Required unless `swap_style="delete"`
-            or `content` is set.
+        template_name: Path to the template or partial (e.g., ``"nav.html#sidebar"``).
+            Mutually exclusive with ``content``. Required unless creating a delete swap
+            or ``content`` is provided.
         content: Ready-made fragment body, bypassing template rendering.
-            Auto-escaped like a template variable unless wrapped in `mark_safe`.
-            Mutually exclusive with `template_name`.
+            Auto-escaped like a template variable unless wrapped in ``mark_safe``.
+            Mutually exclusive with ``template_name``.
         context: Context mapping for the fragment. Also serves as fallback
-            context during full-page renders. Ignored when `content` is set.
-        target_id: Target DOM element ID. If `None`, renders without auto-wrapping.
-        swap_style: HTMX swap strategy (`"innerHTML"`, `"outerHTML"`, `"delete"`, etc.).
-        wrap: Auto-wrap mode (`"oob"` or `"hx-partial"`). Defaults to
-            `HTMX_NAV_DEFAULT_SWAP_WRAP` setting. Ignored when `swap_style="delete"`.
+            context during full-page renders. Ignored when ``content`` is set.
+        target_id: Target DOM element ID. If ``None``, renders without auto-wrapping.
+        swap_style: HTMX swap strategy (``"innerHTML"``, ``"outerHTML"``, ``"delete"``, etc.).
+        wrap: Auto-wrap mode (``"oob"`` or ``"hx-partial"``). Defaults to the
+            ``HTMX_NAV_DEFAULT_SWAP_WRAP`` setting. Ignored when ``swap_style="delete"``.
         include_if: Predicate determining if the swap applies to the request.
 
     Raises:
-        ValueError: If both or neither of `template_name`/`content` are given
-            for a non-delete swap, or if `target_id` is omitted for a delete swap.
+        ValueError: If both or neither of ``template_name`` and ``content`` are provided,
+            or if ``target_id`` is omitted for a delete swap.
 
     Example:
         .. code-block:: python
@@ -77,16 +77,16 @@ class Swap:
 
     @classmethod
     def delete(cls, target_id: str, include_if: Target = True) -> "Swap":
-        """Builds an OOB delete swap that removes `target_id` from the DOM.
+        """Builds an OOB delete swap that removes ``target_id`` from the DOM.
 
-        Equivalent to `<div id="{target_id}" hx-swap-oob="delete"></div>`.
+        Equivalent to ``<div id="{target_id}" hx-swap-oob="delete"></div>``.
 
         Args:
             target_id: DOM element ID to remove.
             include_if: Predicate determining if the swap applies to the request.
 
         Returns:
-            A `Swap` configured for deletion.
+            A ``Swap`` configured for deletion.
         """
         return cls(
             target_id=target_id, swap_style="delete", wrap="oob", include_if=include_if
@@ -107,11 +107,11 @@ class Swap:
             target_id: Target DOM element ID.
             content: The fragment body.
             swap_style: HTMX swap strategy.
-            wrap: Auto-wrap mode; defaults to `HTMX_NAV_DEFAULT_SWAP_WRAP`.
+            wrap: Auto-wrap mode. Defaults to the ``HTMX_NAV_DEFAULT_SWAP_WRAP`` setting.
             include_if: Predicate determining if the swap applies to the request.
 
         Returns:
-            A `Swap` that renders `content` directly.
+            A ``Swap`` that renders ``content`` directly.
         """
         return cls(
             content=content,
@@ -122,7 +122,7 @@ class Swap:
         )
 
     def applies_to(self, request: HttpRequest) -> bool:
-        """Evaluates `include_if` against the request to determine inclusion.
+        """Evaluates ``include_if`` against the request to determine inclusion.
 
         Args:
             request: The incoming HTTP request.
@@ -146,7 +146,7 @@ class Swap:
             using: Optional template engine name.
 
         Returns:
-            The rendered HTML string, auto-wrapped if `target_id` is set.
+            The rendered HTML string, auto-wrapped if ``target_id`` is set.
         """
         if self.swap_style == "delete":
             # htmx removes the target outright; no body, no wrapper choice,
@@ -190,13 +190,13 @@ Swaps: TypeAlias = Swap | list[Swap] | tuple[Swap, ...] | None
 
 
 def _normalize_swaps(swaps: Swaps) -> list[Swap]:
-    """Normalizes `Swaps` input into a flat list of `Swap` instances.
+    """Normalizes a ``Swaps`` input into a flat list of ``Swap`` instances.
 
     Args:
-        swaps: `None`, a single `Swap`, or a list/tuple of `Swap`.
+        swaps: ``None``, a single ``Swap``, or a sequence of swaps.
 
     Returns:
-        A list of `Swap` instances. Empty if `swaps` is `None`.
+        A list of ``Swap`` instances. Empty if ``swaps`` is ``None``.
     """
     if swaps is None:
         return []

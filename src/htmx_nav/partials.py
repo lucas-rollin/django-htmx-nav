@@ -15,9 +15,9 @@ PartialSpec: TypeAlias = (
 """Specifies what template or partial block to render for an HTMX request.
 
 Values resolve to:
-    - Block name (`"#name"`): Appended to base template as `template.html#name`.
-    - Standalone path (`"path/to/template.html"`): Renders in place of base template.
-    - `None`: Forces a full-page render.
+    - Block name (``"#name"``): Appended to base template as ``template.html#name``.
+    - Standalone path (``"path/to/template.html"``): Renders in place of base template.
+    - ``None``: Forces a full-page render.
 
 Examples:
     .. code-block:: python

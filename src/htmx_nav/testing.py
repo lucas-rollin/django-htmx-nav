@@ -43,16 +43,16 @@ def assert_shell_parity(
 ) -> dict[str, Any]:
     """Asserts that template context remains consistent across request modes.
 
-    Issues GET requests for each scenario in `requests` and executes
+    Issues GET requests for each scenario in ``requests`` and executes
     extraction callbacks against response contexts to verify shell state
     parity (e.g. active links, breadcrumbs, sidebar items).
 
     Args:
         client: The Django test client instance.
         url: The target URL to request.
-        requests: Mapping of scenario labels to kwargs passed to `client.get`.
+        requests: Mapping of scenario labels to kwargs passed to ``client.get``.
         checks: Mapping of check labels to extraction functions receiving
-            `response.context`.
+            ``response.context``.
 
     Returns:
         Mapping of scenario labels to their Django response objects.
@@ -95,14 +95,14 @@ def assert_html_equal(
 ) -> None:
     """Asserts that two HTML documents or fragments are structurally equal.
 
-    Normalizes whitespace and attribute ordering using Django's `parse_html`
+    Normalizes whitespace and attribute ordering using Django's ``parse_html``
     and strips debug marker scripts before comparing.
 
     Args:
         a: First HTML document or fragment.
         b: Second HTML document or fragment.
-        label_a: Label for `a` in unified diff output. Defaults to "a".
-        label_b: Label for `b` in unified diff output. Defaults to "b".
+        label_a: Label for ``a`` in unified diff output. Defaults to "a".
+        label_b: Label for ``b`` in unified diff output. Defaults to "b".
 
     Raises:
         AssertionError: If the two documents differ structurally, including
@@ -226,25 +226,25 @@ def assert_shell_composition(
     Args:
         client: The Django test client instance.
         url: The target endpoint URL.
-        page_shell_kwargs: Kwargs for `client.get` representing a page-level swap.
-        tab_shell_kwargs: Kwargs for `client.get` representing a tab-level swap.
+        page_shell_kwargs: Kwargs for ``client.get`` representing a page-level swap.
+        tab_shell_kwargs: Kwargs for ``client.get`` representing a tab-level swap.
         full_reload_kwargs: Optional kwargs for a standard browser GET.
-            Defaults to `{}`.
+            Defaults to ``{}``.
         page_container_id: DOM element ID targeted by page-level swaps.
             Defaults to "page-content".
         tab_container_id: DOM element ID targeted by tab-level swaps.
             Defaults to "tab-content".
         self_wrapped: Set to True if swap responses re-emit their outer
-            container tag (`hx-swap="outerHTML"`). Defaults to False.
+            container tag (``hx-swap="outerHTML"``). Defaults to False.
 
     Returns:
-        Mapping containing `"full_reload"`, `"page_shell"`, and `"tab_shell"`
+        Mapping containing ``"full_reload"``, ``"page_shell"``, and ``"tab_shell"``
         response objects.
 
     Raises:
         AssertionError: If any response status is not 200, a container ID is
             missing, or fragment markup diverges.
-        ImportError: If `beautifulsoup4` is not installed.
+        ImportError: If ``beautifulsoup4`` is not installed.
 
     Example:
         .. code-block:: python

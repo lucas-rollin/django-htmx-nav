@@ -33,20 +33,20 @@ def make_shell_view_mixin(
 
     Args:
         render: Optional render function, typically created by
-            `make_shell_renderer`. When omitted, calls `render_nav` directly.
+            ``make_shell_renderer``. When omitted, calls ``render_nav`` directly.
         default_swaps: Default Swap(s) applied across all views using this mixin.
         default_partial: Partial spec used unless overridden per view.
-            Defaults to the `HTMX_NAV_DEFAULT_PARTIAL` setting (`"#content"`).
+            Defaults to the ``HTMX_NAV_DEFAULT_PARTIAL`` setting (``"#content"``).
 
     Returns:
-        A mixin class providing `render_to_response` and swap customization hooks.
+        A mixin class providing ``render_to_response`` and swap customization hooks.
 
     Notes:
         Override points on the resulting view class:
-            - `get_extra_swaps()`: Returns per-view swaps (runs with `self.object` available).
-            - `get_title()` or `title`: Page title override.
-            - `get_partial()`: Overrides `default_partial` for the view.
-            - `get_shell_template_name()`: Defaults to `get_template_names()[0]`.
+            - ``get_extra_swaps()``: Returns per-view swaps (runs with ``self.object`` available).
+            - ``get_title()`` or ``title``: Page title override.
+            - ``get_partial()``: Overrides ``default_partial`` for the view.
+            - ``get_shell_template_name()``: Defaults to ``get_template_names()[0]``.
 
     Example:
         .. code-block:: python

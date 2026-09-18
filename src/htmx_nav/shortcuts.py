@@ -36,18 +36,18 @@ def render_nav(
         status: Optional HTTP status code.
         using: Optional template engine.
         partial: Specifies which partial to render for HTMX requests.
-            Can be a block name (`"#content"`), standalone path, callable, or
-            dict mapping names to targets. When None, renders the full template.
-            Defaults to the `HTMX_NAV_DEFAULT_PARTIAL` setting (`"#content"`).
+            Can be a block name (``"#content"``), standalone path, callable, or
+            dict mapping names to targets. When ``None``, renders the full template.
+            Defaults to the ``HTMX_NAV_DEFAULT_PARTIAL`` setting (``"#content"``).
         swaps: Additional out-of-band swaps to include.
         title: Optional page title. Overrides title context variable and
-            injects a `<title>` element for HTMX requests.
+            injects a ``<title>`` element for HTMX requests.
 
     Returns:
-        A TemplateResponse with partial resolution and OOB swaps.
+        A ``TemplateResponse`` with partial resolution and OOB swaps.
 
     Notes:
-        - Adds "HX-Request" to Vary headers for proper caching.
+        - Adds ``HX-Request`` to the Vary header for proper caching.
         - Context from swaps is merged with main context (swap context wins).
         - Title injection is HTML-escaped.
 

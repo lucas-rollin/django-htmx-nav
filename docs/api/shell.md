@@ -1,4 +1,4 @@
-# Shell Architecture
+# Reusable Shell
 
 This section covers utilities for encapsulating and orchestrating reusable application shells across both function-based and class-based views.
 

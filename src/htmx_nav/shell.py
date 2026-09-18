@@ -19,7 +19,7 @@ from .swaps import Swaps, _normalize_swaps
 
 
 class ShellRenderer(Protocol):
-    """Callable signature for renderers produced by `make_shell_renderer`."""
+    """Callable signature for renderers produced by ``make_shell_renderer``."""
 
     def __call__(
         self,
@@ -39,10 +39,10 @@ class ShellRenderer(Protocol):
             context: Optional context for the main template.
             extra_swaps: Additional per-call Swaps included alongside shell Swaps.
             partial: Specifies the partial to render for HTMX requests.
-            **kwargs: Additional arguments passed to `render_nav`.
+            **kwargs: Additional arguments passed to ``render_nav``.
 
         Returns:
-            A TemplateResponse with the shell Swaps included.
+            A ``TemplateResponse`` with the shell swaps included.
         """
         ...
 
@@ -58,10 +58,10 @@ def make_shell_renderer(
         swaps: Swaps included on each request, or a callable receiving
             request and returning Swaps.
         partial: Default PartialSpec used unless overridden per-call.
-            Defaults to the `HTMX_NAV_DEFAULT_PARTIAL` setting (`"#content"`).
+            Defaults to the ``HTMX_NAV_DEFAULT_PARTIAL`` setting (``"#content"``).
 
     Returns:
-        A `render_shell` function matching the `ShellRenderer` protocol.
+        A ``render_shell`` function matching the ``ShellRenderer`` protocol.
 
     Example:
         .. code-block:: python
