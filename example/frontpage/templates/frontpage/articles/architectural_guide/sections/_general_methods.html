@@ -11,7 +11,7 @@
     <p class="text-sm text-base-content/80 leading-relaxed">
       In this approach, the server continues to render the complete HTML document on every single navigation request. The client then either extracts fragments using <code>hx-select</code> or compares the entire incoming DOM against the live DOM using a morphing algorithm like <strong>Idiomorph</strong>.
     </p>
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-3">
+    <div class="rounded-xl overflow-hidden border border-base-300 code-block p-4 not-prose my-3">
       <pre><code class="language-html">&lt;!-- Client-side extraction: pull only what changed out of a full-page response --&gt;
 &lt;a hx-get="/projects/42/board/"
    hx-target="#main-content"
@@ -21,7 +21,7 @@
 &lt;/a&gt;
 &lt;!-- Server still returns the full document; the client picks these fragments out of it --&gt;</code></pre>
     </div>
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-3">
+    <div class="rounded-xl overflow-hidden border border-base-300 code-block p-4 not-prose my-3">
       <pre><code class="language-html">&lt;!-- Client-side morphing on boosted body --&gt;
 &lt;body hx-boost="true" hx-ext="morph" hx-swap="morph"&gt;
   &lt;!-- Server returns full layout; client algorithm diffs and updates only mutated nodes --&gt;
@@ -50,7 +50,7 @@
     <p class="text-sm text-base-content/80 leading-relaxed">
       Here, the template layer inspects whether the request came from HTMX (via the <code>django-htmx</code> library middleware or custom header checks) and conditionally includes out-of-band (OOB) containers.
     </p>
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-3">
+    <div class="rounded-xl overflow-hidden border border-base-300 code-block p-4 not-prose my-3">
       {% verbatim %}
         <pre><code class="language-django">&lt;!-- Manual branching inside Django templates --&gt;
 {% extends "base.html" %}
@@ -87,7 +87,7 @@
     <p class="text-sm text-base-content/80 leading-relaxed">
       Rather than putting conditionals in templates, views detect HTMX requests and assemble a multi-part response in Python, joining the primary partial with OOB swap strings.
     </p>
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-3">
+    <div class="rounded-xl overflow-hidden border border-base-300 code-block p-4 not-prose my-3">
       <pre><code class="language-python"># Ad-hoc backend string concatenation in Django views
 def project_board(request, project_id):
     project = get_object_or_404(Project, id=project_id)
@@ -136,7 +136,7 @@ def project_board(request, project_id):
       Regions don't need to know about each other, and the primary view doesn't need to
       know which regions exist.
     </p>
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-3">
+    <div class="rounded-xl overflow-hidden border border-base-300 code-block p-4 not-prose my-3">
       <pre><code class="language-python"># The primary view has no knowledge of the sidebar or breadcrumbs at all
 def project_board(request, project_id):
     project = get_object_or_404(Project, id=project_id)
@@ -144,7 +144,7 @@ def project_board(request, project_id):
     response["HX-Trigger"] = "nav-changed"
     return response</code></pre>
     </div>
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-3">
+    <div class="rounded-xl overflow-hidden border border-base-300 code-block p-4 not-prose my-3">
       <pre><code class="language-html">&lt;!-- Each region independently listens and re-fetches on the event --&gt;
 &lt;div id="sidebar"
      hx-get="/nav/sidebar/"
@@ -186,7 +186,7 @@ def project_board(request, project_id):
       based on a single request header, then calls Django's normal <code>render()</code>
       unmodified.
     </p>
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-3">
+    <div class="rounded-xl overflow-hidden border border-base-300 code-block p-4 not-prose my-3">
       <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/get_template_dispatch.py" %}</code></pre>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs not-prose">
@@ -234,7 +234,7 @@ def project_board(request, project_id):
       substitution (<a href="#method-template-substitution" class="link link-primary">2.5</a>),
       can target a named partial instead of a whole separate file.
     </p>
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-3">
+    <div class="rounded-xl overflow-hidden border border-base-300 code-block p-4 not-prose my-3">
       {% verbatim %}
         <pre><code class="language-django">{% extends 'base.html' %}
 {% block content %}
@@ -244,7 +244,7 @@ def project_board(request, project_id):
 {% endblock %}</code></pre>
       {% endverbatim %}
     </div>
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-3">
+    <div class="rounded-xl overflow-hidden border border-base-300 code-block p-4 not-prose my-3">
       <pre><code class="language-python"># template substitution (section 2.5), retargeted at a partial
 def get_template(request, template_name: str) -> str:
     if request.headers.get("HX-Request") == "true":

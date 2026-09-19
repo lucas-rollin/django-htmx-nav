@@ -17,12 +17,7 @@
     article_cta              - closing call-to-action banner
 {% endcomment %}
 {% block head_extra %}
-  <!-- Syntax highlighting via highlight.js -->
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/django.min.js"></script>
+  {% include "frontpage/components/_highlight_assets.html" %}
   <script>document.addEventListener('DOMContentLoaded', () => { hljs.highlightAll(); });</script>
   {% block article_head_extra %}{% endblock %}
 {% endblock %}

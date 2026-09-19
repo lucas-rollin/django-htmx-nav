@@ -3,12 +3,7 @@
 {% block title %}django-htmx-nav · Server-Driven Navigation for HTMX in Django{% endblock %}
 {% block meta_description %}Declarative, out-of-band partial navigation for Django and HTMX. Keep layout controls, sidebars, and breadcrumbs in sync without state drift.{% endblock %}
 {% block head_extra %}
-  <!-- Syntax highlighting via highlight.js -->
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/django.min.js"></script>
+  {% include "frontpage/components/_highlight_assets.html" %}
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -282,35 +277,35 @@
     </div>
     <!-- 1. render_nav alone: view + template -->
     <div x-show="pattern === 'partial'" x-cloak class="space-y-4">
-      <div class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
+      <div class="mockup-code code-block border border-base-300 shadow-xl text-xs sm:text-sm">
         <pre><code class="language-python">{% include "frontpage/snippets/partial_only.py" %}</code></pre>
       </div>
-      <div class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
+      <div class="mockup-code code-block border border-base-300 shadow-xl text-xs sm:text-sm">
         <pre><code class="language-django">{% include "frontpage/snippets/partial_only.html" %}</code></pre>
       </div>
     </div>
     <!-- 2. render_nav + Swaps -->
     <div x-show="pattern === 'render_nav'"
          x-cloak
-         class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
+         class="mockup-code code-block border border-base-300 shadow-xl text-xs sm:text-sm">
       <pre><code class="language-python">{% include "frontpage/snippets/fbv.py" %}</code></pre>
     </div>
     <!-- 3. shell -->
     <div x-show="pattern === 'shell'"
          x-cloak
-         class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
+         class="mockup-code code-block border border-base-300 shadow-xl text-xs sm:text-sm">
       <pre><code class="language-python">{% include "frontpage/snippets/shell.py" %}</code></pre>
     </div>
     <!-- 4. cbv -->
     <div x-show="pattern === 'cbv'"
          x-cloak
-         class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
+         class="mockup-code code-block border border-base-300 shadow-xl text-xs sm:text-sm">
       <pre><code class="language-python">{% include "frontpage/snippets/cbv.py" %}</code></pre>
     </div>
     <!-- 5. beyond navigation -->
     <div x-show="pattern === 'beyond'"
          x-cloak
-         class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
+         class="mockup-code code-block border border-base-300 shadow-xl text-xs sm:text-sm">
       <pre><code class="language-python">{% include "frontpage/snippets/beyond.py" %}</code></pre>
     </div>
     <!-- Per-tab captions: the narrative lives here, not in the shared snippet files -->
@@ -324,7 +319,9 @@
       <p x-show="pattern === 'shell'" x-cloak>
         Declare the sidebar and breadcrumbs once. Every view that uses <code>render_shell</code> gets them, and <code>extra_swaps</code> adds view-specific regions.
       </p>
-      <p x-show="pattern === 'cbv'" x-cloak>The same shell works with Django's generic views through a mixin.</p>
+      <p x-show="pattern === 'cbv'" x-cloak>
+        The same shell works with Django's generic views through a mixin.
+      </p>
       <p x-show="pattern === 'beyond'" x-cloak>
         <code>Swap</code> isn't only for navigation. Delete rows, update counters, and flush messages alongside any response.
       </p>

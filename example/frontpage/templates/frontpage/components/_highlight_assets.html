@@ -1,0 +1,27 @@
+<!-- Syntax highlighting via highlight.js with adaptive light/dark themes -->
+<link id="hljs-light"
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+<link id="hljs-dark"
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
+<script>
+  (function () {
+    function syncHljsTheme() {
+      const theme = document.documentElement.getAttribute("data-theme") || "light";
+      const isDark = theme === "dark";
+      const lightLink = document.getElementById("hljs-light");
+      const darkLink = document.getElementById("hljs-dark");
+      if (lightLink) lightLink.disabled = isDark;
+      if (darkLink) darkLink.disabled = !isDark;
+    }
+    syncHljsTheme();
+    new MutationObserver(syncHljsTheme).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+  })();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/django.min.js"></script>

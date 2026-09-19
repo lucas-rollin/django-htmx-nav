@@ -16,12 +16,6 @@ pre code.hljs {
   line-height: 1.5;
 }
 
-@media (width >= 768px) {
-  pre code.hljs {
-    font-size: 0.825rem;
-  }
-}
-
 /* DaisyUI Mockup Code & Line Numbers */
 .mockup-code pre code.hljs {
   background: transparent !important;
@@ -31,6 +25,43 @@ pre code.hljs {
 
 .mockup-code pre::before {
   content: none;
+}
+
+/* Code Surface & Editor Theming */
+[data-theme="light"] .code-block {
+  background-color: #f6f8fa;
+  border-color: #d0d7de;
+}
+
+[data-theme="light"] .hljs-ln-numbers {
+  color: #656d76;
+  opacity: 0.70;
+}
+
+[data-theme="dark"] .code-block {
+  background-color: #161b22;
+  border-color: #30363d;
+}
+
+/* --- Landing Page Hero Mockup --- */
+[data-theme="dark"] .mockup-code {
+  background-color: #000000;
+  border-color: #27272a;
+}
+
+
+
+[data-theme="dark"] .hljs-ln-numbers {
+  color: #768390;
+  opacity: 0.5;
+}
+
+/* Polished window controls on mockup-code */
+.mockup-code:before {
+  opacity: 0.85 !important;
+  background-color: #ff5f56 !important;
+  box-shadow: 1.25em 0 0 #ffbd2e, 2.5em 0 0 #27c93f !important;
+  margin-left: 1.5rem;
 }
 
 /* Style highlightjs-line-numbers table to match DaisyUI */
@@ -48,13 +79,27 @@ pre code.hljs {
   text-align: right;
   opacity: 0.5;
   padding-right: 1.25rem !important;
-  width: 3rem;
+  width: 2.25rem;
 }
 
 .hljs-ln-n {
-  margin-right: 1rem;
+  margin-right: 0.75rem;
 }
 
 .hljs-ln-code {
   padding-left: 0.5rem !important;
+}
+
+@media (width >= 768px) {
+  pre code.hljs {
+    font-size: 0.825rem;
+  }
+
+  .hljs-ln-numbers {
+    width: 3rem;
+  }
+
+  .hljs-ln-n {
+    margin-right: 1rem;
+  }
 }

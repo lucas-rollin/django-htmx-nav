@@ -25,7 +25,7 @@
     <div x-show="showHelpers"
          x-cloak
          class="mt-3 pt-3 border-t border-base-300">
-      <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral text-neutral-content not-prose">
+      <div class="rounded-xl overflow-hidden border border-base-300 code-block not-prose">
         <div class="p-4 overflow-x-auto">
           <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/context_helpers.py" %}</code></pre>
         </div>
@@ -48,10 +48,9 @@
     <p class="text-sm text-base-content/80 leading-relaxed">
       The baseline implementation uses Django's conventional full-page rendering: each navigation request renders the complete document and replaces the current page.
     </p>
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral text-neutral-content not-prose">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 px-4 py-2.5 border-b border-slate-800/30 text-xs">
-        <code data-theme="dark"
-              class="font-mono text-neutral-content/70 truncate min-w-0">
+    <div class="rounded-xl overflow-hidden border border-base-300 code-block not-prose">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 px-4 py-2.5 border-b border-base-300/60 text-xs">
+        <code class="font-mono opacity-70 truncate min-w-0">
           <span class="hidden sm:inline">example/</span>mpa/views.py
         </code>
         <a href="https://github.com/lucas-rollin/django-htmx-nav/blob/main/example/mpa/views.py"
@@ -85,10 +84,9 @@
     <p class="text-sm text-base-content/80 leading-relaxed">
       Vanilla HTMX can reduce the response to the content that needs updating, but the application must maintain separate shell templates containing the out-of-band navigation regions.
     </p>
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral text-neutral-content not-prose">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 px-4 py-2.5 border-b border-slate-800/30 text-xs">
-        <code data-theme="dark"
-              class="font-mono text-neutral-content/70 truncate min-w-0">
+    <div class="rounded-xl overflow-hidden border border-base-300 code-block not-prose">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 px-4 py-2.5 border-b border-base-300/60 text-xs">
+        <code class="font-mono opacity-70 truncate min-w-0">
           <span class="hidden sm:inline">example/</span>vanilla_htmx_composite/views.py
         </code>
         <a href="https://github.com/lucas-rollin/django-htmx-nav/blob/main/example/vanilla_htmx_composite/views.py"
@@ -100,10 +98,9 @@
         <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/views_vanilla_htmx_composite.py" %}</code></pre>
       </div>
     </div>
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral text-neutral-content not-prose">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 px-4 py-2.5 border-b border-slate-800/30 text-xs">
-        <code data-theme="dark"
-              class="font-mono text-neutral-content/70 truncate min-w-0">
+    <div class="rounded-xl overflow-hidden border border-base-300 code-block not-prose">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 px-4 py-2.5 border-b border-base-300/60 text-xs">
+        <code class="font-mono opacity-70 truncate min-w-0">
           templates/vanilla_htmx_composite/_overview.html
         </code>
         <a href="https://github.com/lucas-rollin/django-htmx-nav/blob/main/example/vanilla_htmx_composite/templates/vanilla_htmx_composite/_overview.html"
@@ -136,10 +133,9 @@
     <p class="text-sm text-base-content/80 leading-relaxed">
       <code>django-htmx-nav</code> lets the view describe secondary navigation regions as explicit <code>Swap</code> objects, keeping the partial templates separate without requiring parallel shell pages.
     </p>
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral text-neutral-content not-prose">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 px-4 py-2.5 border-b border-slate-800/30 text-xs">
-        <code data-theme="dark"
-              class="font-mono text-neutral-content/70 truncate min-w-0">
+    <div class="rounded-xl overflow-hidden border border-base-300 code-block not-prose">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 px-4 py-2.5 border-b border-base-300/60 text-xs">
+        <code class="font-mono opacity-70 truncate min-w-0">
           <span class="hidden sm:inline">example/</span>htmx_nav_demo/views_composite.py
         </code>
         <a href="https://github.com/lucas-rollin/django-htmx-nav/blob/main/example/htmx_nav_demo/views_composite.py"
@@ -172,10 +168,9 @@
     <p class="text-sm text-base-content/80 leading-relaxed">
       The shell renderer moves the repeated <code>Swap</code> configuration out of individual views. The resulting view stays close to a conventional Django view and only changes the rendering function.
     </p>
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral text-neutral-content not-prose">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 px-4 py-2.5 border-b border-slate-800/30 text-xs">
-        <code data-theme="dark"
-              class="font-mono text-neutral-content/70 truncate min-w-0">
+    <div class="rounded-xl overflow-hidden border border-base-300 code-block not-prose">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 px-4 py-2.5 border-b border-base-300/60 text-xs">
+        <code class="font-mono opacity-70 truncate min-w-0">
           <span class="hidden sm:inline">example/</span>htmx_nav_demo/views_baseline.py
         </code>
         <a href="https://github.com/lucas-rollin/django-htmx-nav/blob/main/example/htmx_nav_demo/views_baseline.py"
@@ -211,15 +206,14 @@
       The declarative variant moves route-specific navigation metadata into a registry, allowing views to focus on their own application data while the navigation shell is resolved automatically from the current route.
     </p>
     <!-- Registry -->
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral text-neutral-content not-prose">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 px-4 py-2.5 border-b border-slate-800/30 text-xs">
-        <code data-theme="dark"
-              class="font-mono text-neutral-content/70 truncate min-w-0">
+    <div class="rounded-xl overflow-hidden border border-base-300 code-block not-prose">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 px-4 py-2.5 border-b border-base-300/60 text-xs">
+        <code class="font-mono opacity-70 truncate min-w-0">
           <span class="hidden sm:inline">example/</span>htmx_nav_demo/registry_declarative.py
         </code>
         <div class="flex items-center justify-between sm:justify-end gap-3 shrink-0">
           <button @click="showRegistry = !showRegistry"
-                  class="btn btn-ghost btn-xs text-primary hover:bg-neutral-focus">
+                  class="btn btn-ghost btn-xs text-primary hover:bg-base-200">
             <span x-text="showRegistry ? 'Hide Registry' : 'Show Registry'"></span>
           </button>
           <a href="https://github.com/lucas-rollin/django-htmx-nav/blob/main/example/htmx_nav_demo/registry_declarative.py"
@@ -233,10 +227,9 @@
       </div>
     </div>
     <!-- Views -->
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral text-neutral-content not-prose">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 px-4 py-2.5 border-b border-slate-800/30 text-xs">
-        <code data-theme="dark"
-              class="font-mono text-neutral-content/70 truncate min-w-0">
+    <div class="rounded-xl overflow-hidden border border-base-300 code-block not-prose">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 px-4 py-2.5 border-b border-base-300/60 text-xs">
+        <code class="font-mono opacity-70 truncate min-w-0">
           <span class="hidden sm:inline">example/</span>htmx_nav_demo/views_declarative.py
         </code>
         <a href="https://github.com/lucas-rollin/django-htmx-nav/blob/main/example/htmx_nav_demo/views_declarative.py"

@@ -22,21 +22,19 @@
       <code>render()</code> that makes that decision from the request.
     </p>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 not-prose my-4">
-      <div data-theme="dark"
-           class="border border-base-300 rounded-xl p-4 bg-neutral">
-        <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-2 flex items-center justify-between">
+      <div class="border border-base-300 rounded-xl p-4 code-block">
+        <div class="text-xs font-bold uppercase tracking-wider opacity-60 mb-2 flex items-center justify-between">
           <span>View</span>
           <span class="badge badge-sm badge-ghost font-mono">views.py</span>
         </div>
-        <pre><code class="language-python">{% include "frontpage/snippets/partial_only.py" %}</code></pre>
+        <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/partial_only.py" %}</code></pre>
       </div>
-      <div data-theme="dark"
-           class="border border-base-300 rounded-xl p-4 bg-neutral">
-        <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-2 flex items-center justify-between">
+      <div class="border border-base-300 rounded-xl p-4 code-block">
+        <div class="text-xs font-bold uppercase tracking-wider opacity-60 mb-2 flex items-center justify-between">
           <span>Template</span>
           <span class="badge badge-sm badge-ghost font-mono">pages/board.html</span>
         </div>
-        <pre><code class="language-django">{% include "frontpage/snippets/partial_only.html" %}</code></pre>
+        <pre><code class="language-django">{% include "frontpage/articles/architectural_guide/snippets/partial_only.html" %}</code></pre>
       </div>
     </div>
     <p class="text-sm text-base-content/80 leading-relaxed">
@@ -76,9 +74,8 @@
       <code>Swap</code> solves this through <strong>automatic wrapping</strong>. You point <code>Swap</code> directly at your existing, standard component template. At render time, <code>Swap</code> automatically wraps the rendered markup in the appropriate HTMX wire envelope:
     </p>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 not-prose my-4">
-      <div data-theme="dark"
-           class="bg-base-200/50 border border-base-300 rounded-xl p-4 bg-neutral">
-        <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-2 flex items-center justify-between">
+      <div class="border border-base-300 rounded-xl p-4 code-block">
+        <div class="text-xs font-bold uppercase tracking-wider opacity-60 mb-2 flex items-center justify-between">
           <span>Clean Component Template</span>
           <span class="badge badge-sm badge-ghost font-mono">_sidebar.html</span>
         </div>
@@ -91,8 +88,7 @@
   {% endfor %}
 &lt;/ul&gt;{% endverbatim %}</code></pre>
       </div>
-      <div data-theme="dark"
-           class="bg-base-200/50 border border-base-300 rounded-xl p-4 bg-neutral">
+      <div class="border border-base-300 rounded-xl p-4 code-block">
         <div class="text-xs font-bold uppercase tracking-wider text-primary mb-2 flex items-center justify-between">
           <span>Auto-Wrapped by Swap</span>
           <span class="badge badge-sm badge-primary font-mono">Wire Output</span>
@@ -149,7 +145,7 @@
         </p>
       </button>
     </div>
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-4">
+    <div class="rounded-xl overflow-hidden border border-base-300 code-block p-4 not-prose my-4">
       <pre x-show="pattern === 'fbv'" x-cloak><code class="language-python">{% include "frontpage/snippets/fbv.py" %}</code></pre>
       <pre x-show="pattern === 'shell'" x-cloak><code class="language-python">{% include "frontpage/snippets/shell.py" %}</code></pre>
       <pre x-show="pattern === 'cbv'" x-cloak><code class="language-python">{% include "frontpage/snippets/cbv.py" %}</code></pre>
@@ -186,7 +182,7 @@
         <p class="text-xs text-base-content/75 mt-2">
           Sends raw string or numeric content directly without touching Django's template engine. Ideal for counters, totals, or status badges.
         </p>
-        <div class="mt-3 bg-neutral text-neutral-content rounded p-2 text-[11px] font-mono">
+        <div class="mt-3 code-block border border-base-300 rounded p-2 text-[11px] font-mono">
           Swap.text("unread-count", "7")
         </div>
       </div>
@@ -199,7 +195,7 @@
         <p class="text-xs text-base-content/75 mt-2">
           Emits <code>hx-swap-oob="delete"</code> targeting a DOM ID. Instantly removes modals, banners, or deleted table rows from the DOM.
         </p>
-        <div class="mt-3 bg-neutral text-neutral-content rounded p-2 text-[11px] font-mono">
+        <div class="mt-3 code-block border border-base-300 rounded p-2 text-[11px] font-mono">
           Swap.delete("flash-notification")
         </div>
       </div>
@@ -212,12 +208,12 @@
         <p class="text-xs text-base-content/75 mt-2">
           Native integration with <code>django.contrib.messages</code>. Automatically suppresses the message swap when no pending flash messages exist.
         </p>
-        <div class="mt-3 bg-neutral text-neutral-content rounded p-2 text-[11px] font-mono">
+        <div class="mt-3 code-block border border-base-300 rounded p-2 text-[11px] font-mono">
           Swap("...", include_if=has_messages)
         </div>
       </div>
     </div>
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-4">
+    <div class="rounded-xl overflow-hidden border border-base-300 code-block p-4 not-prose my-4">
       <pre><code class="language-python">{% include "frontpage/snippets/beyond.py" %}</code></pre>
     </div>
   </div>
@@ -230,7 +226,7 @@
     <p class="text-sm text-base-content/80 leading-relaxed">
       django-htmx-nav moves both decisions into Python, using the same <code class="font-mono text-primary font-bold">Target</code> conditions: a DOM ID string, a <code>targeting()</code> / <code>not_targeting()</code> predicate, any callable, or a bool. <code>partial=</code> uses them to pick the main response, and <code>include_if</code> uses them to filter swaps. Both are evaluated before any template is parsed, so excluded fragments skip rendering and DB queries entirely.
     </p>
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-4">
+    <div class="rounded-xl overflow-hidden border border-base-300 code-block p-4 not-prose my-4">
       <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/partial_targeting.py" %}</code></pre>
     </div>
     <p class="text-sm text-base-content/80 leading-relaxed">
@@ -238,7 +234,7 @@
       <a href="#method-template-substitution" class="link link-primary">template substitution</a>:
       a tab swap and a subtab swap are two more dict entries, not another dispatch function. <code>include_if</code> covers the same ground for individual swaps:
     </p>
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-4">
+    <div class="rounded-xl overflow-hidden border border-base-300 code-block p-4 not-prose my-4">
       <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/conditionals.py" %}</code></pre>
     </div>
     <div class="text-xs text-base-content/75 bg-base-200/40 p-3 rounded-lg border border-base-200 space-y-1">
@@ -257,7 +253,7 @@
     <p class="text-sm text-base-content/80 leading-relaxed">
       When managing multiple simultaneous out-of-band updates, specially when pinpoint swap requires complex branching logic to decide which components to render, tracking what changes on each click can be difficult. <code>django-htmx-nav</code> features built-in visual swap debugging to give you instant feedback.
     </p>
-    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-2">
+    <div class="rounded-xl overflow-hidden border border-base-300 code-block p-4 not-prose my-2">
       <pre><code class="language-python"># settings.py
 HTMX_NAV_DEBUG_SWAPS = True</code></pre>
     </div>
