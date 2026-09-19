@@ -106,18 +106,14 @@ def project_detail(request, pk):
         },
         # 2. Out-of-band updates: sync surrounding controls only when relevant:
         swaps=[
-            # When swapping just the tab content, update active tab headers out-of-band:
+            # When swapping just the tab content, update active tab headers:
             Swap(
                 "projects/_tabs.html",
                 target_id="tabs",
                 include_if=targeting("tab-content"),
             ),
-            # Breadcrumbs only need to update when navigating between top-level sections:
-            Swap(
-                "nav/_breadcrumbs.html",
-                target_id="breadcrumbs",
-                include_if=targeting("content"),
-            ),
+            # Global shell components stay unconditional:
+            Swap("nav/_breadcrumbs.html", target_id="breadcrumbs"),
         ],
         title=project.name,
     )

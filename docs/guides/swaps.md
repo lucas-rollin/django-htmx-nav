@@ -91,7 +91,7 @@ Renders:
 </hx-partial>
 ```
 
-## High-Performance Specialized Constructors
+## Specialized Constructors
 
 Not every UI update requires compiling a Django template. `Swap` includes specialized constructors designed for zero template overhead.
 
