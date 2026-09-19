@@ -83,7 +83,7 @@ def render_nav(
         _default_partial_spec() if partial is _UNSET else partial  # type: ignore[assignment]
     )
     is_htmx = _is_htmx_request(request)
-    active_partial = _resolve_partial_name(effective_partial, request)
+    active_partial = _resolve_partial_name(effective_partial, request, template_name)
     resolved_template = _resolve_template_name(template_name, active_partial, is_htmx)
 
     swap_list = _normalize_swaps(swaps)

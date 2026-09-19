@@ -6,7 +6,7 @@ caching a module-level constant, so django.test.override_settings works
 as expected both in tests and at runtime.
 """
 
-from typing import Literal, cast
+from typing import Any, Literal, cast
 
 from django.conf import settings
 
@@ -24,8 +24,8 @@ def _default_swap_wrap() -> Literal["oob", "hx-partial"]:
     )
 
 
-def _default_partial_spec() -> str:
-    return str(getattr(settings, "HTMX_NAV_DEFAULT_PARTIAL", "#content"))
+def _default_partial_spec() -> Any:
+    return getattr(settings, "HTMX_NAV_DEFAULT_PARTIAL", "#content")
 
 
 def _debug_swaps_enabled() -> bool:

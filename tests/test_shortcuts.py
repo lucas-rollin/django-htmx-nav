@@ -3,6 +3,7 @@ from unittest.mock import patch
 import pytest
 from django.test import RequestFactory, override_settings
 
+from htmx_nav.partials import ReplacePrefix
 from htmx_nav.shortcuts import render_nav
 from htmx_nav.swaps import Swap
 from htmx_nav.targeting import not_targeting, targeting
@@ -331,3 +332,44 @@ def test_render_nav_respects_custom_default_partial_setting():
     with override_settings(HTMX_NAV_DEFAULT_PARTIAL="#custom_block"):
         response = render_nav(request, "tests/_page.html", {"content": "hi"})
         assert response.template_name == "tests/_page.html#custom_block"
+
+
+# --- ReplacePrefix --------------------------------------
+
+
+def test_render_nav_with_replace_prefix_htmx_resolves_and_renders():
+    rf = RequestFactory()
+    request = htmx_request(rf)
+    transformer = ReplacePrefix("_page.html", "_minimal.html")
+
+    response = render_nav(
+        request, "tests/_page.html", {"value": "transformed"}, partial=transformer
+    )
+    response.render()
+    assert response.template_name == "tests/_minimal.html"
+    assert response.content.strip() == b"transformed"
+
+
+def test_render_nav_with_replace_prefix_non_htmx_renders_full_page():
+    rf = RequestFactory()
+    request = non_htmx_request(rf)
+    transformer = ReplacePrefix("_page.html", "_minimal.html")
+
+    response = render_nav(
+        request, "tests/_page.html", {"content": "hi"}, partial=transformer
+    )
+    response.render()
+    assert response.template_name == "tests/_page.html"
+    assert b"FULL PAGE:" in response.content
+
+
+def test_render_nav_with_replace_prefix_in_settings():
+    rf = RequestFactory()
+    request = htmx_request(rf)
+    transformer = ReplacePrefix("_page.html", "_minimal.html")
+
+    with override_settings(HTMX_NAV_DEFAULT_PARTIAL=transformer):
+        response = render_nav(request, "tests/_page.html", {"value": "from_setting"})
+        response.render()
+        assert response.template_name == "tests/_minimal.html"
+        assert response.content.strip() == b"from_setting"

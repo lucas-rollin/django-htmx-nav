@@ -1,7 +1,12 @@
 import pytest
 from django.test import RequestFactory
 
-from htmx_nav.partials import _resolve_partial_name, _resolve_template_name
+from htmx_nav.partials import (
+    PartialResolver,
+    ReplacePrefix,
+    _resolve_partial_name,
+    _resolve_template_name,
+)
 from htmx_nav.targeting import targeting
 
 from .helpers import htmx_request
@@ -47,6 +52,70 @@ def test_resolve_partial_name_callable_invoked_with_request():
 
     assert _resolve_partial_name(resolver, request) == "#custom"
     assert calls == [request]
+
+
+# --- ReplacePrefix -------------------------------------------
+
+
+def test_replace_prefix_resolve():
+    request = RequestFactory().get("/")
+    transformer = ReplacePrefix("pages/", "partials/_")
+
+    # Root template replacement
+    assert transformer.resolve(request, "pages/board.html") == "partials/_board.html"
+
+    # Namespaced template replacement
+    assert (
+        transformer.resolve(request, "myapp/pages/board.html")
+        == "myapp/partials/_board.html"
+    )
+
+    # When prefix not found, returns original template_name gracefully
+    assert transformer.resolve(request, "custom/board.html") == "custom/board.html"
+
+    # Empty template name
+    assert transformer.resolve(request, "") == ""
+
+    # Check PartialResolver protocol
+    assert isinstance(transformer, PartialResolver)
+
+
+def test_resolve_partial_name_with_replace_prefix():
+    request = RequestFactory().get("/")
+    transformer = ReplacePrefix("pages/", "partials/_")
+
+    assert (
+        _resolve_partial_name(transformer, request, "pages/board.html")
+        == "partials/_board.html"
+    )
+    assert (
+        _resolve_partial_name(transformer, request, "myapp/pages/board.html")
+        == "myapp/partials/_board.html"
+    )
+
+
+def test_resolve_partial_name_with_custom_partial_resolver_class():
+    class CustomResolver:
+        def resolve(self, request, template_name):
+            return f"transformed/{template_name}"
+
+    request = RequestFactory().get("/")
+    resolver = CustomResolver()
+    assert isinstance(resolver, PartialResolver)
+    assert (
+        _resolve_partial_name(resolver, request, "index.html")
+        == "transformed/index.html"
+    )
+
+
+def test_resolve_partial_name_mapping_with_resolver():
+    request = htmx_request(RequestFactory(), target="tabs")
+    transformer = ReplacePrefix("pages/", "partials/_")
+    spec = {transformer: targeting("tabs"), "#content": True}
+    assert (
+        _resolve_partial_name(spec, request, "pages/board.html")
+        == "partials/_board.html"
+    )
 
 
 def test_resolve_partial_name_invalid_type_raises():

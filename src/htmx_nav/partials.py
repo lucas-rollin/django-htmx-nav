@@ -3,14 +3,40 @@ PartialSpec: what template or block to render for a given HTMX request.
 """
 
 from collections.abc import Callable, Mapping
-from typing import TypeAlias
+from dataclasses import dataclass
+from typing import Protocol, TypeAlias, runtime_checkable
 
 from django.http import HttpRequest
 
 from .targeting import Target, _eval_target
 
+
+@runtime_checkable
+class PartialResolver(Protocol):
+    """Derives a partial block or template path from the request and base template."""
+
+    def resolve(self, request: HttpRequest, template_name: str) -> str | None: ...
+
+
+@dataclass(frozen=True)
+class ReplacePrefix:
+    """Swap a path prefix or directory segment, e.g. ``"pages/"`` -> ``"partials/_"``."""
+
+    old: str
+    new: str
+
+    def resolve(self, request: HttpRequest, template_name: str) -> str | None:
+        if template_name and self.old in template_name:
+            return template_name.replace(self.old, self.new, 1)
+        return template_name
+
+
 PartialSpec: TypeAlias = (
-    str | Callable[[HttpRequest], str | None] | Mapping[str, Target] | None
+    str
+    | Callable[[HttpRequest], str | None]
+    | Mapping[str | PartialResolver, Target]
+    | PartialResolver
+    | None
 )
 """Specifies what template or partial block to render for an HTMX request.
 
@@ -22,7 +48,9 @@ Values resolve to:
 Examples:
     .. code-block:: python
 
-        "#content"
+        "#content" # Django 6 native inline partial
+
+        PartialResolver("pages/", "partials/_") # standalone partial
 
         "partials/_tab_content.html"
 
@@ -38,16 +66,22 @@ Examples:
 """
 
 
-def _resolve_partial_name(partial: PartialSpec, request: HttpRequest) -> str | None:
+def _resolve_partial_name(
+    partial: PartialSpec, request: HttpRequest, template_name: str = ""
+) -> str | None:
     """Resolve the active partial or template name for a request."""
     if partial is None:
         return None
     if isinstance(partial, str):
         return partial
+    if isinstance(partial, PartialResolver):
+        return partial.resolve(request, template_name)
     if isinstance(partial, Mapping):
-        for name, target in partial.items():
+        for key, target in partial.items():
             if _eval_target(target, request):
-                return name
+                if isinstance(key, PartialResolver):
+                    return key.resolve(request, template_name)
+                return key
         return None
     if callable(partial):
         return partial(request)
