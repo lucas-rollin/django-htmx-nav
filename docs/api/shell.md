@@ -21,3 +21,13 @@ This section covers utilities for encapsulating and orchestrating reusable appli
    :show-inheritance:
    :no-imported-members:
 ```
+
+## Request Helpers (`htmx_nav.helpers`)
+
+```{eval-rst}
+.. automodule:: htmx_nav.helpers
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :no-imported-members:
+```

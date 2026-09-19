@@ -15,17 +15,41 @@ from .targeting import Target, _eval_target
 class PartialResolver(Protocol):
     """Derives a partial block or template path from the request and base template."""
 
-    def resolve(self, request: HttpRequest, template_name: str) -> str | None: ...
+    def resolve(self, request: HttpRequest, template_name: str) -> str | None:
+        """Resolve a partial block or template path given the request and base template.
+
+        Args:
+            request: The incoming HTTP request.
+            template_name: The base template path specified by the view.
+
+        Returns:
+            A block name (e.g. ``"#content"``), a template path (e.g. ``"partials/_board.html"``),
+            or ``None`` to render the full template.
+        """
+        ...
 
 
 @dataclass(frozen=True)
 class ReplacePrefix:
-    """Swap a path prefix or directory segment, e.g. ``"pages/"`` -> ``"partials/_"``."""
+    """Swap a path prefix or directory segment, e.g. ``"pages/"`` -> ``"partials/_"``.
+
+    Particularly useful in pre-Django 6 codebases or multi-file template
+    layouts where full pages and partials live in separate directories.
+
+    Args:
+        old: The path prefix or segment to match (e.g. ``"pages/"``).
+        new: The replacement segment (e.g. ``"partials/_"``).
+    """
 
     old: str
     new: str
 
     def resolve(self, request: HttpRequest, template_name: str) -> str | None:
+        """Derive a partial template path by replacing ``old`` with ``new``.
+
+        If ``template_name`` does not contain ``old``, returns ``template_name``
+        unmodified so non-matching templates fall back gracefully.
+        """
         if template_name and self.old in template_name:
             return template_name.replace(self.old, self.new, 1)
         return template_name
@@ -41,27 +65,44 @@ PartialSpec: TypeAlias = (
 """Specifies what template or partial block to render for an HTMX request.
 
 Values resolve to:
-    - Block name (``"#name"``): Appended to base template as ``template.html#name``.
-    - Standalone path (``"path/to/template.html"``): Renders in place of base template.
+    - Block name (``"#name"``): Appended to the base template, giving
+      ``template.html#name`` (Django 6 native ``{% partialdef %}``).
+    - Standalone path (``"path/to/template.html"``): Rendered in place of the
+      base template.
+    - ``PartialResolver`` (e.g. ``ReplacePrefix``): Derives a block name or path
+      from the request and the base template name. Returns ``template_name``
+      unmodified if it cannot resolve the given template.
+    - Callable ``(request) -> str | None``: Returns a block name, template path,
+      or ``None`` per request.
+    - Mapping: Keys are block names, paths, or resolvers; values are ``Target``
+      conditions. The first key whose condition matches wins, so end with
+      ``True`` for a fallback.
     - ``None``: Forces a full-page render.
 
 Examples:
     .. code-block:: python
 
-        "#content" # Django 6 native inline partial
+        # Block name (single-file, Django 6 inline partial)
+        "#content"
 
-        PartialResolver("pages/", "partials/_") # standalone partial
-
+        # Standalone path
         "partials/_tab_content.html"
 
+        # Block inside another template
         "partials/navigation_components.html#sidebar"
 
+        # Derived path: base template "pages/board.html"
+        # renders "partials/_board.html" on HTMX requests
+        ReplacePrefix("pages/", "partials/_")
+
+        # Per-request callable
         lambda request: "#tab_content" if htmx_target_is(request, "tabs") else "#content"
 
+        # Mapping, first match wins, mixing every key kind
         {
-            "partials/_tab_content.html": targeting("tabs"),
-            "#main_content": targeting("main"),
-            "#content": True,
+            "partials/_tab_content.html": targeting("tab-content"),
+            ReplacePrefix("pages/", "partials/_"): targeting("main-content"),
+            "#content": True,  # fallback
         }
 """
 

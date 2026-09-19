@@ -1,4 +1,4 @@
-# Targeting & Helpers
+# Targeting & Partials
 
 This section covers request predicate helpers used with `Swap(include_if=...)` and request-scoped memoization utilities.
 
@@ -16,16 +16,6 @@ This section covers request predicate helpers used with `Swap(include_if=...)` a
 
 ```{eval-rst}
 .. automodule:: htmx_nav.partials
-   :members:
-   :undoc-members:
-   :show-inheritance:
-   :no-imported-members:
-```
-
-## Request Helpers (`htmx_nav.helpers`)
-
-```{eval-rst}
-.. automodule:: htmx_nav.helpers
    :members:
    :undoc-members:
    :show-inheritance:
