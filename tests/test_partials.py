@@ -3,7 +3,7 @@ from django.test import RequestFactory
 
 from htmx_nav.partials import (
     PartialResolver,
-    ReplacePrefix,
+    PathReplace,
     _resolve_partial_name,
     _resolve_template_name,
 )
@@ -54,12 +54,10 @@ def test_resolve_partial_name_callable_invoked_with_request():
     assert calls == [request]
 
 
-# --- ReplacePrefix -------------------------------------------
-
-
-def test_replace_prefix_resolve():
+# --- PathReplace ---------------------------------------------
+def test_path_replace_resolve():
     request = RequestFactory().get("/")
-    transformer = ReplacePrefix("pages/", "partials/_")
+    transformer = PathReplace("pages/", "partials/_")
 
     # Root template replacement
     assert transformer.resolve(request, "pages/board.html") == "partials/_board.html"
@@ -80,9 +78,9 @@ def test_replace_prefix_resolve():
     assert isinstance(transformer, PartialResolver)
 
 
-def test_resolve_partial_name_with_replace_prefix():
+def test_resolve_partial_name_with_path_replace():
     request = RequestFactory().get("/")
-    transformer = ReplacePrefix("pages/", "partials/_")
+    transformer = PathReplace("pages/", "partials/_")
 
     assert (
         _resolve_partial_name(transformer, request, "pages/board.html")
@@ -110,7 +108,7 @@ def test_resolve_partial_name_with_custom_partial_resolver_class():
 
 def test_resolve_partial_name_mapping_with_resolver():
     request = htmx_request(RequestFactory(), target="tabs")
-    transformer = ReplacePrefix("pages/", "partials/_")
+    transformer = PathReplace("pages/", "partials/_")
     spec = {transformer: targeting("tabs"), "#content": True}
     assert (
         _resolve_partial_name(spec, request, "pages/board.html")

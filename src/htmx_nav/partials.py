@@ -30,14 +30,14 @@ class PartialResolver(Protocol):
 
 
 @dataclass(frozen=True)
-class ReplacePrefix:
-    """Swap a path prefix or directory segment, e.g. ``"pages/"`` -> ``"partials/_"``.
+class PathReplace:
+    """Swap a path segment or directory, e.g. ``"pages/"`` -> ``"partials/_"``.
 
     Particularly useful in pre-Django 6 codebases or multi-file template
     layouts where full pages and partials live in separate directories.
 
     Args:
-        old: The path prefix or segment to match (e.g. ``"pages/"``).
+        old: The path segment to match (e.g. ``"pages/"``).
         new: The replacement segment (e.g. ``"partials/_"``).
     """
 
@@ -69,7 +69,7 @@ Values resolve to:
       ``template.html#name`` (Django 6 native ``{% partialdef %}``).
     - Standalone path (``"path/to/template.html"``): Rendered in place of the
       base template.
-    - ``PartialResolver`` (e.g. ``ReplacePrefix``): Derives a block name or path
+    - ``PartialResolver`` (e.g. ``PathReplace``): Derives a block name or path
       from the request and the base template name. Returns ``template_name``
       unmodified if it cannot resolve the given template.
     - Callable ``(request) -> str | None``: Returns a block name, template path,
@@ -93,7 +93,7 @@ Examples:
 
         # Derived path: base template "pages/board.html"
         # renders "partials/_board.html" on HTMX requests
-        ReplacePrefix("pages/", "partials/_")
+        PathReplace("pages/", "partials/_")
 
         # Per-request callable
         lambda request: "#tab_content" if htmx_target_is(request, "tabs") else "#content"
@@ -101,7 +101,7 @@ Examples:
         # Mapping, first match wins, mixing every key kind
         {
             "partials/_tab_content.html": targeting("tab-content"),
-            ReplacePrefix("pages/", "partials/_"): targeting("main-content"),
+            PathReplace("pages/", "partials/_"): targeting("main-content"),
             "#content": True,  # fallback
         }
 """

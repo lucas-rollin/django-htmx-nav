@@ -1,7 +1,7 @@
 from .partials import (
     PartialResolver,
     PartialSpec,
-    ReplacePrefix,
+    PathReplace,
 )
 from .shell import ShellRenderer, make_shell_renderer
 from .shortcuts import render_nav
@@ -14,7 +14,7 @@ __all__ = [
     "Swaps",
     "PartialSpec",
     "PartialResolver",
-    "ReplacePrefix",
+    "PathReplace",
     "Target",
     "ShellRenderer",
     "htmx_target_is",

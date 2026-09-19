@@ -1,142 +1,157 @@
 # Targeting & Nested Navigation
 
-In a simple HTMX application, every navigation request might swap the same primary container (such as `#content`). However, real-world interfaces quickly introduce nested regions: tabs, subtabs, drawer panels, or inline filters.
+In a simple HTMX application, every navigation request swaps the same primary container (such as `#content`). Real interfaces quickly add nested regions: tabs, subtabs, drawer panels, inline filters.
 
-When a user clicks a tab inside `#content`:
+When a user clicks a tab inside `#content`, two questions come up:
 
-1. **Which block should be the primary response?** (Rendering the entire `#content` block when only `#tab_content` changed wastes database queries and payload).
-2. **Which surrounding regions should ride along?** (A tab click might need to update the tab header controls out-of-band, but doesn't need to re-render the main sidebar or breadcrumbs).
+1. **Which fragment should be the primary response?** Re-rendering all of `#content` when only `#tab_content` changed wastes queries and payload.
+2. **Which other regions should ride along?** A tab click may need to update the tab header, but not the sidebar or breadcrumbs.
 
-`django-htmx-nav` solves this by providing a unified condition vocabulary for both primary partial selection (`partial=`) and out-of-band updates (`include_if=`).
+`django-htmx-nav` answers both with one condition vocabulary, used by the primary partial (`partial=`) and by out-of-band updates (`Swap(..., include_if=...)`).
 
 ## The Unified Target Vocabulary
 
-Both `partial=` and `Swap(..., include_if=...)` accept the same `Target` condition types:
+Both `partial=` (as mapping values) and `include_if=` accept the same `Target` conditions:
 
-| Target Type | Example | When It Matches |
+| Target type | Example | Matches when |
 | --- | --- | --- |
-| **Exact DOM ID string** | `"tab-content"` or `"#tab-content"` | Matches when HTMX's `HX-Target` header matches the ID (leading `#` is automatically stripped). |
-| **Target predicate** | `targeting("tab-content", "subtabs")` | Matches if `HX-Target` is any of the specified element IDs. |
-| **Inverted predicate** | `not_targeting("sidebar")` | Matches on any HTMX request *except* when targeting `#sidebar`. |
-| **Boolean** | `True` or `False` | Unconditional inclusion or fallback default. |
-| **Custom callable** | `lambda req: req.user.is_staff` | Evaluated dynamically against the Django `request` object. |
+| **DOM ID string** | `"tab-content"` or `"#tab-content"` | The `HX-Target` header equals the ID (a leading `#` and any tag prefix like `div#` are stripped). |
+| **Predicate** | `targeting("tab-content", "subtabs")` | `HX-Target` is any of the listed IDs. |
+| **Inverted predicate** | `not_targeting("sidebar")` | The request is not targeting any of the listed IDs. Also true when `HX-Target` is absent. |
+| **Boolean** | `True` / `False` | Always / never. |
+| **Callable** | `lambda req: req.user.is_staff` | The callable returns a truthy value for the request. |
 
 ## Specifying the Primary Partial (`partial=`)
 
-The `partial` argument in `render_nav` determines which fragment of your template is returned as the main response on HTMX requests. For non-HTMX requests `render_nav` renders the specified `template_name` normally. It accepts several formats:
+`partial` decides what `render_nav` returns as the main response **on HTMX requests**. On non-HTMX requests, `render_nav` renders `template_name` in full. `partial` accepts the forms below.
 
-### 1. Default Block (`#content`)
+### 1. Default block (`#content`)
 
-When omitted, `partial` defaults to the value configured in `HTMX_NAV_DEFAULT_PARTIAL` (which defaults to `"#content"`):
+When omitted, `partial` falls back to `HTMX_NAV_DEFAULT_PARTIAL` (default `"#content"`):
 
 ```python
 return render_nav(request, "projects/detail.html", context)
-# Resolves to "projects/detail.html#content" on HTMX requests.
-# Non-HTMX requests render the full "projects/detail.html" template.
+# HTMX request:     renders "projects/detail.html#content"
+# Non-HTMX request: renders all of "projects/detail.html"
 ```
 
-### 2. Explicit Block or Standalone Template
-
-You can explicitly name any block in the template or provide a path to a standalone partial file:
+### 2. Explicit block or standalone template
 
 ```python
-# Render a specific block in the same template:
-return render_nav(request, "projects/detail.html", context, partial="#tickets")
+# A different block in the same template
+render_nav(request, "projects/detail.html", context, partial="#tickets")
 
-# Or render a standalone partial template:
-return render_nav(request, "projects/detail.html", context, partial="partials/_tickets.html")
+# A standalone partial file
+render_nav(request, "projects/detail.html", context, partial="partials/_tickets.html")
 ```
 
-### 3. Target Routing Dictionary
+### 3. Target routing dictionary
 
-To dynamically switch the rendered block based on what HTMX is targeting, pass a dictionary mapping template blocks to `Target` conditions. Entries are evaluated in order; the first condition that evaluates to `True` wins:
+Map partials to `Target` conditions. Entries are checked in order and the first match wins:
 
 ```python
-return render_nav(
+render_nav(
     request,
     "projects/detail.html",
     context,
     partial={
         "#tab_content": targeting("tab-content"),
-        "#content": True,  # Fallback for HTMX requests that don't match above.
+        "#content": True,  # fallback
     },
 )
 ```
 
 ```{tip}
-Always place `True` as the last entry in a routing dictionary to serve as a reliable fallback for HTMX requests. If no conditions match and no fallback is present, `render_nav` renders the full document.
+End every routing dictionary with a `True` entry. If nothing matches, the mapping resolves to `None` and the **full template** is rendered, which is rarely what an HTMX request wants.
 ```
 
 ### 4. Callable
 
-You can also supply a function taking `request` and returning a partial name (or `None` to fall back to the full template):
+A function taking `request` and returning a partial (or `None` for the full template):
 
 ```python
 def resolve_partial(request):
-    if request.headers.get("HX-Target") == "modal-body":
+    if htmx_target_is(request, "modal-body"):
         return "#modal"
     return "#content"
 
 
-return render_nav(request, "projects/detail.html", context, partial=resolve_partial)
+render_nav(request, "projects/detail.html", context, partial=resolve_partial)
 ```
 
-### 5. Multi-File Templates & Pre-Django 6 (`ReplacePrefix`)
+The callable receives only the request. If you need the template name, use a resolver (next section).
 
-Native inline partials (`{% partialdef %}`) were introduced in Django 6.0. If you are on **Django 4.2 LTS or 5.x** (without `django-template-partials`), or if your team prefers keeping partials in separate physical files, template block selectors like `"#content"` cannot be parsed by Django's template engine.
+### 5. Separate page and partial files (`PathReplace`)
 
-Instead, projects typically organize templates into separate directories:
+If your team keeps partials in their own files rather than `{% partialdef %}` blocks, organize templates by directory:
 
-- `templates/pages/project_list.html` (extends `base.html` and includes the partial)
-- `templates/partials/_project_list.html` (standalone partial markup)
+- `templates/pages/project_list.html`: extends `base.html` and includes the partial
+- `templates/partials/_project_list.html`: the partial markup
 
-Use `ReplacePrefix` to automatically transform the template path for HTMX requests:
+`PathReplace` derives the partial path from the base template name:
 
 ```python
-from htmx_nav import ReplacePrefix, render_nav
+from htmx_nav import PathReplace, render_nav
 
-return render_nav(
+render_nav(
     request,
     "pages/project_list.html",
     context,
-    partial=ReplacePrefix("pages/", "partials/_"),
+    partial=PathReplace("pages/", "partials/_"),
 )
-
 ```
 
-- **Direct browser visit (Non-HTMX GET):** Renders `"pages/project_list.html"` in full.
-- **HTMX request:** Automatically intercepts and renders `"partials/_project_list.html"` without needing `#block` syntax.
-- **Graceful fallback:** If a view renders a template that does not contain `"pages/"` (e.g. `"auth/login.html"`), it falls back gracefully and returns `"auth/login.html"` unmodified.
+- **Non-HTMX request:** renders `pages/project_list.html` in full.
+- **HTMX request:** renders `partials/_project_list.html`.
+- **No match:** if the template name does not contain `old` (for example `auth/login.html`), `PathReplace` returns the name unchanged, so the view renders that template as-is.
+- **Path replacement:** replaces the first occurrence of `old`. It works for root templates (`pages/x.html` $\rightarrow$ `partials/_x.html`) as well as namespaced app templates (`app/pages/x.html` $\rightarrow$ `app/partials/_x.html`). Use a more specific `old` if needed.
 
-```{tip}
-You can configure this convention globally in your `settings.py` so every view in your project automatically inherits it:
+To make this the project-wide default:
 
 ```python
 # settings.py
-HTMX_NAV_DEFAULT_PARTIAL = ReplacePrefix("pages/", "partials/_")
+from htmx_nav import PathReplace
+
+HTMX_NAV_DEFAULT_PARTIAL = PathReplace("pages/", "partials/_")
 ```
 
-You can also use `ReplacePrefix` inside a target routing dictionary:
+Resolvers can also be mapping keys, mixed with plain paths and blocks:
 
 ```python
 partial={
     "partials/_tab_content.html": targeting("tab-content"),
-    ReplacePrefix("pages/", "partials/_"): True,  # Fallback for main content on HTMX
+    PathReplace("pages/", "partials/_"): True,  # fallback
 }
+```
+
+### 6. Swaps only: `partial=None`
+
+`partial=None` disables partial selection. `template_name` is rendered in full on every request, HTMX or not, and any `swaps` are appended on HTMX requests.
+
+Use it for non-navigation endpoints: actions that are only ever triggered by HTMX, have no full-page equivalent, and don't change the URL (deleting a row, toggling a flag, dismissing a banner):
+
+```python
+def delete_ticket(request, ticket_id):
+    get_object_or_404(Ticket, id=ticket_id).delete()
+    messages.success(request, f"Ticket #{ticket_id} deleted.")
+
+    return render_nav(
+        request,
+        "tickets/_empty_state.html",
+        partial=None,
+        swaps=[
+            Swap.delete(f"ticket-row-{ticket_id}"),
+            Swap.text("open-tickets-count", str(Ticket.objects.filter(status="open").count())),
+            Swap("nav/_messages.html", target_id="messages", include_if=has_messages),
+        ],
+    )
 ```
 
 ## Coordinating Main Partials with Companion Swaps
 
-The true power of this architecture emerges when combining `partial=` routing with `Swap(..., include_if=...)`.
-
-Consider a project detail page with tabbed sub-navigation:
+Combining `partial=` routing with `Swap(..., include_if=...)` is where this pays off. Consider a project page with tabs:
 
 ```python
-from django.shortcuts import get_object_or_404
-from htmx_nav import Swap, render_nav, targeting
-from .models import Project
-
-
 def project_detail(request, pk):
     project = get_object_or_404(Project, pk=pk)
 
@@ -144,69 +159,52 @@ def project_detail(request, pk):
         request,
         "projects/detail.html",
         {"project": project},
-        # 1. Main response partials (evaluated only on HTMX requests):
+        # 1. Main response partials:
         partial={
             "#tab_content": targeting("tab-content"),
             "#content": True,
         },
-        # 2. Out-of-band updates (synced based on include_if rules):
+        # 2. Out-of-band updates
         swaps=[
-            # When swapping just the tab content, update active tab headers:
-            Swap(
-                "projects/_tabs.html",
-                target_id="tabs",
-                include_if=targeting("tab-content"),
-            ),
-            # Global shell components stay unconditional:
+            # Only when just the tab content is swapped: refresh the tab header
+            Swap("projects/_tabs.html", target_id="tabs", include_if=targeting("tab-content")),
+            # No include_if: rides along on every HTMX request
             Swap("nav/_breadcrumbs.html", target_id="breadcrumbs"),
         ],
         title=project.name,
     )
 ```
 
-### How the Request Resolves
+### How requests resolve
 
-- **Tab Click (`HX-Target: tab-content`):**
-  - `partial` matches `"#tab_content"` $\rightarrow$ only the tab markup is rendered.
-  - The `_tabs.html` swap matches `targeting("tab-content")` $\rightarrow$ the active tab button updates.
-  - The `_breadcrumbs.html` swap is excluded $\rightarrow$ skipped entirely.
-- **Navigation Link Click (`HX-Target: content`):**
-  - `partial` matches the fallback `"#content"`.
-  - The `_breadcrumbs.html` swap matches `targeting("content")` $\rightarrow$ breadcrumbs update.
-  - The `_tabs.html` swap is excluded.
-- **Direct Browser Visit (No HTMX headers):**
-  - Renders the complete HTML document including `base.html`. `swaps` are not evaluated.
+- **Tab click (`HX-Target: tab-content`):** the primary response is `#tab_content`. The tabs swap matches and updates the active tab. Breadcrumbs also ride along, since they are unconditional.
+- **Navigation click (`HX-Target: content`):** the primary response is the `#content` fallback. Breadcrumbs update. The tabs swap is skipped because it only applies to `tab-content`.
+- **Direct visit (no HTMX headers):** the full document renders. Swaps are not rendered, but their `context` is still merged into the page context as a fallback, so shell templates get the same data as on HTMX requests.
+
+To skip breadcrumbs on tab clicks, add `include_if=not_targeting("tab-content")`.
 
 ## Conditionals Beyond Targeting
 
-`include_if` is not limited to DOM targets. You can condition swaps on application state, permissions, or query parameters:
+`include_if` can depend on application state, permissions, or query parameters:
 
 ```python
 from htmx_nav import Swap, has_messages, not_targeting, targeting
 
 swaps = [
-    # Match any of multiple DOM targets:
     Swap("nav/_tabs.html", target_id="tabs", include_if=targeting("tab-content", "subtabs")),
-
-    # Inverted targeting: skip updating sidebar if the user clicked inside the sidebar itself:
+    # Skip the sidebar when the request came from inside the sidebar
     Swap("nav/_sidebar.html", target_id="sidebar", include_if=not_targeting("sidebar")),
-
-    # Built-in message queue check (skips if Django messages is empty):
+    # Only when Django messages are queued
     Swap("nav/_messages.html", target_id="messages", include_if=has_messages),
-
-    # Permission check or query parameter inspection:
-    Swap(
-        "nav/_admin_toolbar.html",
-        target_id="admin-toolbar",
-        include_if=lambda req: req.user.is_staff,
-    ),
+    # Permission check
+    Swap("nav/_admin_toolbar.html", target_id="admin-toolbar", include_if=lambda req: req.user.is_staff),
 ]
 ```
 
 ## Performance: Short-Circuit Evaluation
 
-A critical design advantage of keeping targeting logic in Python (rather than branching inside templates with `{% if request.headers.HX_Target == "..." %}`) is **short-circuit execution**:
+Keeping targeting logic in Python, rather than branching in templates on `request.headers.HX_Target`, means:
 
-- When a `Swap` evaluates its `include_if` condition to `False`, its template is **never rendered**.
+- A `Swap` whose `include_if` is false is **never rendered**.
 - If that swap relies on isolated context or helper functions, those functions and their underlying database queries are never triggered.
-- Templates remain completely agnostic of HTTP headers, making them clean, reusable, and testable in isolation.
+- Templates stay agnostic of HTTP headers, so they are easier to reuse and test in isolation.
