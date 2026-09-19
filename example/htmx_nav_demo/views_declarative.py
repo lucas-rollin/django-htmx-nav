@@ -148,7 +148,7 @@ def project_settings(
         "core/pages/project.html",
         context,
         partial=partial,
-        extra_swaps=[subtab_swap],
+        extra_swaps=subtab_swap,
     )
 
 
@@ -258,7 +258,7 @@ def ticket_detail(request: HttpRequest, ticket_id: str) -> HttpResponse:
         "core/pages/ticket.html",
         context,
         partial=_tab_content_partial(request, "#details"),
-        extra_swaps=[messages_swap],
+        extra_swaps=messages_swap,
     )
 
 
@@ -382,5 +382,5 @@ def ticket_wizard_step(
         "core/pages/wizard.html",
         context,
         partial=partial_spec,
-        extra_swaps=[_wizard_steps_swap(step)],
+        extra_swaps=_wizard_steps_swap(step),
     )
