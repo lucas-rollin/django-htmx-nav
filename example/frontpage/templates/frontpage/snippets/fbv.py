@@ -11,8 +11,15 @@ def project_board(request, project_id):
         "pages/board.html",
         {"project": project},
         swaps=[
-            Swap("components/_sidebar.html", {"user": request.user}, target_id="sidebar"),
-            Swap("components/_breadcrumbs.html", target_id="breadcrumbs"),
+            Swap(
+                "components/_sidebar.html",
+                {"user": request.user},
+                target_id="sidebar",
+            ),
+            Swap(
+                "components/_breadcrumbs.html",
+                target_id="breadcrumbs",
+            ),
         ],
         title=project.name,
     )

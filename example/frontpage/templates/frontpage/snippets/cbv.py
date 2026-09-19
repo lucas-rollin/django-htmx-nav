@@ -11,5 +11,8 @@ class ProjectBoardView(ShellViewMixin, DetailView):
     context_object_name = "project"
 
     def get_extra_swaps(self):
-        # Sidebar & breadcrumbs come from the shell; view-specific extras go here
-        return Swap("components/_status_badge.html", target_id="project-status")
+        # Sidebar & breadcrumbs come from the shell; extras go here
+        return Swap(
+            "components/_status_badge.html", 
+            target_id="project-status"
+        )

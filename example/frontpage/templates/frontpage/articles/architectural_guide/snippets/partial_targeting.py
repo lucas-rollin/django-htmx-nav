@@ -16,6 +16,10 @@ def project_detail(request, pk):
         # The tab bar lives inside #content, so it only needs to ride
         # along out-of-band when the response is just #tab_content.
         swaps=[
-            Swap("nav/_tabs.html", target_id="tabs", include_if=targeting("tab-content")),
+            Swap(
+                "nav/_tabs.html", 
+                target_id="tabs", 
+                include_if=targeting("tab-content")
+            ),
         ],
     )

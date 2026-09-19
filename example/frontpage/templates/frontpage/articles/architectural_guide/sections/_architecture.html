@@ -27,14 +27,14 @@
           <span>View</span>
           <span class="badge badge-sm badge-ghost font-mono">views.py</span>
         </div>
-        <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/partial_only.py" %}</code></pre>
+        <pre><code class="language-python">{% include "frontpage/snippets/partial_only.py" %}</code></pre>
       </div>
       <div class="border border-base-300 rounded-xl p-4 code-block">
         <div class="text-xs font-bold uppercase tracking-wider opacity-60 mb-2 flex items-center justify-between">
           <span>Template</span>
           <span class="badge badge-sm badge-ghost font-mono">pages/board.html</span>
         </div>
-        <pre><code class="language-django">{% include "frontpage/articles/architectural_guide/snippets/partial_only.html" %}</code></pre>
+        <pre><code class="language-django">{% include "frontpage/snippets/partial_only.html" %}</code></pre>
       </div>
     </div>
     <p class="text-sm text-base-content/80 leading-relaxed">
@@ -170,7 +170,7 @@
   <div id="swap-specialized" class="space-y-4">
     {% include "frontpage/components/_subsection_heading.html" with number="3.4" text="First-Class Support for Text, Deletion, and Flash Messages" %}
     <p class="text-sm text-base-content/80 leading-relaxed">
-      Real-world applications do not only swap large HTML partials. They need to update counter badges, dismiss alert banners, delete table rows after an action, and sync flash messages. <code>Swap</code> provides specialized constructors designed for maximum performance and zero template overhead:
+      Real-world applications do not only swap large HTML partials. They need to update counter badges, dismiss alert banners, delete table rows after an action, and sync flash messages. <code>Swap</code> provides specialized constructors designed for zero template overhead:
     </p>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 not-prose my-4">
       <!-- Swap.text -->
@@ -224,27 +224,18 @@
       Nested navigation raises two questions on every HTMX request: <em>which block is the main response?</em> and <em>which extra regions ride along?</em> Both depend on the request's target (a tab swap needs less than a full-page swap). Answering them with <code>&#123;% if request.htmx and request.headers.HX_Target == "tab-content" %&#125;</code> inside templates couples markup to HTMX headers, and a typo in a target ID fails silently.
     </p>
     <p class="text-sm text-base-content/80 leading-relaxed">
-      django-htmx-nav moves both decisions into Python, using the same <code class="font-mono text-primary font-bold">Target</code> conditions: a DOM ID string, a <code>targeting()</code> / <code>not_targeting()</code> predicate, any callable, or a bool. <code>partial=</code> uses them to pick the main response, and <code>include_if</code> uses them to filter swaps. Both are evaluated before any template is parsed, so excluded fragments skip rendering and DB queries entirely.
+      <strong>django-htmx-nav</strong> unifies both decisions in pure Python using a shared condition vocabulary: DOM ID strings, <code>targeting()</code> / <code>not_targeting()</code> predicates, callables, or booleans. <code>partial=</code> picks the main response block, and <code>include_if=</code> filters companion swaps. Both evaluate before templates are parsed, so excluded fragments skip rendering and database queries.
     </p>
     <div class="rounded-xl overflow-hidden border border-base-300 code-block p-4 not-prose my-4">
       <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/partial_targeting.py" %}</code></pre>
     </div>
     <p class="text-sm text-base-content/80 leading-relaxed">
-      This is the answer to the "second independent region" limitation of
-      <a href="#method-template-substitution" class="link link-primary">template substitution</a>:
-      a tab swap and a subtab swap are two more dict entries, not another dispatch function. <code>include_if</code> covers the same ground for individual swaps:
+      This resolves the "second independent region" limitation noted in
+      <a href="#method-template-substitution" class="link link-primary">template substitution (2.5)</a>.
+      a tab swap and a subtab swap are two more dict entries or using a dynamic callable. <code>include_if</code> covers the same ground for individual swaps:
     </p>
     <div class="rounded-xl overflow-hidden border border-base-300 code-block p-4 not-prose my-4">
       <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/conditionals.py" %}</code></pre>
-    </div>
-    <div class="text-xs text-base-content/75 bg-base-200/40 p-3 rounded-lg border border-base-200 space-y-1">
-      <div><strong>Things to know about <code>partial=</code> dicts:</strong></div>
-      <ul class="list-disc list-inside space-y-1">
-        <li>Entries are checked in order and the first match wins.</li>
-        <li>If nothing matches, HTMX requests get the <em>full</em> template. End with <code>True</code> as a fallback.</li>
-        <li>A key starting with <code>#</code> is a block in the same template; any other key is a standalone template path.</li>
-        <li><code>HX-Target</code> values are normalized, so <code>"tab-content"</code> and <code>"#tab-content"</code> are equivalent.</li>
-      </ul>
     </div>
   </div>
   <!-- 3.6 Built-in Visual Debugging -->

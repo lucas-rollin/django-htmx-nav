@@ -16,5 +16,8 @@ def project_board(request, project_id):
         request,
         "pages/board.html",
         {"project": project},
-        extra_swaps=Swap("components/_status_badge.html", target_id="project-status"),
+        extra_swaps=Swap(
+            "components/_status_badge.html",
+            target_id="project-status",
+        ),
     )

@@ -15,7 +15,14 @@ def delete_ticket(request, ticket_id):
         partial=None,
         swaps=[
             Swap.delete(f"ticket-row-{ticket_id}"),
-            Swap.text("open-tickets-count", str(Ticket.objects.filter(status="open").count())),
-            Swap("components/_messages.html", target_id="messages", include_if=has_messages),
+            Swap.text(
+                "open-tickets-count",
+                str(Ticket.objects.filter(status="open").count()),
+            ),
+            Swap(
+                "components/_messages.html",
+                target_id="messages",
+                include_if=has_messages,
+            ),
         ],
     )
