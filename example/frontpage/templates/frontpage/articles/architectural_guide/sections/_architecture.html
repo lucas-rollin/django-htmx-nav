@@ -112,9 +112,7 @@
     </p>
   </div>
   <!-- 3.3 Python Versatility (FBVs, Mixins, Shells) -->
-  <div id="swap-orchestration"
-       class="space-y-4"
-       x-data="{ pattern: 'fbv' }">
+  <div id="swap-orchestration" class="space-y-4" x-data="{ pattern: 'fbv' }">
     {% include "frontpage/components/_subsection_heading.html" with number="3.3" text="Python-First Versatility: Direct FBVs, Reusable Shells, and CBV Mixins" %}
     <p class="text-sm text-base-content/80 leading-relaxed">
       Because a <code>Swap</code> is a regular Python object, it can be passed, filtered, composed, and reused anywhere in your Django backend. Each level below builds on the previous one, reusing the same <code>project_board</code> view. Pick the tab that matches your situation.
@@ -156,13 +154,19 @@
       <pre x-show="pattern === 'shell'" x-cloak><code class="language-python">{% include "frontpage/snippets/shell.py" %}</code></pre>
       <pre x-show="pattern === 'cbv'" x-cloak><code class="language-python">{% include "frontpage/snippets/cbv.py" %}</code></pre>
     </div>
-    <p class="text-xs text-base-content/70 leading-relaxed" x-show="pattern === 'fbv'" x-cloak>
+    <p class="text-xs text-base-content/70 leading-relaxed"
+       x-show="pattern === 'fbv'"
+       x-cloak>
       Same view as in 3.1, with the navigation regions listed explicitly. The <code>title</code> argument keeps the browser tab in sync on both full and HTMX renders.
     </p>
-    <p class="text-xs text-base-content/70 leading-relaxed" x-show="pattern === 'shell'" x-cloak>
+    <p class="text-xs text-base-content/70 leading-relaxed"
+       x-show="pattern === 'shell'"
+       x-cloak>
       The sidebar and breadcrumbs are declared once and reused by every view. <code>extra_swaps</code> adds view-specific regions on top.
     </p>
-    <p class="text-xs text-base-content/70 leading-relaxed" x-show="pattern === 'cbv'" x-cloak>
+    <p class="text-xs text-base-content/70 leading-relaxed"
+       x-show="pattern === 'cbv'"
+       x-cloak>
       The same shell reaches Django's generic views through a mixin. Per-view extras move to <code>get_extra_swaps()</code>.
     </p>
   </div>
