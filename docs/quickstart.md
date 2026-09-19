@@ -1,6 +1,8 @@
-# Quickstart Guide
+# Getting Started
 
-This guide walks you through installing `django-htmx-nav` and implementing partial rendering, out-of-band updates, reusable shell renderers in Django.
+Get up and running with `django-htmx-nav` in under 3 minutes.
+
+This guide walks through setting up your first partial view with `render_nav` and synchronizing your first peripheral navigation region with `Swap`.
 
 ## 1. Installation
 
@@ -10,9 +12,18 @@ Install `django-htmx-nav` from PyPI:
 pip install django-htmx-nav
 ```
 
-## 2. Basic Partial Rendering (`render_nav`)
+*(Optional)* If you want to use the visual swap debugging tools during development, add `"htmx_nav"` to `INSTALLED_APPS` in your `settings.py`:
 
-Use `render_nav` in your views as a drop-in replacement for Django's standard `render()` function:
+```python
+INSTALLED_APPS = [
+    ...,
+    "htmx_nav",
+]
+```
+
+## 2. Your First Partial View (`render_nav`)
+
+Use `render_nav` as a drop-in replacement for Django's standard `render()` shortcut:
 
 ```python
 # views.py
@@ -23,146 +34,89 @@ from .models import Project
 
 def project_list(request):
     projects = Project.objects.all()
-    return render_nav(request, "app/project_list.html", {"projects": projects})
+    return render_nav(
+        request,
+        "pages/projects.html",
+        {"projects": projects},
+        title="Projects",
+    )
 ```
 
-In your HTML template, define the partial block using native Django 6 inline partials (`{% partialdef %}`):
+In your template, define the main content block using native Django 6 inline partials (`{% partialdef %}`):
 
 ```html
-<!-- app/templates/app/project_list.html -->
-{% extends 'base.html' %}
+<!-- templates/pages/projects.html -->
+{% extends "base.html" %}
 
 {% block content %}
 {% partialdef content inline %}
-  <div id="project-list" class="space-y-4">
-    {% for project in projects %}
-      <div class="card p-4 border rounded">{{ project.name }}</div>
-    {% endfor %}
+  <div id="content" class="space-y-4">
+    <h1 class="text-2xl font-bold">Projects</h1>
+    <ul class="divide-y">
+      {% for project in projects %}
+        <li class="py-2">{{ project.name }}</li>
+      {% endfor %}
+    </ul>
   </div>
 {% endpartialdef %}
 {% endblock %}
 ```
 
-```{tip}
-The `partial` argument defaults to `"#content"`. During an HTMX request, `"app/project_list.html"` automatically resolves to `"app/project_list.html#content"`, matching your `{% partialdef content %}` block. You can change this block name to match your preference, or override it via `partial="#your_block"` or `partial="path/to/template.html"`.
+Trigger the navigation from your HTMX links targeting `#content`:
+
+```html
+<a href="/projects/"
+   hx-get="/projects/"
+   hx-target="#content"
+   hx-push-url="true">
+  Projects
+</a>
 ```
 
-### Behavior Under the Hood
+### How It Works
 
-- **Direct Browser Navigation (GET):** Renders the entire document, including `base.html`.
-- **HTMX Partial Request (`HX-Request: true`):** Extracts and renders only the targeted partial block, automatically setting the `Vary: HX-Request` header for correct browser and proxy caching.
+- **Direct Browser Visits (GET):** Renders the full template, including `base.html` and surrounding navigation layout.
+- **HTMX Navigation (`HX-Request: true`):** Extracts and renders **only** the `content` partial block. `render_nav` automatically sets the `Vary: HX-Request` header so browser caches never mix full pages with partial fragments.
+- **Page Title:** The `title="Projects"` argument populates `<title>` for full loads and injects a dynamic `<title>` tag for HTMX to update the browser tab.
 
-## 3. Out-of-Band Swaps (`Swap`)
+## 3. Synchronizing Peripheral Regions (`Swap`)
 
-When navigating within an application shell, updating only the main content area can leave surrounding controls (such as sidebars, breadcrumbs, and counter badges) out of sync.
+When HTMX swaps `#content`, the main area updates, but peripheral layout elements (such as active sidebar indicators or breadcrumbs) remain stuck on the previous route.
 
-Use `Swap` to append synchronized out-of-band updates to your response:
+Use `Swap` to append synchronized out-of-band updates in the same response:
 
 ```python
+# views.py
 from django.shortcuts import get_object_or_404
-from htmx_nav import Swap, render_nav, has_messages
+from htmx_nav import Swap, render_nav
 from .models import Project
 
 
 def project_detail(request, pk):
     project = get_object_or_404(Project, pk=pk)
+
     return render_nav(
         request,
-        "app/project_detail.html",
+        "pages/project_detail.html",
         {"project": project},
+        # Peripheral regions synced out-of-band:
         swaps=[
-            # Auto-wrapped template swap:
-            Swap("app/_sidebar.html", {"active_pk": project.pk}, target_id="sidebar"),
-            Swap(
-                "app/_breadcrumbs.html", {"project": project}, target_id="breadcrumbs"
-            ),
-            # High-performance raw string update (bypasses the template engine):
-            Swap.text("unread-badge", "3"),
-            # Delete directive (removes the element from the DOM):
-            Swap.delete("flash-notification"),
-            # Conditional Django messages integration (sent only if messages are pending):
-            Swap("app/_messages.html", target_id="messages", include_if=has_messages),
+            # Auto-wraps nav/_sidebar.html in <div id="sidebar" hx-swap-oob="innerHTML">
+            Swap("nav/_sidebar.html", {"active_pk": project.pk}, target_id="sidebar"),
+            # Synchronizes the breadcrumb trail:
+            Swap("nav/_breadcrumbs.html", {"project": project}, target_id="breadcrumbs"),
         ],
-    )
-
-```
-
-## 4. Reusable Shell Rendering (`make_shell_renderer`)
-
-To avoid duplicating sidebar and breadcrumb `Swap` configurations across dozens of views, encapsulate them into a reusable `render_shell` helper:
-
-```python
-# renderers.py
-from htmx_nav import Swap, make_shell_renderer
-
-
-def build_shell_swaps(request):
-    return [
-        Swap("app/_sidebar.html", {"user": request.user}, target_id="sidebar"),
-        Swap("app/_breadcrumbs.html", target_id="breadcrumbs"),
-    ]
-
-
-render_shell = make_shell_renderer(build_shell_swaps)
-```
-
-Now, any view in your application can call `render_shell` directly:
-
-```python
-# views.py
-from django.shortcuts import get_object_or_404
-from htmx_nav import Swap
-from .models import Project
-from .renderers import render_shell
-
-
-def project_detail(request, pk):
-    project = get_object_or_404(Project, pk=pk)
-    return render_shell(
-        request,
-        "app/project_detail.html",
-        {"project": project},
-        # Per-view extra swaps attach automatically alongside shell swaps:
-        extra_swaps=[
-            Swap("app/_tabs.html", {"active": "overview"}, target_id="project-tabs"),
-        ],
+        title=project.name,
     )
 ```
 
-```{note}
-**Request-Scoped Memoization:** If your shell builder performs database queries (such as fetching an organization, active project, or user permissions), use `cache_on_request(request, "key", fetch_func)` from `htmx_nav.helpers` to prevent redundant database hits during the same request lifecycle.
-```
+With this single addition, HTMX updates `#content` with the primary response and simultaneously swaps `#sidebar` and `#breadcrumbs` out-of-band. The URL remains the single source of truth without state drift.
 
-## 5. Class-Based View Integration (`make_shell_view_mixin`)
+## What's Next?
 
-For projects utilizing Django's generic Class-Based Views (`DetailView`, `ListView`, `CreateView`), you can generate a corresponding mixin using `make_shell_view_mixin`:
+Now that your first view and swap are wired up, explore the topic guides to build production-grade architectures:
 
-```python
-# views.py
-from django.views.generic import DetailView
-from htmx_nav import Swap, make_shell_view_mixin
-from .models import Project
-from .renderers import render_shell 
-
-# Reuse render_shell, or instantiate the mixin without parameters if preset swaps aren't needed.
-ProjectShellMixin = make_shell_view_mixin(render_shell)
-
-
-class ProjectDetailView(ProjectShellMixin, DetailView):
-    model = Project
-    template_name = "app/project_detail.html"
-
-    def get_extra_swaps(self):
-        # Dynamically access self.object and self.request
-        return [
-            Swap("app/_tabs.html", {"active": "overview"}, target_id="project-tabs"),
-        ]
-```
-
-## Next Steps
-
-- Explore the deployed {demo}`Live Demo Testbed <htmx-nav/declarative/>` and compare multiple implementations.
-- Review the <a href="../benchmarks/">Interactive Benchmark Suite</a> for empirical payload and latency metrics.
-- Read the <a href="../guide/">Architectural Guide</a> for an in-depth exploration of state drift solutions.
-- Learn how to get instant visual feedback with Swaps in [Debugging](debugging.md).
-- Reference full function signatures in the [API Reference](https://www.google.com/search?q=api/core.md&utm_source=gemini).
+- **[Dynamic Targeting & Nested Navigation](guides/targeting.md):** Coordinate nested tabs, subtabs, and conditional swaps using the unified `Target` condition vocabulary.
+- **[Application Shells & Class-Based Views](guides/shells.md):** Eliminate repetitive boilerplate across 20+ views with `make_shell_renderer` and `make_shell_view_mixin`.
+- **[Visual Swap Debugging](debugging.md):** Highlight DOM elements with visual animations as they swap during development.
+- **[API Reference](api/core.md):** Precise function signatures, parameters, and return types.

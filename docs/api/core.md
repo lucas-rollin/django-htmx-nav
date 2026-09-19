@@ -1,4 +1,4 @@
-# Core Rendering & Swaps
+# Swap & render_nav
 
 This section covers the primary primitives used to render partials and orchestrate out-of-band updates in Django views.
 

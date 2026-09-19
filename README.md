@@ -6,13 +6,13 @@
 [![htmx Version](https://img.shields.io/badge/htmx-2.0%2B-purple?style=flat-square\&logo=htmx\&logoColor=white)](https://htmx.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
-A lightweight helper library for Django + HTMX that keeps navigation chrome synchronized with the URL, preventing stale sidebars, breadcrumbs, titles, and other surrounding UI.
+A lightweight helper library for Django + HTMX that keeps navigation UI synchronized with the URL, preventing stale sidebars, breadcrumbs, titles, and other surrounding elements.
 
 **[Homepage](https://lucas-rollin.github.io/django-htmx-nav/) · [Documentation](https://lucas-rollin.github.io/django-htmx-nav/docs/) · [Interactive Demo](https://django-htmx-nav.onrender.com/htmx-nav/baseline/)**
 
 ## The Problem
 
-When an HTMX request updates a single container (like `#content`), regions *outside* that container, such as active sidebar items, breadcrumb trails, and badge counts, do not update automatically. The main content updates, but surrounding navigation chrome still reflects the previous route:
+When an HTMX request updates a single container (like `#content`), regions *outside* that container, such as active sidebar items, breadcrumb trails, and badge counts, do not update automatically. The main content updates, but the surrounding navigation UI still reflects the previous route:
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
@@ -67,7 +67,7 @@ def project_list(request):
 {% endblock %}
 ```
 
-### 2. Synchronizing Navigation Chrome (`Swap`)
+### 2. Synchronizing Navigation UI (`Swap`)
 
 Attach out-of-band swaps to update persistent navigation regions alongside the main response:
 

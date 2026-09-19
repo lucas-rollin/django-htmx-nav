@@ -27,15 +27,13 @@
       Keep sidebars, breadcrumbs, and active navigation controls synchronized with the URL as the single source of truth without state drift or boilerplate.
     </p>
     <div class="flex flex-wrap items-center justify-center gap-4 mt-8">
-      <a href="#approaches"
-         class="btn btn-primary btn-md shadow-md group gap-2">
-        <span>Compare 3 Implementations</span>
-        {% include "frontpage/components/_arrow_icon.html" with direction="y" %}
-      </a>
-      <a href="{% url 'benchmarks:overview' %}"
-         class="btn btn-outline btn-md group gap-2">
-        <span>Explore Benchmarks</span>
+      <a href="{{ DOCS_SITE }}/quickstart.html" class="btn btn-primary btn-md shadow-md group gap-2">
+        <span>Get Started</span>
         {% include "frontpage/components/_arrow_icon.html" %}
+      </a>
+      <a href="#approaches"
+         class="btn btn-outline btn-md">
+        <span>Compare Approaches</span>
       </a>
     </div>
     <!-- Quick copy install command -->
