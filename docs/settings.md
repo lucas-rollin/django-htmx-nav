@@ -14,16 +14,33 @@ All settings are optional and configured in your Django `settings.py`.
 (htmx-nav-default-partial)=
 ## `HTMX_NAV_DEFAULT_PARTIAL`
 
-- **Type:** `str` (or any `PartialSpec`)
+- **Type:** `str | PartialResolver | None` (or any `PartialSpec`)
 - **Default:** `"#content"`
 - **Applies to:** `render_nav`, `make_shell_renderer`, `make_shell_view_mixin`
 
-Specifies the fallback partial block or template path when a view does not explicitly pass `partial=...`.
+Specifies the fallback partial block, template path, or resolver when a view does not explicitly pass `partial=...`.
+
+### Template Block Extraction (Single-File)
+
+When templates define partials internally using `{% block ... %}` (or `{% partialdef %}`):
 
 ```python
 # settings.py
 HTMX_NAV_DEFAULT_PARTIAL = "#main"
 ```
+
+### Path Replacement (Multi-File)
+
+When pages and partials are separate files (e.g. `pages/x.html` and `partials/_x.html`), configure `PathReplace`:
+
+```python
+# settings.py
+from htmx_nav import PathReplace
+
+HTMX_NAV_DEFAULT_PARTIAL = PathReplace("pages/", "partials/_")
+```
+
+See [Separate page and partial files (`PathReplace`)](targeting-path-replace) in the Targeting Guide for details.
 
 To completely bypass partial extraction for full-page renders while keeping out-of-band swaps, pass `partial=None` directly to `render_nav`.
 

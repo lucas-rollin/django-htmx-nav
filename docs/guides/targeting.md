@@ -81,6 +81,7 @@ render_nav(request, "projects/detail.html", context, partial=resolve_partial)
 
 The callable receives only the request. If you need the template name, use a resolver (next section).
 
+(targeting-path-replace)=
 ### 5. Separate page and partial files (`PathReplace`)
 
 If your team keeps partials in their own files rather than `{% partialdef %}` blocks, organize templates by directory:
@@ -106,14 +107,7 @@ render_nav(
 - **No match:** if the template name does not contain `old` (for example `auth/login.html`), `PathReplace` returns the name unchanged, so the view renders that template as-is.
 - **Path replacement:** replaces the first occurrence of `old`. It works for root templates (`pages/x.html` $\rightarrow$ `partials/_x.html`) as well as namespaced app templates (`app/pages/x.html` $\rightarrow$ `app/partials/_x.html`). Use a more specific `old` if needed.
 
-To make this the project-wide default:
-
-```python
-# settings.py
-from htmx_nav import PathReplace
-
-HTMX_NAV_DEFAULT_PARTIAL = PathReplace("pages/", "partials/_")
-```
+To make this the project-wide default see [`HTMX_NAV_DEFAULT_PARTIAL`](htmx-nav-default-partial)
 
 Resolvers can also be mapping keys, mixed with plain paths and blocks:
 
