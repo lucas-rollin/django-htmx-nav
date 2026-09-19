@@ -1,4 +1,4 @@
-# Stale Navigation in HTMX & `django-htmx-nav`
+# django-htmx-nav
 
 [![PyPI Version](https://img.shields.io/pypi/v/django-htmx-nav.svg?style=flat-square&color=blue)](https://pypi.org/project/django-htmx-nav/)
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
@@ -6,13 +6,13 @@
 [![htmx Version](https://img.shields.io/badge/htmx-2.0%2B-purple?style=flat-square&logo=htmx&logoColor=white)](https://htmx.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
-A lightweight helper library for Django + HTMX that eliminates **stale navigation regions (state drift)**, with the URL as the single source of truth.
+A lightweight helper library for Django + HTMX that keeps navigation chrome synchronized with the URL, preventing stale sidebars, breadcrumbs, titles, and other surrounding UI.
 
-**[Full Documentation](https://lucas-rollin.github.io/django-htmx-nav/) · [Live Demo](https://django-htmx-nav.onrender.com/htmx-nav/baseline/) · [Benchmarks](https://django-htmx-nav.onrender.com/benchmarks/)**
+**[Homepage](https://lucas-rollin.github.io/django-htmx-nav/) · [Documentation](https://lucas-rollin.github.io/django-htmx-nav/docs/) · [Live Demo](https://django-htmx-nav.onrender.com/htmx-nav/baseline/)**
 
 ## The Problem
 
-When an HTMX request updates a single target container (like `#main-content`), regions *outside* that container, active sidebar items, breadcrumb trails, tab indicators, don't update automatically. Main content updates; surrounding navigation chrome still reflects the previous route.
+When an HTMX request updates a single container (like `#content`), regions *outside* that container, such as active sidebar items, breadcrumb trails, and badge counts, do not update automatically. The main content updates, but surrounding navigation chrome still reflects the previous route.
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
@@ -30,40 +30,93 @@ When an HTMX request updates a single target container (like `#main-content`), r
 pip install django-htmx-nav
 ```
 
-## Quick Example
+*Zero configuration required. Uses Django 6+ native template partials.*
+
+## How It Works
+
+### 1. Automatic Partial Selection (`render_nav`)
+
+Use `render_nav` as a drop-in replacement for Django's `render()`. It serves the full template (with `base.html`) on direct visits or full-page reloads, and returns the matching Django partial on HTMX requests:
 
 ```python
+# views.py
+from htmx_nav import render_nav
+
+def project_list(request):
+    projects = Project.objects.all()
+    # Direct GET: renders base.html layout
+    # HTMX request: returns only the #content block
+    return render_nav(request, "projects/list.html", {"projects": projects})
+```
+
+```html
+<!-- templates/projects/list.html -->
+{% extends "base.html" %}
+
+{% block content %}
+{% partialdef content inline %}
+  <div id="content">
+    {% for project in projects %}
+      <div>{{ project.name }}</div>
+    {% endfor %}
+  </div>
+{% endpartialdef %}
+{% endblock %}
+```
+
+### 2. Synchronizing Navigation Chrome (`Swap`)
+
+Attach out-of-band swaps to update surrounding navigation elements (sidebars, breadcrumbs, titles) alongside the main response:
+
+```python
+# views.py
 from django.shortcuts import get_object_or_404
-from htmx_nav import Swap, make_shell_renderer
+from htmx_nav import render_nav, Swap
 from .models import Project
-
-render_shell = make_shell_renderer(
-    lambda request: [
-        Swap("app/_sidebar.html", {"user": request.user}, target_id="sidebar"),
-        Swap("app/_breadcrumbs.html", target_id="breadcrumbs"),
-    ]
-)
-
 
 def project_detail(request, pk):
     project = get_object_or_404(Project, pk=pk)
-    return render_shell(
+    return render_nav(
         request,
-        "app/project_detail.html",
+        "projects/detail.html",
         {"project": project},
-        extra_swaps=[
-            Swap("app/_tabs.html", {"active": "overview"}, target_id="project-tabs"),
+        swaps=[
+            # Update persistent navigation regions alongside the main content:
+            Swap("components/_sidebar.html", {"active": project.id}, target_id="sidebar"),
+            Swap("components/_breadcrumbs.html", target_id="breadcrumbs"),
         ],
+        title=project.name,  # Injects <title> tag on HTMX; sets context["title"] on F5
     )
 ```
 
-See the [Quickstart Guide](https://lucas-rollin.github.io/django-htmx-nav/quickstart.html) for the matching template setup and a full walkthrough (partial resolution, OOB swaps, shell renderers, testing).
+### 3. Reusable Navigation Shells (`make_shell_renderer`)
+
+Avoid repeating recurring swaps across views by bundling your navigation shell into a reusable renderer:
+
+```python
+# shells.py
+from htmx_nav import make_shell_renderer, Swap
+
+# Define recurring navigation updates once and reuse them across views.
+render_shell = make_shell_renderer(
+    lambda request: [
+        Swap("components/_sidebar.html", target_id="sidebar"),
+        Swap("components/_breadcrumbs.html", target_id="breadcrumbs"),
+    ]
+)
+
+# views.py
+def ticket_detail(request, pk):
+    ticket = get_object_or_404(Ticket, pk=pk)
+    # Shell swaps are included automatically:
+    return render_shell(request, "tickets/detail.html", {"ticket": ticket})
+```
 
 ## Learn More
 
-- **[Full Documentation](https://lucas-rollin.github.io/django-htmx-nav/)** — API reference, architecture guides, testing helpers.
-- **[Example Helpdesk Application](https://github.com/lucas-rollin/django-htmx-nav/tree/main/example)** — a runnable testbed comparing 8 implementation strategies (MPA, Vanilla HTMX, `django-htmx-nav`).
-- **[Benchmark Experiments](https://github.com/lucas-rollin/django-htmx-nav/tree/main/example/benchmarks)** — reproducible metrics harness (payload size, server overhead, DOM churn).
+- **[Quickstart Guide](https://lucas-rollin.github.io/django-htmx-nav/docs/quickstart.html)** — Install the library and build your first URL-driven HTMX navigation flow.
+- **[Architectural Guide](https://lucas-rollin.github.io/django-htmx-nav/guide/)** — Compare approaches to stale navigation and use the decision tree to choose an architecture.
+- **[Benchmark Experiments](https://github.com/lucas-rollin/django-htmx-nav/tree/main/example/benchmarks)** — Reproduce the benchmark comparing 8 implementation strategies, including MPA, vanilla HTMX, and `django-htmx-nav`.
 
 ## License
 

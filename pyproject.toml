@@ -50,10 +50,10 @@ where = ["src"]
 htmx_nav = ["py.typed", "static/htmx_nav/*.css"]
 
 [project.urls]
-"Homepage" = "https://github.com/lucas-rollin/django-htmx-nav"
-"Documentation" = "https://lucas-rollin.github.io/django-htmx-nav/"
+"Homepage" = "https://lucas-rollin.github.io/django-htmx-nav/"
+"Documentation" = "https://lucas-rollin.github.io/django-htmx-nav/docs/"
 "Repository" = "https://github.com/lucas-rollin/django-htmx-nav"
-
+"Live Demo" = "https://django-htmx-nav.onrender.com/"
 
 [tool.ruff]
 line-length = 88
