@@ -8,6 +8,7 @@
         href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/django.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -199,12 +200,12 @@
           </div>
           <h3 class="text-xl font-bold">django-htmx-nav</h3>
           <p class="text-sm text-base-content/75 mt-2 leading-relaxed prose">
-            One primitive, <code>Swap</code>, wraps your existing, ordinary templates for OOB delivery. <code>render_nav</code> resolves full-page vs. partial for you.
+            <code>render_nav</code> serves as a drop-in partial renderer with full-page fallback, while <code>Swap</code> declaratively auto-wraps ordinary templates to sync surrounding UI out-of-band.
           </p>
           <ul class="text-xs text-base-content/70 space-y-1.5 border-t border-base-200 pt-3">
             <li>✓ Same ~{{ bench.payload_reduction_pct }}% payload reduction as hand-written OOB</li>
-            <li>✓ Clean, declarative view code</li>
-            <li>✓ Testing and visual debugger helpers</li>
+            <li>✓ Drop-in replacement for Django's <code>render()</code></li>
+            <li>✓ Zero template pollution and visual debugger helpers</li>
           </ul>
         </div>
         <div class="p-6 pt-0">
@@ -249,12 +250,12 @@
     </div>
   </section>
   <!-- View Code Snippet Section -->
-  <!-- View Code Snippet Section -->
   <section class="py-16 px-4 sm:px-6 max-w-5xl mx-auto"
            x-data="{
-           pattern: 'render_nav',
+           pattern: 'partial',
            tabs: [
-             { id: 'render_nav', label: 'One-off view' },
+             { id: 'partial', label: 'Just render_nav' },
+             { id: 'render_nav', label: 'With Swaps' },
              { id: 'shell', label: 'Shared shell' },
              { id: 'cbv', label: 'Class-based view' },
              { id: 'beyond', label: 'Beyond Navigation' }
@@ -263,7 +264,7 @@
     <div class="text-center mb-8">
       <h2 class="text-2xl sm:text-3xl font-black tracking-tight">How It Looks in Your Views</h2>
       <p class="text-base-content/75 text-sm sm:text-base mt-2">
-        No custom middleware required. Just a concise, expressive wrapper around Django's standard rendering pipeline.
+        Start with one function call, then add regions as you need them. No custom middleware required, just a concise wrapper around Django's standard rendering pipeline.
       </p>
     </div>
     <!-- Dynamic Pattern Toggle -->
@@ -279,29 +280,56 @@
         </template>
       </nav>
     </div>
-    <!-- 1. render_nav sample -->
+    <!-- 1. render_nav alone: view + template -->
+    <div x-show="pattern === 'partial'" x-cloak class="space-y-4">
+      <div class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
+        <pre><code class="language-python">{% include "frontpage/snippets/partial_only.py" %}</code></pre>
+      </div>
+      <div class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
+        <pre><code class="language-django">{% include "frontpage/snippets/partial_only.html" %}</code></pre>
+      </div>
+    </div>
+    <!-- 2. render_nav + Swaps -->
     <div x-show="pattern === 'render_nav'"
          x-cloak
          class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
       <pre><code class="language-python">{% include "frontpage/snippets/fbv.py" %}</code></pre>
     </div>
-    <!-- 2. shell sample -->
+    <!-- 3. shell -->
     <div x-show="pattern === 'shell'"
          x-cloak
          class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
       <pre><code class="language-python">{% include "frontpage/snippets/shell.py" %}</code></pre>
     </div>
-    <!-- 3. cbv sample -->
+    <!-- 4. cbv -->
     <div x-show="pattern === 'cbv'"
          x-cloak
          class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
       <pre><code class="language-python">{% include "frontpage/snippets/cbv.py" %}</code></pre>
     </div>
-    <!-- 4. beyond navigation sample -->
+    <!-- 5. beyond navigation -->
     <div x-show="pattern === 'beyond'"
          x-cloak
          class="mockup-code bg-neutral text-neutral-content shadow-xl text-xs sm:text-sm">
       <pre><code class="language-python">{% include "frontpage/snippets/beyond.py" %}</code></pre>
+    </div>
+    <!-- Per-tab captions: the narrative lives here, not in the shared snippet files -->
+    <div class="mt-4 text-center text-xs sm:text-sm text-base-content/70 min-h-10">
+      <p x-show="pattern === 'partial'" x-cloak>
+        Direct visits get the full page, HTMX requests get just the <code>content</code> partial. The main area updates, but the sidebar and breadcrumbs are still stale. Next tab.
+      </p>
+      <p x-show="pattern === 'render_nav'" x-cloak>
+        Same view, plus out-of-band regions synced in the same response. Whichever way the page is reached, the URL stays the source of truth.
+      </p>
+      <p x-show="pattern === 'shell'" x-cloak>
+        Declare the sidebar and breadcrumbs once. Every view that uses <code>render_shell</code> gets them, and <code>extra_swaps</code> adds view-specific regions.
+      </p>
+      <p x-show="pattern === 'cbv'" x-cloak>
+        The same shell works with Django's generic views through a mixin.
+      </p>
+      <p x-show="pattern === 'beyond'" x-cloak>
+        <code>Swap</code> isn't only for navigation. Delete rows, update counters, and flush messages alongside any response.
+      </p>
     </div>
   </section>
 {% endblock %}

@@ -1,5 +1,6 @@
 from django.contrib import messages
-from htmx_nav import Swap, render_nav, has_messages
+from django.shortcuts import get_object_or_404
+from htmx_nav import Swap, has_messages, render_nav
 
 
 def delete_ticket(request, ticket_id):
@@ -13,11 +14,8 @@ def delete_ticket(request, ticket_id):
         "tickets/empty_state.html",
         partial=None,
         swaps=[
-            # Remove the row (hx-swap-oob="delete")
             Swap.delete(f"ticket-row-{ticket_id}"),
-            # Raw text swap skips the template engine
             Swap.text("open-tickets-count", str(Ticket.objects.filter(status="open").count())),
-            # Only render messages partial if any are queued
             Swap("components/_messages.html", target_id="messages", include_if=has_messages),
         ],
     )

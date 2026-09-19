@@ -1,18 +1,74 @@
-<section id="django-htmx-nav-model" class="scroll-mt-24 space-y-12">
+<section id="django-htmx-nav-model" class="space-y-12">
   <div>
     <h2 class="text-2xl sm:text-3xl font-black tracking-tight border-b border-base-200 pb-3">
-      3. The django-htmx-nav Architecture: Centralizing on <code class='text-primary font-mono'>Swap</code>
+      3. The django-htmx-nav Architecture
     </h2>
     <p class="text-base text-base-content/85 leading-relaxed mt-4">
-      Rather than introducing heavy runtime abstractions or proprietary template tag dialects, <strong>django-htmx-nav</strong> centralizes hypermedia navigation around a single primitive: the <code class="font-mono font-bold text-primary">Swap</code> class.
+      Two small primitives: <code class="font-mono font-bold text-primary">render_nav</code> decides <em>what the main response is</em>, and <code class="font-mono font-bold text-primary">Swap</code> decides <em>what else rides along</em>.
     </p>
     <p class="text-sm text-base-content/75 leading-relaxed mt-2">
-      In server-driven hypermedia, an out-of-band fragment is fundamentally a data structure: <em>what</em> to render, <em>where</em> to send it, <em>how</em> to deliver it, and <em>when</em> it should apply. By encapsulating that fragment in a frozen Python dataclass, <code>django-htmx-nav</code> decouples navigation synchronization from both template markup and view routing.
+      <code>render_nav</code> returns the full page on a direct visit, or the matching <code>partialdef</code> block on an HTMX request. <code>Swap</code> carries the sidebar, breadcrumbs and counters that live outside that partial. Shells and view mixins are just ways of composing the two, and you can adopt them separately: <code>render_nav</code> alone gives you partial rendering with no navigation sync, while <code>Swap</code> is what closes the stale-navigation gap.
+    </p>
+    <p class="text-sm text-base-content/75 leading-relaxed mt-2">
+      An out-of-band fragment is fundamentally a data structure: <em>what</em> to render, <em>where</em> to send it, <em>how</em> to deliver it, and <em>when</em> it should apply. Encoding that in a frozen Python dataclass decouples navigation sync from both template markup and view routing.
     </p>
   </div>
-  <!-- 3.1 The Swap Primitive & Auto-Wrapping -->
-  <div id="swap-auto-wrap" class="space-y-4 scroll-mt-24">
-    {% include "frontpage/components/_subsection_heading.html" with number="3.1" text="The <code class='text-primary contents'>Swap</code> Primitive &amp; Zero-Boilerplate Auto-Wrapping" %}
+  <!-- 3.1 render_nav -->
+  <div id="render_nav" class="space-y-4">
+    {% include "frontpage/components/_subsection_heading.html" with number="3.1" text="<code class='text-primary contents'>render_nav</code>: One Render Call, Two Response Shapes" %}
+    <p class="text-sm text-base-content/80 leading-relaxed">
+      With native template partials (<a href="#method-native-partials" class="link link-primary">2.6</a>),
+      a view only needs to decide <em>which block</em> to render. <code>render_nav</code> is a drop-in replacement for
+      <code>render()</code> that makes that decision from the request.
+    </p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 not-prose my-4">
+      <div data-theme="dark"
+           class="border border-base-300 rounded-xl p-4 bg-neutral">
+        <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-2 flex items-center justify-between">
+          <span>View</span>
+          <span class="badge badge-sm badge-ghost font-mono">views.py</span>
+        </div>
+        <pre><code class="language-python">{% include "frontpage/snippets/partial_only.py" %}</code></pre>
+      </div>
+      <div data-theme="dark"
+           class="border border-base-300 rounded-xl p-4 bg-neutral">
+        <div class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-2 flex items-center justify-between">
+          <span>Template</span>
+          <span class="badge badge-sm badge-ghost font-mono">pages/board.html</span>
+        </div>
+        <pre><code class="language-django">{% include "frontpage/snippets/partial_only.html" %}</code></pre>
+      </div>
+    </div>
+    <p class="text-sm text-base-content/80 leading-relaxed">
+      On its own, this is the one-line <code>get_template()</code> from
+      <a href="#method-native-partials" class="link link-primary">2.6</a>. What the function adds:
+    </p>
+    <ul class="text-sm text-base-content/80 list-disc list-inside space-y-1">
+      <li>
+        <code>Vary: HX-Request</code> is set automatically, so browser and proxy caches never serve a fragment as a full page.
+      </li>
+      <li>
+        <code>partial=</code> accepts a block name, a template path, a callable, or a dict mapping partials to
+        <code>HX-Target</code> conditions, which lifts the "second independent region" limitation noted in
+        <a href="#method-template-substitution" class="link link-primary">2.5</a>.
+      </li>
+      <li>
+        <code>title=</code> populates <code>context["title"]</code> on full renders and appends an escaped
+        <code>&lt;title&gt;</code> on HTMX renders.
+      </li>
+      <li>
+        It is the extension point: <code>swaps=</code> is how the next subsection syncs every other region.
+      </li>
+    </ul>
+    <div class="text-xs text-base-content/75 bg-base-200/40 p-3 rounded-lg border border-base-200">
+      <strong>Note:</strong>
+      At this stage the content swaps correctly but the sidebar and breadcrumbs are still stale. That is the state drift from
+      <a href="#the-problem" class="link link-primary font-semibold">Section 1</a>, and what <code>Swap</code> is for.
+    </div>
+  </div>
+  <!-- 3.2 The Swap Primitive & Auto-Wrapping -->
+  <div id="swap-auto-wrap" class="space-y-4">
+    {% include "frontpage/components/_subsection_heading.html" with number="3.2" text="The <code class='text-primary contents'>Swap</code> Primitive &amp; Zero-Boilerplate Auto-Wrapping" %}
     <p class="text-sm text-base-content/80 leading-relaxed">
       In vanilla HTMX, pinpoint out-of-band updates force developers into a painful dilemma: either duplicate templates into dedicated "OOB" variants, or pollute reusable component partials with outer <code>&lt;div id="sidebar" hx-swap-oob="innerHTML"&gt;</code> wrappers.
     </p>
@@ -55,13 +111,13 @@
       By default, <code>Swap</code> generates standard <code>hx-swap-oob</code> wrappers. For projects utilizing the HTMX v4, setting <code>wrap="hx-partial"</code> produces <code>&lt;hx-partial hx-target="#sidebar" hx-swap="innerHTML"&gt;</code> instead.
     </p>
   </div>
-  <!-- 3.2 Python Versatility (FBVs, Mixins, Shells) -->
+  <!-- 3.3 Python Versatility (FBVs, Mixins, Shells) -->
   <div id="swap-orchestration"
-       class="space-y-4 scroll-mt-24"
+       class="space-y-4"
        x-data="{ pattern: 'fbv' }">
-    {% include "frontpage/components/_subsection_heading.html" with number="3.2" text="Python-First Versatility: Direct FBVs, Reusable Shells, and CBV Mixins" %}
+    {% include "frontpage/components/_subsection_heading.html" with number="3.3" text="Python-First Versatility: Direct FBVs, Reusable Shells, and CBV Mixins" %}
     <p class="text-sm text-base-content/80 leading-relaxed">
-      Because a <code>Swap</code> is a regular Python object, it can be passed, filtered, composed, and reused anywhere in your Django backend. Three integration levels cover most apps, pick the tab for the one that matches your situation.
+      Because a <code>Swap</code> is a regular Python object, it can be passed, filtered, composed, and reused anywhere in your Django backend. Each level below builds on the previous one, reusing the same <code>project_board</code> view. Pick the tab that matches your situation.
     </p>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-2 not-prose my-4">
       <button type="button"
@@ -69,9 +125,9 @@
               :class="pattern === 'fbv' ? 'border-primary bg-primary/5' : 'border-base-300 bg-base-100 hover:border-primary'"
               @click="pattern = 'fbv'">
         <div class="badge badge-primary badge-sm font-mono font-bold mb-2">1. Direct FBVs</div>
-        <h4 class="font-bold text-sm font-mono text-base-content">render_nav</h4>
+        <h4 class="font-bold text-sm font-mono text-base-content">render_nav + Swap</h4>
         <p class="text-xs text-base-content/70 mt-1">
-          Drop-in replacement for <code>render()</code>. Attach ad-hoc swaps per-endpoint for one-off updates.
+          The <code>render_nav</code> call from 3.1 with <code>swaps=</code> attached. Ideal for per-endpoint, one-off updates.
         </p>
       </button>
       <button type="button"
@@ -81,7 +137,7 @@
         <div class="badge badge-secondary badge-sm font-mono font-bold mb-2">2. Reusable Shells</div>
         <h4 class="font-bold text-sm font-mono text-base-content">make_shell_renderer</h4>
         <p class="text-xs text-base-content/70 mt-1">
-          Centralizes recurring shell fragments (sidebar, breadcrumbs) into one reusable renderer with per-view <code>extra_swaps</code>.
+          Centralizes recurring shell fragments (sidebar, breadcrumbs) into one reusable renderer, with per-view <code>extra_swaps</code>.
         </p>
       </button>
       <button type="button"
@@ -100,10 +156,19 @@
       <pre x-show="pattern === 'shell'" x-cloak><code class="language-python">{% include "frontpage/snippets/shell.py" %}</code></pre>
       <pre x-show="pattern === 'cbv'" x-cloak><code class="language-python">{% include "frontpage/snippets/cbv.py" %}</code></pre>
     </div>
+    <p class="text-xs text-base-content/70 leading-relaxed" x-show="pattern === 'fbv'" x-cloak>
+      Same view as in 3.1, with the navigation regions listed explicitly. The <code>title</code> argument keeps the browser tab in sync on both full and HTMX renders.
+    </p>
+    <p class="text-xs text-base-content/70 leading-relaxed" x-show="pattern === 'shell'" x-cloak>
+      The sidebar and breadcrumbs are declared once and reused by every view. <code>extra_swaps</code> adds view-specific regions on top.
+    </p>
+    <p class="text-xs text-base-content/70 leading-relaxed" x-show="pattern === 'cbv'" x-cloak>
+      The same shell reaches Django's generic views through a mixin. Per-view extras move to <code>get_extra_swaps()</code>.
+    </p>
   </div>
-  <!-- 3.3 Text, Delete & Message Swaps -->
-  <div id="swap-specialized" class="space-y-4 scroll-mt-24">
-    {% include "frontpage/components/_subsection_heading.html" with number="3.3" text="First-Class Support for Text, Deletion, and Flash Messages" %}
+  <!-- 3.4 Text, Delete & Message Swaps -->
+  <div id="swap-specialized" class="space-y-4">
+    {% include "frontpage/components/_subsection_heading.html" with number="3.4" text="First-Class Support for Text, Deletion, and Flash Messages" %}
     <p class="text-sm text-base-content/80 leading-relaxed">
       Real-world applications do not only swap large HTML partials. They need to update counter badges, dismiss alert banners, delete table rows after an action, and sync flash messages. <code>Swap</code> provides specialized constructors designed for maximum performance and zero template overhead:
     </p>
@@ -152,43 +217,39 @@
       <pre><code class="language-python">{% include "frontpage/snippets/beyond.py" %}</code></pre>
     </div>
   </div>
-  <!-- 3.4 Pythonic Conditionals vs. Template Logic -->
-  <div id="swap-conditionals" class="space-y-4 scroll-mt-24">
-    {% include "frontpage/components/_subsection_heading.html" with number="3.4" text="Pythonic Conditionals vs. Fragile Inline Template Logic" %}
+  <!-- 3.5 Pythonic Targeting -->
+  <div id="swap-targeting" class="space-y-4 scroll-mt-24">
+    {% include "frontpage/components/_subsection_heading.html" with number="3.5" text="Pythonic Targeting: One Vocabulary for Partials and Swaps" %}
     <p class="text-sm text-base-content/80 leading-relaxed">
-      When handling nested navigation, targeted swaps reduce payload size by updating only what changed. However, the rendering engine must know what fragments to include based on the request's target (e.g., swapping tab contents vs. swapping the whole page body). Once rendered, the URL remains the source of truth regardless of navigation path.
+      Nested navigation raises two questions on every HTMX request: <em>which block is the main response?</em> and <em>which extra regions ride along?</em> Both depend on the request's target (a tab swap needs less than a full-page swap). Answering them with <code>&#123;% if request.htmx and request.headers.HX_Target == "tab-content" %&#125;</code> inside templates couples markup to HTMX headers, and a typo in a target ID fails silently.
     </p>
     <p class="text-sm text-base-content/80 leading-relaxed">
-      In template-driven target checking, templates become tightly coupled to HTMX headers. Developers write defensive guards like <code>&#123;% if request.htmx and request.headers.HX_Target == "tab-content" %&#125;</code> directly inside HTML files. This pattern is fragile: typos in target IDs fail silently at runtime, template previews break, and testing requires running full template rendering pipelines.
+      django-htmx-nav moves both decisions into Python, using the same <code class="font-mono text-primary font-bold">Target</code> conditions: a DOM ID string, a <code>targeting()</code> / <code>not_targeting()</code> predicate, any callable, or a bool. <code>partial=</code> uses them to pick the main response, and <code>include_if</code> uses them to filter swaps. Both are evaluated before any template is parsed, so excluded fragments skip rendering and DB queries entirely.
     </p>
+    <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-4">
+      <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/partial_targeting.py" %}</code></pre>
+    </div>
     <p class="text-sm text-base-content/80 leading-relaxed">
-      <code>Swap</code> moves this decision into pure Python via the <code class="font-mono text-primary font-bold">include_if</code> parameter. Predicates are evaluated before template rendering, completely bypassing unnecessary parsing and database queries for excluded fragments:
+      This is the answer to the "second independent region" limitation of
+      <a href="#method-template-substitution" class="link link-primary">template substitution</a>:
+      a tab swap and a subtab swap are two more dict entries, not another dispatch function. <code>include_if</code> covers the same ground for individual swaps:
     </p>
     <div class="rounded-xl overflow-hidden border border-base-300 bg-neutral p-4 text-neutral-content not-prose my-4">
       <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/conditionals.py" %}</code></pre>
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs not-prose">
-      <div class="p-3 bg-base-200/50 rounded-lg border border-base-300">
-        <div class="font-bold text-success">✓ Why Pythonic Evaluation Wins</div>
-        <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
-          <li>Templates remain 100% agnostic to HTMX request headers.</li>
-          <li>Predicates are standard callables testable with simple unit tests.</li>
-          <li>Excluded swaps skip template parsing and DB queries entirely.</li>
-        </ul>
-      </div>
-      <div class="p-3 bg-base-200/50 rounded-lg border border-base-300">
-        <div class="font-bold text-error">✗ The Template-Based Alternative</div>
-        <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
-          <li>Templates execute DB context queries even when OOB is discarded.</li>
-          <li>Silent breakage if CSS selectors or target IDs change.</li>
-          <li>Template logic becomes deeply intertwined with HTTP transport.</li>
-        </ul>
-      </div>
+    <div class="text-xs text-base-content/75 bg-base-200/40 p-3 rounded-lg border border-base-200 space-y-1">
+      <div><strong>Things to know about <code>partial=</code> dicts:</strong></div>
+      <ul class="list-disc list-inside space-y-1">
+        <li>Entries are checked in order and the first match wins.</li>
+        <li>If nothing matches, HTMX requests get the <em>full</em> template. End with <code>True</code> as a fallback.</li>
+        <li>A key starting with <code>#</code> is a block in the same template; any other key is a standalone template path.</li>
+        <li><code>HX-Target</code> values are normalized, so <code>"tab-content"</code> and <code>"#tab-content"</code> are equivalent.</li>
+      </ul>
     </div>
   </div>
-  <!-- 3.5 Built-in Visual Debugging -->
-  <div id="swap-debugging" class="space-y-4 scroll-mt-24">
-    {% include "frontpage/components/_subsection_heading.html" with number="3.5" text="Built-in Visual Swap Debugging" %}
+  <!-- 3.6 Built-in Visual Debugging -->
+  <div id="swap-debugging" class="space-y-4">
+    {% include "frontpage/components/_subsection_heading.html" with number="3.6" text="Built-in Visual Swap Debugging" %}
     <p class="text-sm text-base-content/80 leading-relaxed">
       When managing multiple simultaneous out-of-band updates, specially when pinpoint swap requires complex branching logic to decide which components to render, tracking what changes on each click can be difficult. <code>django-htmx-nav</code> features built-in visual swap debugging to give you instant feedback.
     </p>

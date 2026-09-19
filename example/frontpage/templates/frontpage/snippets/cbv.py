@@ -1,7 +1,7 @@
 from django.views.generic import DetailView
 from htmx_nav import Swap, make_shell_view_mixin
 
-# Reuse the shell renderer from the previous tab
+# Built from the same `render_shell` defined for function-based views
 ShellViewMixin = make_shell_view_mixin(render_shell)
 
 
@@ -11,5 +11,5 @@ class ProjectBoardView(ShellViewMixin, DetailView):
     context_object_name = "project"
 
     def get_extra_swaps(self):
-        # Sidebar & breadcrumbs come from the shell. Extras can come here
+        # Sidebar & breadcrumbs come from the shell; view-specific extras go here
         return Swap("components/_status_badge.html", target_id="project-status")
