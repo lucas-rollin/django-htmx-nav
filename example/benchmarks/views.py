@@ -9,7 +9,7 @@ from .metrics.helpers.pivot import pivot_rows
 from .metrics.jsonl import latest_or_reference_jsonl, read_jsonl
 from .metrics.overview_metrics import build_panels
 from .metrics.registry import describe
-from .render import render_shell
+from .render import render_benchmark
 
 CATEGORIES = {
     "static": "Code Complexity / DX",
@@ -44,7 +44,7 @@ def overview(request: HttpRequest) -> HttpResponse:
             seen.add(variant.family)
             families.append(variant)
 
-    return render_shell(
+    return render_benchmark(
         request,
         "benchmarks/pages/overview.html",
         {
@@ -118,7 +118,7 @@ def metric_page(request: HttpRequest, prefix: str) -> HttpResponse:
         "descriptions": descriptions,
         "scenario_views": scenario_views if scenario_views else None,
     }
-    return render_shell(
+    return render_benchmark(
         request,
         "benchmarks/pages/metric.html",
         context,

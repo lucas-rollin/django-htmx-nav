@@ -113,9 +113,23 @@ docker compose run --rm bench
 
 ### Local Native Static Freeze Verification
 
-To simulate the GitHub Actions static export locally:
+To simulate the GitHub Actions static export and preview the frozen showcase/benchmark site locally:
 
 ```bash
-ENVIRONMENT=static_generation python example/manage.py freeze_static_pages --out /tmp/site --prefix /django-htmx-nav/
+# 0. Clean up any previous build artifacts to ensure a fresh start
+rm -rf /tmp/site
+
+# 1. Collect all static assets directly into the output folder
+STATIC_ROOT=/tmp/site/static STATIC_URL=/static/ ENVIRONMENT=static_generation python example/manage.py collectstatic --noinput
+
+# 2. Freeze Django frontpage, architectural guide, and benchmark dashboards with root prefix
+ENVIRONMENT=static_generation python example/manage.py freeze_static_pages --out /tmp/site --prefix /
+
+# 3. Build Sphinx HTML documentation into /tmp/site/docs
 sphinx-build -b html docs /tmp/site/docs
+
+# 4. Spin up a local Python HTTP server to preview the site
+python -m http.server 8080 -d /tmp/site
 ```
+
+Open [http://127.0.0.1:8080/](http://127.0.0.1:8080/) in your browser. (Press Ctrl+C in your terminal when you're done viewing to stop the server).

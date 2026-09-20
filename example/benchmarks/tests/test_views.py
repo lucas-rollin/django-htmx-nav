@@ -38,21 +38,21 @@ def test_benchmarks_overview_full_page(client):
     assert 'id="benchmarks-subnav"' in content
 
 
-def test_benchmarks_overview_htmx_partial(client):
+def test_benchmarks_overview_htmx_boost(client):
     url = reverse("benchmarks:overview")
     response = client.get(
         url,
         HTTP_HX_REQUEST="true",
-        HTTP_HX_TARGET="benchmarks-content",
+        HTTP_HX_TARGET="content",
     )
 
     assert response.status_code == 200
     content = response.content.decode()
 
-    # In HTMX partial mode rendered via make_shell_renderer,
-    # the outer page shell is omitted and the subnav is swapped OOB
-    assert "<!DOCTYPE html>" not in content
-    assert 'hx-swap-oob="innerHTML"' in content
+    # Benchmark pages render full HTML with intra-benchmark client selection
+    # (hx-select="#content" and hx-select-oob="#benchmarks-subnav")
+    assert "<!DOCTYPE html>" in content
+    assert 'id="content"' in content
     assert 'id="benchmarks-subnav"' in content
 
 
@@ -80,18 +80,18 @@ def test_metric_pages_full_page(client, category):
 
 
 @pytest.mark.parametrize("category", ["static", "server", "payload", "client"])
-def test_metric_pages_htmx_partial(client, category):
+def test_metric_pages_htmx_boost(client, category):
     url = reverse(f"benchmarks:{category}")
     response = client.get(
         url,
         HTTP_HX_REQUEST="true",
-        HTTP_HX_TARGET="benchmarks-content",
+        HTTP_HX_TARGET="content",
     )
 
     assert response.status_code == 200
     content = response.content.decode()
-    assert "<!DOCTYPE html>" not in content
-    assert 'hx-swap-oob="innerHTML"' in content
+    assert "<!DOCTYPE html>" in content
+    assert 'id="content"' in content
     assert 'id="benchmarks-subnav"' in content
 
 

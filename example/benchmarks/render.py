@@ -1,11 +1,10 @@
 """
-Shell renderer for the benchmarks dashboard.
+Rendering helper for the benchmarks dashboard.
 """
 
-from django.http import HttpRequest
+from django.http import HttpRequest, HttpResponse
+from django.shortcuts import render
 from django.urls import reverse
-
-from htmx_nav import Swap, make_shell_renderer
 
 PAGES = [
     ("overview", "Overview"),
@@ -16,7 +15,7 @@ PAGES = [
 ]
 
 
-def _subnav_context(request: HttpRequest) -> dict:
+def subnav_context(request: HttpRequest) -> dict:
     match = request.resolver_match
     active = match.url_name if match else ""
     return {
@@ -32,10 +31,15 @@ def _subnav_context(request: HttpRequest) -> dict:
     }
 
 
-render_shell = make_shell_renderer(
-    lambda request: Swap(
-        "benchmarks/components/_subnav.html",
-        _subnav_context(request),
-        target_id="benchmarks-subnav",
-    )
-)
+def render_benchmark(
+    request: HttpRequest,
+    template_name: str,
+    context: dict | None = None,
+    *,
+    title: str | None = None,
+) -> HttpResponse:
+    """Render full benchmark page with intra-benchmark navigation context."""
+    ctx = {**subnav_context(request), **(context or {})}
+    if title:
+        ctx["title"] = title
+    return render(request, template_name, ctx)

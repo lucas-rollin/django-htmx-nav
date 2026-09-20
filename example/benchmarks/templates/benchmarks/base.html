@@ -21,6 +21,8 @@
        class="sticky top-16 z-40 border-b border-base-200 bg-base-100/90 backdrop-blur"
        hx-boost="true"
        hx-target="#content"
+       hx-select="#content"
+       hx-select-oob="#benchmarks-subnav"
        hx-swap="innerHTML scroll:top"
        hx-push-url="true">{% include "benchmarks/components/_subnav.html" %}</div>
   <main class="flex-grow">
