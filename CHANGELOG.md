@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.3 — 2026-09-19
+
+**Added:**
+
+- **`htmx_nav.partials`**:
+  - `PartialResolver` protocol: A new interface defining a standard way to dynamically derive partial block or template paths from incoming HTTP requests and base templates.
+  - `PathReplace`: A built-in PartialResolver implementation that swaps path segments or directories (e.g., transforming "pages/" to "partials/_" on HTMX requests).
+
 ## 0.3.2 — 2026-09-18
 
 **Added:**
