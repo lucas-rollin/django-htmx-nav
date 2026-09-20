@@ -44,72 +44,122 @@
       </div>
     </div>
   </section>
-  <!-- The Problem Visualizer Section -->
+  <!-- Problem → Cost → Solution -->
   <section id="problem"
            class="py-12 bg-base-200/40 border-y border-base-200 px-4 sm:px-6 scroll-mt-16">
-    <div class="max-w-6xl mx-auto">
-      <div class="text-center max-w-3xl mx-auto mb-10">
-        <h2 class="text-2xl sm:text-3xl font-black tracking-tight">The Stale Navigation Problem</h2>
-        <p class="text-base-content/75 text-sm sm:text-base mt-2">
-          When an HTMX request updates only an inner container (like <code>#main-content</code>), surrounding layout controls do not update automatically.
+    <div class="max-w-6xl mx-auto space-y-12">
+      <!-- The problem -->
+      <div>
+        <div class="text-center max-w-3xl mx-auto mb-8">
+          <h2 class="text-2xl sm:text-3xl font-black tracking-tight">The Stale Navigation Problem</h2>
+          <p class="text-base-content/75 text-sm sm:text-base mt-2 prose">
+            When an HTMX request updates only an inner container, everything around it stays as it was.
+          </p>
+        </div>
+        <div class="max-w-xl mx-auto">
+          <div class="card bg-base-100 border border-error/30 shadow-sm">
+            <div class="card-body p-5 sm:p-6">
+              <div class="flex items-center justify-between">
+                <span class="badge badge-error badge-sm uppercase font-bold tracking-wider">Target-only HTMX</span>
+                <span class="text-xs text-error font-semibold">State Drift</span>
+              </div>
+              <p class="font-bold text-base mt-2 prose">
+                Single-target swap (<code>#main-content</code>)
+              </p>
+              <div class="rounded-lg border border-base-300 bg-base-200/30 p-3 font-mono text-xs space-y-2 mt-2">
+                <div class="p-2 rounded bg-error/10 border border-error/20 text-error">
+                  Breadcrumbs: <b>Stale (Page 1)</b>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                  <div class="p-2 rounded bg-error/10 border border-error/20 text-error col-span-1">
+                    Sidebar: <b>Stale (Page 1)</b>
+                  </div>
+                  <div class="p-2 rounded bg-success/10 border border-success/20 text-success col-span-2">
+                    Main Content: <b>Updated (Page 2)</b>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- The usual fixes and their trade-offs -->
+      <div>
+        <h3 class="text-center text-lg font-bold">Fixing it by hand has a price</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4 text-xs">
+          <a href="{% url 'guide' %}#method-full-render"
+             class="card bg-base-100 border border-base-300 hover:border-primary transition-colors p-4">
+            <span class="font-bold">Full render + <code>hx-select</code> / morph</span>
+            <span class="text-error font-semibold mt-1">Bigger payloads</span>
+            <span class="text-base-content/70 mt-1">The full page is sent on every click.</span>
+          </a>
+          <a href="{% url 'guide' %}#method-template-oob"
+             class="card bg-base-100 border border-base-300 hover:border-primary transition-colors p-4">
+            <span class="font-bold">Branching in templates</span>
+            <span class="text-error font-semibold mt-1">Repeated in every page</span>
+            <span class="text-base-content/70 mt-1">Request checks and OOB wrappers in each template.</span>
+          </a>
+          <a href="{% url 'guide' %}#method-backend-oob"
+             class="card bg-base-100 border border-base-300 hover:border-primary transition-colors p-4">
+            <span class="font-bold">Hand-built OOB in views</span>
+            <span class="text-error font-semibold mt-1">Boilerplate</span>
+            <span class="text-base-content/70 mt-1">Hand-joined strings, and it's easy to forget a region.</span>
+          </a>
+          <a href="{% url 'guide' %}#method-event-driven"
+             class="card bg-base-100 border border-base-300 hover:border-primary transition-colors p-4">
+            <span class="font-bold"><code>HX-Trigger</code> + re-fetch</span>
+            <span class="text-error font-semibold mt-1">Extra round trips</span>
+            <span class="text-base-content/70 mt-1">Related navigation updates happen separately.</span>
+          </a>
+        </div>
+      </div>
+      <!-- Showcase -->
+      <div>
+        <h3 class="text-center text-lg font-bold">
+          <code class="text-primary">django-htmx-nav</code>:
+          describe the regions, skip the plumbing
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5 items-stretch">
+          <!-- Server-side declaration -->
+          <div class="card bg-base-100 border border-base-300 shadow-sm overflow-hidden">
+            <div class="px-4 py-2.5 border-b border-base-300 flex items-center justify-between gap-2">
+              <span class="text-xs font-semibold uppercase tracking-wider text-base-content/60">Python</span>
+              <span class="text-xs text-primary prose">Drop-in extension of <code>render()</code></span>
+            </div>
+            <pre class="code-panel p-4 overflow-x-auto bg-base-200/50 text-xs sm:text-sm leading-relaxed flex-1"><code class="language-python">{% include "frontpage/snippets/mini.py" %}</code></pre>
+          </div>
+          <!-- Result -->
+          <div class="card bg-base-100 border border-success/30 shadow-sm">
+            <div class="card-body p-5 sm:p-6">
+              <div class="flex items-center justify-between">
+                <span class="badge badge-success badge-sm uppercase font-bold tracking-wider">django-htmx-nav</span>
+                <span class="text-xs text-success font-semibold">Synchronized</span>
+              </div>
+              <p class="font-bold text-base mt-2">Same click, one response</p>
+              <div class="rounded-lg border border-base-300 bg-base-200/30 p-3 font-mono text-xs space-y-2 mt-2">
+                <div class="p-2 rounded bg-success/10 border border-success/20 text-success">
+                  Breadcrumbs: <b>Synced (Page 2)</b>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                  <div class="p-2 rounded bg-success/10 border border-success/20 text-success col-span-1">
+                    Sidebar: <b>Synced (Page 2)</b>
+                  </div>
+                  <div class="p-2 rounded bg-success/10 border border-success/20 text-success col-span-2">
+                    Main Content: <b>Updated (Page 2)</b>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="text-center text-xs text-base-content/70 mt-3 max-w-2xl mx-auto prose">
+          Direct visits render the full page. HTMX requests receive the
+          <code>content</code> partial plus the declared swaps.
+          Component templates stay ordinary, with no OOB wrappers inside them.
         </p>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Problem Card -->
-        <div class="card bg-base-100 border border-error/30 shadow-sm">
-          <div class="card-body p-5 sm:p-6">
-            <div class="flex items-center justify-between">
-              <span class="badge badge-error badge-sm uppercase font-bold tracking-wider">Default HTMX</span>
-              <span class="text-xs text-error font-semibold">State Drift</span>
-            </div>
-            <h3 class="font-bold text-base mt-2">Single-Target Swap (#main-content)</h3>
-            <div class="rounded-lg border border-base-300 bg-base-200/30 p-3 font-mono text-xs space-y-2 mt-2">
-              <div class="p-2 rounded bg-error/10 border border-error/20 text-error">
-                Header / Breadcrumbs: <b>Stale (Page 1)</b>
-              </div>
-              <div class="grid grid-cols-3 gap-2">
-                <div class="p-2 rounded bg-error/10 border border-error/20 text-error col-span-1">
-                  Sidebar: <b>Stale (Tab 1)</b>
-                </div>
-                <div class="p-2 rounded bg-success/10 border border-success/20 text-success col-span-2">
-                  Main Content: <b>Updated (Page 2)</b>
-                </div>
-              </div>
-            </div>
-            <p class="text-xs text-base-content/70 mt-3">
-              The targeted block updates, but sidebar active states and breadcrumb trails stay stuck on the previous route.
-            </p>
-          </div>
-        </div>
-        <!-- Solution Card -->
-        <div class="card bg-base-100 border border-success/30 shadow-sm">
-          <div class="card-body p-5 sm:p-6">
-            <div class="flex items-center justify-between">
-              <span class="badge badge-success badge-sm uppercase font-bold tracking-wider">django-htmx-nav</span>
-              <span class="text-xs text-success font-semibold">Fully Synchronized</span>
-            </div>
-            <h3 class="font-bold text-base mt-2">Target + Multi-Region OOB Updates</h3>
-            <div class="rounded-lg border border-base-300 bg-base-200/30 p-3 font-mono text-xs space-y-2 mt-2">
-              <div class="p-2 rounded bg-success/10 border border-success/20 text-success">
-                Header / Breadcrumbs: <b>Synced (Page 2)</b>
-              </div>
-              <div class="grid grid-cols-3 gap-2">
-                <div class="p-2 rounded bg-success/10 border border-success/20 text-success col-span-1">
-                  Sidebar: <b>Synced (Tab 2)</b>
-                </div>
-                <div class="p-2 rounded bg-success/10 border border-success/20 text-success col-span-2">
-                  Main Content: <b>Updated (Page 2)</b>
-                </div>
-              </div>
-            </div>
-            <p class="text-xs text-base-content/70 mt-3">
-              Out-of-band swaps automatically update surrounding navigation elements in the same HTTP response.
-            </p>
-          </div>
-        </div>
-      </div>
-      <!-- Link to the deep architecture guide -->
-      <div class="mt-8 text-center">
+      <!-- Guide -->
+      <div class="text-center">
         <a href="{% url 'guide' %}" class="btn btn-outline btn-sm group gap-2">
           <span>Read the Full Architectural Guide</span>
           {% include "frontpage/components/_arrow_icon.html" %}
@@ -245,19 +295,18 @@
   <!-- View Code Snippet Section -->
   <section class="py-16 px-4 sm:px-6 max-w-5xl mx-auto"
            x-data="{
-           pattern: 'partial',
+           pattern: 'shell',
            tabs: [
-             { id: 'partial', label: 'Just render_nav' },
-             { id: 'render_nav', label: 'With Swaps' },
              { id: 'shell', label: 'Shared shell' },
              { id: 'cbv', label: 'Class-based view' },
              { id: 'beyond', label: 'Beyond Navigation' }
            ]
          }">
     <div class="text-center mb-8">
-      <h2 class="text-2xl sm:text-3xl font-black tracking-tight">How It Looks in Your Views</h2>
+      <h2 class="text-2xl sm:text-3xl font-black tracking-tight">From One View to a Whole App</h2>
       <p class="text-base-content/75 text-sm sm:text-base mt-2">
-        Start with one function call, then add regions as you need them. No custom middleware required, just a concise wrapper around Django's standard rendering pipeline.
+        Define the shell once, reuse it in function and class-based views, and use the same
+        <code>Swap</code> for updates that aren't navigation.
       </p>
     </div>
     <!-- Dynamic Pattern Toggle -->
@@ -273,35 +322,19 @@
         </template>
       </nav>
     </div>
-    <!-- 1. render_nav alone: view + template -->
-    <div x-show="pattern === 'partial'" x-cloak class="space-y-4">
-      <div class="mockup-code code-block border border-base-300 shadow-xl text-xs sm:text-sm">
-        <pre><code class="language-python">{% include "frontpage/snippets/partial_only.py" %}</code></pre>
-      </div>
-      <div class="mockup-code code-block border border-base-300 shadow-xl text-xs sm:text-sm">
-        <pre><code class="language-django">&lt;!-- templates/pages/board.html --&gt;</code></pre>
-        <pre><code class="language-django">{% include "frontpage/snippets/partial_only.html" %}</code></pre>
-      </div>
-    </div>
-    <!-- 2. render_nav + Swaps -->
-    <div x-show="pattern === 'render_nav'"
-         x-cloak
-         class="mockup-code code-block border border-base-300 shadow-xl text-xs sm:text-sm">
-      <pre><code class="language-python">{% include "frontpage/snippets/fbv.py" %}</code></pre>
-    </div>
-    <!-- 3. shell -->
+    <!-- 1. shell -->
     <div x-show="pattern === 'shell'"
          x-cloak
          class="mockup-code code-block border border-base-300 shadow-xl text-xs sm:text-sm">
       <pre><code class="language-python">{% include "frontpage/snippets/shell.py" %}</code></pre>
     </div>
-    <!-- 4. cbv -->
+    <!-- 2. cbv -->
     <div x-show="pattern === 'cbv'"
          x-cloak
          class="mockup-code code-block border border-base-300 shadow-xl text-xs sm:text-sm">
       <pre><code class="language-python">{% include "frontpage/snippets/cbv.py" %}</code></pre>
     </div>
-    <!-- 5. beyond navigation -->
+    <!-- 3. beyond navigation -->
     <div x-show="pattern === 'beyond'"
          x-cloak
          class="mockup-code code-block border border-base-300 shadow-xl text-xs sm:text-sm">
@@ -309,12 +342,6 @@
     </div>
     <!-- Per-tab captions: the narrative lives here, not in the shared snippet files -->
     <div class="mt-4 text-center text-xs sm:text-sm text-base-content/70 min-h-10">
-      <p x-show="pattern === 'partial'" x-cloak>
-        Direct visits get the full page, HTMX requests get just the <code>content</code> partial. The main area updates, but the sidebar and breadcrumbs are still stale. Next tab.
-      </p>
-      <p x-show="pattern === 'render_nav'" x-cloak>
-        Same view, plus out-of-band regions synced in the same response. Whichever way the page is reached, the URL stays the source of truth.
-      </p>
       <p x-show="pattern === 'shell'" x-cloak>
         Declare the sidebar and breadcrumbs once. Every view that uses <code>render_shell</code> gets them, and <code>extra_swaps</code> adds view-specific regions.
       </p>
@@ -322,6 +349,34 @@
       <p x-show="pattern === 'beyond'" x-cloak>
         <code>Swap</code> isn't only for navigation. Delete rows, update counters, and flush messages alongside any response.
       </p>
+    </div>
+  </section>
+  <!-- Bottom Conversion CTA -->
+  <section id="benchmarks"
+           class="py-16 bg-base-200/40 border-y border-base-200 px-4 sm:px-6 scroll-mt-16">
+    <div class="max-w-5xl mx-auto text-center">
+      <div class="card bg-gradient-to-br from-primary/10 via-base-200/50 to-base-100 border border-primary/20 shadow-xl p-8 sm:p-12 rounded-2xl relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-primary/5 rounded-full blur-2xl pointer-events-none"></div>
+        <h2 class="text-3xl sm:text-4xl font-black tracking-tight max-w-2xl mx-auto">
+          Ready to eliminate state drift in your Django apps?
+        </h2>
+        <p class="text-base-content/75 text-sm sm:text-base max-w-xl mx-auto mt-4 leading-relaxed">
+          Get up and running in under five minutes. Install the package, drop in your first layout shell, and keep your HTMX navigation completely in sync.
+        </p>
+        <div class="flex flex-wrap items-center justify-center gap-4 mt-8">
+          <a href="{{ DOCS_SITE }}/quickstart.html"
+             class="btn btn-primary btn-md shadow-md group gap-2">
+            <span>Get Started Now</span>
+            {% include "frontpage/components/_arrow_icon.html" %}
+          </a>
+          <a href="https://github.com/lucas-rollin/django-htmx-nav"
+             target="_blank"
+             rel="noopener noreferrer"
+             class="btn btn-outline btn-md gap-2">
+            <span>View on GitHub</span>
+          </a>
+        </div>
+      </div>
     </div>
   </section>
 {% endblock %}

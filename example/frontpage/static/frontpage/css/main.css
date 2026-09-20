@@ -49,7 +49,25 @@ pre code.hljs {
   border-color: #27272a;
 }
 
-
+/* Theme-aware code panel: token colors follow the active daisyUI theme */
+.code-panel code.hljs {
+  color: var(--color-base-content);
+}
+.code-panel .hljs-comment {
+  color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
+  font-style: italic;
+}
+.code-panel .hljs-string {
+  color: color-mix(in oklab, var(--color-success) 70%, var(--color-base-content));
+}
+.code-panel .hljs-keyword,
+.code-panel .hljs-built_in {
+  color: var(--color-primary);
+}
+.code-panel .hljs-title,
+.code-panel .hljs-title.function_ {
+  color: var(--color-secondary);
+}
 
 [data-theme="dark"] .hljs-ln-numbers {
   color: #768390;
