@@ -28,7 +28,7 @@ VARIANTS: dict[str, Variant] = {
     **make_family(
         key="vanilla_htmx_composite",
         label="Vanilla HTMX Composite OOB",
-        description="Manual out-of-band (OOB) swaps in Python views for coarse navigation components (sidebar and breadcrumbs).",
+        description="Template substitution and branching in templates for coarse navigation components (sidebar and breadcrumbs).",
         group="vanilla",
         views_module="vanilla_htmx_composite.views",
         url_prefix="vanilla-htmx/composite/",
@@ -40,7 +40,7 @@ VARIANTS: dict[str, Variant] = {
     **make_family(
         key="vanilla_htmx_atomic",
         label="Vanilla HTMX Atomic OOB",
-        description="Manual out-of-band (OOB) swaps for all navigation components, requiring conditional template rendering.",
+        description="Template substitution and heavy branching in templates for all navigation components.",
         group="vanilla",
         views_module="vanilla_htmx_atomic.views",
         url_prefix="vanilla-htmx/atomic/",

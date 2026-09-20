@@ -96,8 +96,8 @@
           <a href="{% url 'guide' %}#method-template-oob"
              class="card bg-base-100 border border-base-300 hover:border-primary transition-colors p-4">
             <span class="font-bold">Branching in templates</span>
-            <span class="text-error font-semibold mt-1">Repeated in every page</span>
-            <span class="text-base-content/70 mt-1">Request checks and OOB wrappers in each template.</span>
+            <span class="text-error font-semibold mt-1">Logic lives in markup</span>
+            <span class="text-base-content/70 mt-1">Request checks and OOB wrappers, with more branches per nesting level.</span>
           </a>
           <a href="{% url 'guide' %}#method-backend-oob"
              class="card bg-base-100 border border-base-300 hover:border-primary transition-colors p-4">
@@ -108,8 +108,8 @@
           <a href="{% url 'guide' %}#method-event-driven"
              class="card bg-base-100 border border-base-300 hover:border-primary transition-colors p-4">
             <span class="font-bold"><code>HX-Trigger</code> + re-fetch</span>
-            <span class="text-error font-semibold mt-1">Extra round trips</span>
-            <span class="text-base-content/70 mt-1">Related navigation updates happen separately.</span>
+            <span class="text-error font-semibold mt-1">Extra requests</span>
+            <span class="text-base-content/70 mt-1">Each region re-fetches itself after the content arrives.</span>
           </a>
         </div>
       </div>
@@ -213,12 +213,12 @@
           </div>
           <h3 class="text-xl font-bold">Vanilla HTMX</h3>
           <p class="text-sm text-base-content/75 mt-2 leading-relaxed prose">
-            Standard HTMX with hand-written <em>out-of-band</em> fragments. Every view checks <code>HX-Target</code> itself and assembles the right partials. Complex swaps may require branching logic inside django templating.
+            Standard HTMX with hand-written <em>out-of-band</em> fragments. Every view checks <code>HX-Target</code> itself and assembles the right partials. Complex swaps may require branching logic inside Django templates.
           </p>
           <ul class="text-xs text-base-content/70 space-y-1.5 border-t border-base-200 pt-3">
             <li>✓ Fast partial updates on the wire</li>
             <li>✗ Verbose template branching and string joining</li>
-            <li>✗ Hard to know pinpoint swaps work properly</li>
+            <li>✗ Risk of state drift if an OOB region is forgotten</li>
           </ul>
         </div>
         <div class="p-6 pt-0">
@@ -352,7 +352,7 @@
     </div>
   </section>
   <!-- Bottom Conversion CTA -->
-  <section id="benchmarks"
+  <section id="get-started"
            class="py-16 bg-base-200/40 border-y border-base-200 px-4 sm:px-6 scroll-mt-16">
     <div class="max-w-5xl mx-auto text-center">
       <div class="card bg-gradient-to-br from-primary/10 via-base-200/50 to-base-100 border border-primary/20 shadow-xl p-8 sm:p-12 rounded-2xl relative overflow-hidden">

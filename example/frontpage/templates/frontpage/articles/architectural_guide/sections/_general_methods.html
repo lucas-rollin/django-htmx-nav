@@ -23,7 +23,7 @@
     </div>
     <div class="rounded-xl overflow-hidden border border-base-300 code-block p-4 not-prose my-3">
       <pre><code class="language-html">&lt;!-- Client-side morphing on boosted body --&gt;
-&lt;body hx-boost="true" hx-ext="morph" hx-swap="morph"&gt;
+&lt;body hx-boost="true" hx-swap="morph:innerHTML"&gt;
   &lt;!-- Server returns full layout; client algorithm diffs and updates only mutated nodes --&gt;
 &lt;/body&gt;</code></pre>
     </div>
@@ -32,14 +32,15 @@
         <div class="font-bold text-success">✓ Advantages</div>
         <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
           <li>Zero view-layer changes on the backend.</li>
-          <li>Preserves form focus, text selection, and scroll positions.</li>
+          <li>Preserves form focus and input state, and scroll positions (when morphing).</li>
         </ul>
       </div>
       <div class="p-3 bg-base-200/50 rounded-lg border border-base-300">
         <div class="font-bold text-error">✗ Trade-offs</div>
         <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
-          <li>Highest wire payload: sends full layout HTML every click.</li>
-          <li>DOM diffing costs client CPU cycles on large table views.</li>
+          <li>Highest wire payload &amp; server strain: sends full layout HTML every click.</li>
+          <li>The region list lives in attributes, so adding a region means updating every declaration, and a mistyped id fails quietly.</li>
+          <li>DOM diffing costs client CPU cycles on large documents (when morphing).</li>
         </ul>
       </div>
     </div>
@@ -53,7 +54,7 @@
     <div class="rounded-xl overflow-hidden border border-base-300 code-block p-4 not-prose my-3">
       {% verbatim %}
         <pre><code class="language-django">&lt;!-- Manual branching inside Django templates --&gt;
-{% extends "base.html" %}
+{% extends request.htmx|yesno:"empty.html,base.html" %}
 {% block content %}
   {% if request.htmx %}
     &lt;div id="sidebar" hx-swap-oob="innerHTML"&gt;{% include "components/_sidebar.html" %}&lt;/div&gt;
@@ -67,16 +68,16 @@
       <div class="p-3 bg-base-200/50 rounded-lg border border-base-300">
         <div class="font-bold text-success">✓ Advantages</div>
         <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
-          <li>Reduced payload size.</li>
-          <li>Targeted DOM replacements require no heavy morphing library.</li>
+          <li>Reduced wire payload compared to full-document rendering.</li>
+          <li>Targeted DOM replacements require no heavy morphing.</li>
         </ul>
       </div>
       <div class="p-3 bg-base-200/50 rounded-lg border border-base-300">
         <div class="font-bold text-error">✗ Trade-offs</div>
         <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
-          <li>Templates become tangled with transport and protocol logic.</li>
-          <li>Duplication across dozens of templates if navigation structure changes.</li>
-          <li>Context errors if partials depend on variables absent in specific views.</li>
+          <li>Page templates carry <code>request.htmx</code> checks and <code>hx-swap-oob</code> wrappers.</li>
+          <li>Which regions to include per <code>HX-Target</code> ends up in markup, with another branch for each nesting level (tab, subtab).</li>
+          <li>Typos in target ids, or a missing django-htmx middleware, fail silently (<code>request.htmx</code> is just falsy).</li>
         </ul>
       </div>
     </div>
@@ -105,22 +106,22 @@ def project_board(request, project_id):
       <div class="p-3 bg-base-200/50 rounded-lg border border-base-300">
         <div class="font-bold text-success">✓ Advantages</div>
         <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
-          <li>Templates stay clean of HTMX-specific branching.</li>
+          <li>Templates stay clean of HTMX-specific branching and transport wrappers.</li>
           <li>Fine-grained programmatic control over exactly which regions swap.</li>
         </ul>
       </div>
       <div class="p-3 bg-base-200/50 rounded-lg border border-base-300">
         <div class="font-bold text-error">✗ Trade-offs</div>
         <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
-          <li>Significant repetitive view boilerplate across the codebase.</li>
-          <li>High risk of duplicate DB queries (sidebar re-fetching active org/project).</li>
-          <li>Easy for view authors to forget breadcrumbs or title updates.</li>
+          <li>Brittle manual string concatenation: views mix HTML assembly into Python code.</li>
+          <li>State drift by omission: view authors can easily forget breadcrumbs, title, or sidebar swaps.</li>
+          <li>Repeating header checks and <code>render_to_string()</code> per view.</li>
         </ul>
       </div>
     </div>
     <p class="text-xs text-base-content/70 leading-relaxed mt-2">
       A middleware that inspects every response and appends the same OOB fragments
-      automatically is the same strategy centralized outside the view &mdash; it trades
+      automatically is the same strategy centralized outside the view, it trades
       per-view locality (a view no longer fully describes what it returns) for avoiding
       repeated boilerplate, without changing the underlying push-based sync model.
     </p>
@@ -163,15 +164,15 @@ def project_board(request, project_id):
         <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
           <li>Primary view stays fully decoupled from secondary regions.</li>
           <li>New regions can listen for existing events with no changes to any view.</li>
-          <li>Well suited to widely-reused, cross-cutting regions (e.g. a notification badge).</li>
+          <li>Well suited to cross-cutting badges and counters (e.g. unread notifications).</li>
         </ul>
       </div>
       <div class="p-3 bg-base-200/50 rounded-lg border border-base-300">
         <div class="font-bold text-error">✗ Trade-offs</div>
         <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
-          <li>Each listening region is an additional round trip, not a single response.</li>
-          <li>No guaranteed ordering or atomicity across the resulting fetches.</li>
-          <li>Harder to reason about "what updates on this navigation" from the view alone.</li>
+          <li>Adds at least one extra round trip (the region fetches run in parallel) and N times the per-request server overhead</li>
+          <li>Regions update at different times, and a failed region fetch leaves that region stale.</li>
+          <li>Context coupling: secondary endpoints must infer the active page/route from URLs or event data.</li>
         </ul>
       </div>
     </div>
@@ -193,20 +194,17 @@ def project_board(request, project_id):
       <div class="p-3 bg-base-200/50 rounded-lg border border-base-300">
         <div class="font-bold text-success">✓ Advantages</div>
         <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
-          <li>No conditional logic inside template markup.</li>
+          <li>No conditional branching logic inside template markup.</li>
           <li>No manual OOB string-joining in the view.</li>
-          <li>The full-page and partial templates each stay simple on their own.</li>
+          <li>Preserves standard Django <code>render()</code> call signatures.</li>
         </ul>
       </div>
       <div class="p-3 bg-base-200/50 rounded-lg border border-base-300">
         <div class="font-bold text-error">✗ Trade-offs</div>
         <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
-          <li>Works cleanly for one target region and one decision point.</li>
-          <li>
-            A second independent region (e.g. a tab <em>and</em> a subtab) needs another
-            dispatch check, or a move to another approach above.
-          </li>
-          <li>The partial template still has to be authored and kept in sync with the full page.</li>
+          <li>Shadow template proliferation: requires authoring a companion <code>_{name}.html</code> for every page.</li>
+          <li>Hardcoded OOB wrappers: companion templates still embed <code>hx-swap-oob</code> attributes.</li>
+          <li>Handles one <code>HX-Target</code>. Each added nesting level needs another dispatch check.</li>
         </ul>
       </div>
     </div>
@@ -220,7 +218,7 @@ def project_board(request, project_id):
     {% include "frontpage/components/_subsection_heading.html" with number="2.6" text="Native Template Partials (Django 6.0+)" %}
     <p class="text-sm text-base-content/80 leading-relaxed">
       Beginning in Django 6.0, native template partials (formerly available via the
-      third-party package <code>django-template-partials</code>) allows defining reusable
+      third-party package <code>django-template-partials</code>) allow defining reusable
       inline fragments directly within a single template file using
       <code>{% templatetag openblock %} partialdef {% templatetag closeblock %}</code> tags.
       Rather than maintaining separate files for full-page and fragment renderings, one
@@ -256,18 +254,16 @@ def get_template(request, template_name: str) -> str:
         <div class="font-bold text-success">✓ Advantages</div>
         <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
           <li>Single-file locality: layout and partial definitions live together.</li>
-          <li>Removes the parallel-shell-file cost noted in 2.5's trade-offs.</li>
-          <li>Composes with 2.3's orchestration or 2.5's dispatch without changing either.</li>
+          <li>Removes duplicated page content between the full page and its shell (the shell only includes <code>page.html#content</code>).</li>
+          <li>Composes with 2.3's orchestration or 2.5's dispatch.</li>
         </ul>
       </div>
       <div class="p-3 bg-base-200/50 rounded-lg border border-base-300">
         <div class="font-bold text-error">✗ Trade-offs</div>
         <ul class="mt-1 space-y-1 text-base-content/75 list-disc list-inside">
+          <li>A partial alone doesn't sync other regions. Rendering only <code>#content</code> brings back the stale sidebar and breadcrumbs.</li>
           <li>Requires a consistent partial-naming convention across templates.</li>
-          <li>
-            Still needs one of the dispatch methods above to decide which partial
-            to render on a given request, it doesn't solve routing by itself.
-          </li>
+          <li>Still needs a dispatch method to decide which partial to render.</li>
         </ul>
       </div>
     </div>

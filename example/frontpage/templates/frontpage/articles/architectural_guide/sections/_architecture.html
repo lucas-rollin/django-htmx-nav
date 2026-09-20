@@ -224,7 +224,7 @@
       Nested navigation raises two questions on every HTMX request: <em>which block is the main response?</em> and <em>which extra regions ride along?</em> Both depend on the request's target (a tab swap needs less than a full-page swap). Answering them with <code>&#123;% if request.htmx and request.headers.HX_Target == "tab-content" %&#125;</code> inside templates couples markup to HTMX headers, and a typo in a target ID fails silently.
     </p>
     <p class="text-sm text-base-content/80 leading-relaxed">
-      <strong>django-htmx-nav</strong> unifies both decisions in pure Python using a shared condition vocabulary: DOM ID strings, <code>targeting()</code> / <code>not_targeting()</code> predicates, callables, or booleans. <code>partial=</code> picks the main response block, and <code>include_if=</code> filters companion swaps. Both evaluate before templates are parsed, so excluded fragments skip rendering and database queries.
+      <strong>django-htmx-nav</strong> unifies both decisions in pure Python using a shared condition vocabulary: DOM ID strings, <code>targeting()</code> / <code>not_targeting()</code> predicates, callables, or booleans. <code>partial=</code> picks the main response block, and <code>include_if=</code> filters companion swaps. Both evaluate before templates are parsed, so excluded fragments skip rendering.
     </p>
     <div class="rounded-xl overflow-hidden border border-base-300 code-block p-4 not-prose my-4">
       <pre><code class="language-python">{% include "frontpage/articles/architectural_guide/snippets/partial_targeting.py" %}</code></pre>
