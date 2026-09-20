@@ -161,7 +161,7 @@ class ProjectBoardView(ShellViewMixin, DetailView):
 
 - **[Quickstart Guide](https://lucas-rollin.github.io/django-htmx-nav/docs/quickstart.html)** — Install the library and build your first URL-driven HTMX navigation flow.
 - **[Architectural Guide](https://lucas-rollin.github.io/django-htmx-nav/guide/)** — Compare approaches to stale navigation and explore the decision tree for choosing an architecture.
-- **[Benchmark Experiments](https://github.com/lucas-rollin/django-htmx-nav/tree/main/example/benchmarks)** — Reproduce the benchmark comparing 8 implementation strategies, including MPA, vanilla HTMX, and `django-htmx-nav`.
+- **[Benchmark Experiments](https://github.com/lucas-rollin/django-htmx-nav/tree/main/example/benchmarks)** — Reproduce the benchmark comparing 8 implementation strategies, including MPA, vanilla HTMX, and `django-htmx-nav`, or explore the [Dashboard](https://lucas-rollin.github.io/django-htmx-nav/benchmarks/) for live reference results.
 
 ## License
 
