@@ -311,11 +311,11 @@
     </div>
     <!-- Dynamic Pattern Toggle -->
     <div class="flex justify-center mb-4">
-      <nav class="tabs tabs-boxed bg-base-200 inline-flex flex-wrap rounded-lg gap-1 p-1"
+      <nav class="tabs tabs-boxed bg-base-200 rounded-lg gap-1 p-1 flex-nowrap overflow-x-auto max-w-full"
            aria-label="Code view patterns">
         <template x-for="tab in tabs" :key="tab.id">
           <button type="button"
-                  class="tab"
+                  class="tab whitespace-nowrap flex-shrink-0"
                   :class="{ 'tab-active': pattern === tab.id }"
                   @click="pattern = tab.id"
                   x-text="tab.label"></button>
