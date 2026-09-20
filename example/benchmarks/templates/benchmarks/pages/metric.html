@@ -1,188 +1,188 @@
 {% extends "benchmarks/base.html" %}
 {% block content %}
   <div class="p-6 max-w-7xl mx-auto"
-         x-data="metricDashboard('chart-data', 'table-data', 'descriptions-data', 'scenarios-data')">
-      <div class="flex items-center justify-between flex-wrap gap-2 mb-1">
-        <h1 class="text-2xl font-bold">{{ page_title }}</h1>
-        {% if run_file %}
-          <span class="badge badge-ghost badge-sm font-mono">{{ run_file }}</span>
-        {% endif %}
-      </div>
-      <p class="text-base-content/60 mb-4">
-        <span x-show="currentScenario === 'all'">
-          Auto-generated from the latest collection run. Averaged across all scenarios per variant.
-        </span>
-        <span x-show="currentScenario !== 'all'">
-          Auto-generated from the latest collection run. Filtered to: <strong class="text-base-content" x-text="currentScenarioLabel"></strong>.
-        </span>
-      </p>
-      {{ charts|json_script:"chart-data" }}
-      {{ table|json_script:"table-data" }}
-      {{ descriptions|json_script:"descriptions-data" }}
-      {{ scenario_views|json_script:"scenarios-data" }}
-      <!-- Scenario Selector Tabs -->
-      <template x-if="scenarioList && scenarioList.length > 1">
-        <div class="flex items-center justify-between flex-wrap gap-3 mb-6 p-2 rounded-lg bg-base-200 border border-base-300">
-          <div class="flex items-center flex-wrap gap-2">
-            <span class="text-xs font-semibold uppercase tracking-wider text-base-content/70 pl-2">Scenario Scope:</span>
-            <div class="tabs tabs-boxed rounded-lg bg-base-100 p-1">
-              <template x-for="sc in scenarioList" :key="sc.key">
-                <button type="button"
-                        class="tab tab-sm font-medium transition-all"
-                        :class="{ 'tab-active': currentScenario === sc.key }"
-                        @click="setScenario(sc.key)"
-                        x-text="sc.label"></button>
-              </template>
-            </div>
-          </div>
-          <div class="text-xs text-base-content/60 pr-2">
-            Active view: <span class="badge badge-sm badge-outline font-semibold"
-       x-text="currentScenarioLabel"></span>
-          </div>
-        </div>
-      </template>
-      {% if not metrics %}
-        <div class="alert alert-warning">
-          <span>
-            No data yet for this category. Run the matching
-            <code>collect_*_metrics</code> management command, see
-            <code>example/benchmarks/README.md</code>.
-          </span>
-        </div>
-      {% else %}
-        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-8">
-          <div class="card bg-base-100 border border-base-300">
-            <div class="card-body p-3 sm:p-5">
-              <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
-                <h2 class="card-title text-sm">Metric Explorer</h2>
-                <div class="flex gap-2 items-center">
-                  <select class="select select-xs"
-                          x-model="scatterX"
-                          @change="renderScatter"
-                          :title="describeFor(scatterX)">
-                    <template x-for="m in metrics" :key="'x-'+m">
-                      <option :value="m" x-text="labelFor(m)" :title="describeFor(m)"></option>
-                    </template>
-                  </select>
-                  <span class="self-center text-xs opacity-50">vs</span>
-                  <select class="select select-xs"
-                          x-model="scatterY"
-                          @change="renderScatter"
-                          :title="describeFor(scatterY)">
-                    <template x-for="m in metrics" :key="'y-'+m">
-                      <option :value="m" x-text="labelFor(m)" :title="describeFor(m)"></option>
-                    </template>
-                  </select>
-                </div>
-              </div>
-              <div class="h-120" x-ref="scatterEl"></div>
-            </div>
-          </div>
-          <div class="card bg-base-100 border border-base-300">
-            <div class="card-body p-4">
-              <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
-                <h2 class="card-title text-sm">Ranked Comparison</h2>
-                <select class="select select-xs"
-                        x-model="rankedMetric"
-                        @change="renderRanked"
-                        :title="describeFor(rankedMetric)">
-                  <template x-for="m in metrics" :key="'r-'+m">
-                    <option :value="m" x-text="labelFor(m)" :title="describeFor(m)"></option>
-                  </template>
-                </select>
-              </div>
-              <div class="h-120" x-ref="rankedEl"></div>
-            </div>
-          </div>
-        </div>
-        <!-- Swap Scope Comparison Card -->
-        <div x-show="hasScenarioComparison"
-             class="card bg-base-100 border border-base-300 mb-8">
-          <div class="card-body p-4">
-            <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
-              <div>
-                <h2 class="card-title text-sm">Swap Scope Comparison</h2>
-                <p class="text-xs text-base-content/60">Directly compare payload across Main Content, Tab, and Subtab swaps.</p>
-              </div>
-              <div class="flex gap-2 items-center">
-                <select class="select select-xs"
-                        x-model="comparisonMetric"
-                        @change="renderComparison"
-                        :title="describeFor(comparisonMetric)">
-                  <template x-for="m in metrics" :key="'comp-'+m">
-                    <option :value="m" x-text="labelFor(m)" :title="describeFor(m)"></option>
-                  </template>
-                </select>
-                <select class="select select-xs"
-                        x-model="comparisonScope"
-                        @change="renderComparison">
-                  <option value="base">Base Families (8)</option>
-                  <option value="all">All Variants (23)</option>
-                </select>
-              </div>
-            </div>
-            <div class="h-80" x-ref="comparisonEl"></div>
-          </div>
-        </div>
-        <div class="card bg-base-100 border border-base-300 overflow-hidden">
-          <div class="px-4 py-2 bg-base-200/50 border-b border-base-300 flex items-center justify-between text-xs rounded-t-2xl">
-            <span class="font-medium text-base-content/70">
-              Variant Breakdown &bull;
-              <span class="font-semibold text-base-content" x-text="currentScenarioLabel"></span>
-            </span>
-            <span class="text-base-content/50">Click column header to sort</span>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="table table-sm table-zebra">
-              <thead>
-                <tr>
-                  <template x-for="(col, index) in columns" :key="col">
-                    <th class="whitespace-nowrap" :class="{ 'min-w-[5rem]': index < 3 }">
-                      <template x-if="hasDescription(col)">
-                        <div class="tooltip tooltip-bottom" :data-tip="describeFor(col)">
-                          <span class="cursor-pointer select-none inline-flex items-center gap-1"
-                                @click="sortBy(col)">
-                            <span x-text="labelFor(col)"></span>
-                            <span class="text-xs opacity-60" x-text="sortIndicator(col)"></span>
-                            <span class="text-[10px] opacity-40 border border-current rounded-full w-3.5 h-3.5 inline-flex items-center justify-center leading-none">?</span>
-                          </span>
-                        </div>
-                      </template>
-                      <template x-if="!hasDescription(col)">
-                        <span class="cursor-pointer select-none" @click="sortBy(col)">
-                          <span x-text="labelFor(col)"></span>
-                          <span class="text-xs opacity-60" x-text="sortIndicator(col)"></span>
-                        </span>
-                      </template>
-                    </th>
-                  </template>
-                </tr>
-              </thead>
-              <tbody>
-                <template x-for="row in sortedRows" :key="row.variant">
-                  <tr class="hover">
-                    <template x-for="(col, index) in columns" :key="col">
-                      <td class="p-0">
-                        <template x-if="isNumericColumn(col)">
-                          <div class="relative h-full min-w-[5rem] px-2 py-1.5">
-                            <div class="absolute inset-y-1 left-0 bg-primary/15 rounded-sm"
-                                 :style="barStyle(col, row[col])"></div>
-                            <span class="relative text-right block tabular-nums" x-text="fmt(row[col])"></span>
-                          </div>
-                        </template>
-                        <template x-if="!isNumericColumn(col)">
-                          <div class="px-2 py-1.5 whitespace-nowrap"
-                               :class="{ 'min-w-[10rem]': index < 3 }"
-                               x-text="fmt(row[col])"></div>
-                        </template>
-                      </td>
-                    </template>
-                  </tr>
-                </template>
-              </tbody>
-            </table>
-          </div>
-        </div>
+       x-data="metricDashboard('chart-data', 'table-data', 'descriptions-data', 'scenarios-data')">
+    <div class="flex items-center justify-between flex-wrap gap-2 mb-1">
+      <h1 class="text-2xl font-bold">{{ page_title }}</h1>
+      {% if run_file %}
+        <span class="badge badge-ghost badge-sm font-mono">{{ run_file }}</span>
       {% endif %}
     </div>
+    <p class="text-base-content/60 mb-4">
+      <span x-show="currentScenario === 'all'">
+        Auto-generated from the latest collection run. Averaged across all scenarios per variant.
+      </span>
+      <span x-show="currentScenario !== 'all'">
+        Auto-generated from the latest collection run. Filtered to: <strong class="text-base-content" x-text="currentScenarioLabel"></strong>.
+      </span>
+    </p>
+    {{ charts|json_script:"chart-data" }}
+    {{ table|json_script:"table-data" }}
+    {{ descriptions|json_script:"descriptions-data" }}
+    {{ scenario_views|json_script:"scenarios-data" }}
+    <!-- Scenario Selector Tabs -->
+    <template x-if="scenarioList && scenarioList.length > 1">
+      <div class="flex items-center justify-between flex-wrap gap-3 mb-6 p-2 rounded-lg bg-base-200 border border-base-300">
+        <div class="flex items-center flex-wrap gap-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-base-content/70 pl-2">Scenario Scope:</span>
+          <div class="tabs tabs-boxed rounded-lg bg-base-100 p-1">
+            <template x-for="sc in scenarioList" :key="sc.key">
+              <button type="button"
+                      class="tab tab-sm font-medium transition-all"
+                      :class="{ 'tab-active': currentScenario === sc.key }"
+                      @click="setScenario(sc.key)"
+                      x-text="sc.label"></button>
+            </template>
+          </div>
+        </div>
+        <div class="text-xs text-base-content/60 pr-2">
+          Active view: <span class="badge badge-sm badge-outline font-semibold"
+       x-text="currentScenarioLabel"></span>
+        </div>
+      </div>
+    </template>
+    {% if not metrics %}
+      <div class="alert alert-warning">
+        <span>
+          No data yet for this category. Run the matching
+          <code>collect_*_metrics</code> management command, see
+          <code>example/benchmarks/README.md</code>.
+        </span>
+      </div>
+    {% else %}
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-8">
+        <div class="card bg-base-100 border border-base-300">
+          <div class="card-body p-3 sm:p-5">
+            <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+              <h2 class="card-title text-sm">Metric Explorer</h2>
+              <div class="flex gap-2 items-center">
+                <select class="select select-xs"
+                        x-model="scatterX"
+                        @change="renderScatter"
+                        :title="describeFor(scatterX)">
+                  <template x-for="m in metrics" :key="'x-'+m">
+                    <option :value="m" x-text="labelFor(m)" :title="describeFor(m)"></option>
+                  </template>
+                </select>
+                <span class="self-center text-xs opacity-50">vs</span>
+                <select class="select select-xs"
+                        x-model="scatterY"
+                        @change="renderScatter"
+                        :title="describeFor(scatterY)">
+                  <template x-for="m in metrics" :key="'y-'+m">
+                    <option :value="m" x-text="labelFor(m)" :title="describeFor(m)"></option>
+                  </template>
+                </select>
+              </div>
+            </div>
+            <div class="h-120" x-ref="scatterEl"></div>
+          </div>
+        </div>
+        <div class="card bg-base-100 border border-base-300">
+          <div class="card-body p-4">
+            <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+              <h2 class="card-title text-sm">Ranked Comparison</h2>
+              <select class="select select-xs"
+                      x-model="rankedMetric"
+                      @change="renderRanked"
+                      :title="describeFor(rankedMetric)">
+                <template x-for="m in metrics" :key="'r-'+m">
+                  <option :value="m" x-text="labelFor(m)" :title="describeFor(m)"></option>
+                </template>
+              </select>
+            </div>
+            <div class="h-120" x-ref="rankedEl"></div>
+          </div>
+        </div>
+      </div>
+      <!-- Swap Scope Comparison Card -->
+      <div x-show="hasScenarioComparison"
+           class="card bg-base-100 border border-base-300 mb-8">
+        <div class="card-body p-4">
+          <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+            <div>
+              <h2 class="card-title text-sm">Swap Scope Comparison</h2>
+              <p class="text-xs text-base-content/60">Directly compare payload across Main Content, Tab, and Subtab swaps.</p>
+            </div>
+            <div class="flex gap-2 items-center">
+              <select class="select select-xs"
+                      x-model="comparisonMetric"
+                      @change="renderComparison"
+                      :title="describeFor(comparisonMetric)">
+                <template x-for="m in metrics" :key="'comp-'+m">
+                  <option :value="m" x-text="labelFor(m)" :title="describeFor(m)"></option>
+                </template>
+              </select>
+              <select class="select select-xs"
+                      x-model="comparisonScope"
+                      @change="renderComparison">
+                <option value="base">Base Families (8)</option>
+                <option value="all">All Variants (23)</option>
+              </select>
+            </div>
+          </div>
+          <div class="h-80" x-ref="comparisonEl"></div>
+        </div>
+      </div>
+      <div class="card bg-base-100 border border-base-300 overflow-hidden">
+        <div class="px-4 py-2 bg-base-200/50 border-b border-base-300 flex items-center justify-between text-xs rounded-t-2xl">
+          <span class="font-medium text-base-content/70">
+            Variant Breakdown &bull;
+            <span class="font-semibold text-base-content" x-text="currentScenarioLabel"></span>
+          </span>
+          <span class="text-base-content/50">Click column header to sort</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="table table-sm table-zebra">
+            <thead>
+              <tr>
+                <template x-for="(col, index) in columns" :key="col">
+                  <th class="whitespace-nowrap" :class="{ 'min-w-[5rem]': index < 3 }">
+                    <template x-if="hasDescription(col)">
+                      <div class="tooltip tooltip-bottom" :data-tip="describeFor(col)">
+                        <span class="cursor-pointer select-none inline-flex items-center gap-1"
+                              @click="sortBy(col)">
+                          <span x-text="labelFor(col)"></span>
+                          <span class="text-xs opacity-60" x-text="sortIndicator(col)"></span>
+                          <span class="text-[10px] opacity-40 border border-current rounded-full w-3.5 h-3.5 inline-flex items-center justify-center leading-none">?</span>
+                        </span>
+                      </div>
+                    </template>
+                    <template x-if="!hasDescription(col)">
+                      <span class="cursor-pointer select-none" @click="sortBy(col)">
+                        <span x-text="labelFor(col)"></span>
+                        <span class="text-xs opacity-60" x-text="sortIndicator(col)"></span>
+                      </span>
+                    </template>
+                  </th>
+                </template>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="row in sortedRows" :key="row.variant">
+                <tr class="hover">
+                  <template x-for="(col, index) in columns" :key="col">
+                    <td class="p-0">
+                      <template x-if="isNumericColumn(col)">
+                        <div class="relative h-full min-w-[5rem] px-2 py-1.5">
+                          <div class="absolute inset-y-1 left-0 bg-primary/15 rounded-sm"
+                               :style="barStyle(col, row[col])"></div>
+                          <span class="relative text-right block tabular-nums" x-text="fmt(row[col])"></span>
+                        </div>
+                      </template>
+                      <template x-if="!isNumericColumn(col)">
+                        <div class="px-2 py-1.5 whitespace-nowrap"
+                             :class="{ 'min-w-[10rem]': index < 3 }"
+                             x-text="fmt(row[col])"></div>
+                      </template>
+                    </td>
+                  </template>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endif %}
+  </div>
 {% endblock %}

@@ -37,5 +37,6 @@ def _variant_mounts():
 urlpatterns = [
     path("", include("frontpage.urls")),
     path("benchmarks/", include("benchmarks.urls")),
+    path("sandbox/", include("sandbox.urls")),
     *_variant_mounts(),
 ]

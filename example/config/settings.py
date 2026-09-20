@@ -109,6 +109,7 @@ INSTALLED_APPS = [
     "vanilla_htmx_atomic",
     "htmx_nav_demo",
     "benchmarks",
+    "sandbox",
 ]
 
 MIDDLEWARE = [

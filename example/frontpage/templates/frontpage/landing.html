@@ -27,12 +27,12 @@
       Keep sidebars, breadcrumbs, and active navigation controls synchronized with the URL as the single source of truth without state drift or boilerplate.
     </p>
     <div class="flex flex-wrap items-center justify-center gap-4 mt-8">
-      <a href="{{ DOCS_SITE }}/quickstart.html" class="btn btn-primary btn-md shadow-md group gap-2">
+      <a href="{{ DOCS_SITE }}/quickstart.html"
+         class="btn btn-primary btn-md shadow-md group gap-2">
         <span>Get Started</span>
         {% include "frontpage/components/_arrow_icon.html" %}
       </a>
-      <a href="#approaches"
-         class="btn btn-outline btn-md">
+      <a href="#approaches" class="btn btn-outline btn-md">
         <span>Compare Approaches</span>
       </a>
     </div>
@@ -318,9 +318,7 @@
       <p x-show="pattern === 'shell'" x-cloak>
         Declare the sidebar and breadcrumbs once. Every view that uses <code>render_shell</code> gets them, and <code>extra_swaps</code> adds view-specific regions.
       </p>
-      <p x-show="pattern === 'cbv'" x-cloak>
-        The same shell works with Django's generic views through a mixin.
-      </p>
+      <p x-show="pattern === 'cbv'" x-cloak>The same shell works with Django's generic views through a mixin.</p>
       <p x-show="pattern === 'beyond'" x-cloak>
         <code>Swap</code> isn't only for navigation. Delete rows, update counters, and flush messages alongside any response.
       </p>
