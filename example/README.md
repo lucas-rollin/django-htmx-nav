@@ -12,13 +12,7 @@ You can run the example project directly on your host machine or in an isolated 
 # 1. From the repository root, install the package and example dependencies:
 pip install -e ".[example]"
 
-# 2. Run database migrations:
-python example/manage.py migrate
-
-# 3. (Optional) Seed mock data (CoreConfig automatically seeds if empty):
-python example/manage.py seed_helpdesk
-
-# 4. Start the development server:
+# 2. Start the development server:
 python example/manage.py runserver
 ```
 
@@ -31,7 +25,7 @@ Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) in your browser.
 docker compose up dev
 
 # Or simulate production deployment (Gunicorn + WhiteNoise static serving):
-docker compose up --build web
+docker compose up --build demo
 ```
 
 Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) in your browser.
@@ -65,6 +59,7 @@ example/
 ├── mpa/                 # Reference implementation using traditional full-page reloads
 ├── vanilla_htmx_composite/  # Vanilla HTMX implementation with composite OOB swaps
 ├── vanilla_htmx_atomic/     # Vanilla HTMX implementation with atomic OOB swaps
+├── sandbox/             # Small scale package tests
 └── manage.py            # Django management command entrypoint
 ```
 
@@ -73,8 +68,8 @@ example/
 The test suite covers parity between full reloads and HTMX partials, shell composition, and smoke-testing across all variant axes:
 
 ```bash
-# Run all example tests (~600 tests):
-pytest -c example/pytest.ini example/
+# Run all example tests
+pytest example/
 ```
 
 - **`test_shell_parity.py`**: Asserts that HTMX partial navigation produces the exact same active items, links, and navigation state as a direct full-page browser reload.
@@ -84,5 +79,5 @@ pytest -c example/pytest.ini example/
 ## Related Guides & Resources
 
 - **[Benchmark Suite & Experiments](benchmarks/README.md)**: Guide to running automated Playwright and server-side metrics collections locally or via Docker.
-- **[Maintainer Deployment Guide](../.github/DEPLOYMENT.md)**: Production deployment instructions for containerized hosting on Render.
-- **[Sphinx Documentation](https://lucas-rollin.github.io/django-htmx-nav/)**: In-depth API reference and hypermedia architecture guides.
+- **[Maintainer Deployment Guide](../.github/DEPLOYMENT.md)**: Production deployment instructions for containerized hosting and static pages freeze.
+- **[Sphinx Documentation](https://lucas-rollin.github.io/django-htmx-nav/docs/)**: In-depth API reference and guides.

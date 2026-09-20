@@ -14,6 +14,15 @@ docker compose run --rm bench
 - **Persistence**: Results are written as timestamped `.jsonl` files to `./example/benchmarks/data/`, which is volume-mounted to your host machine.
 - **Environment**: Automatically runs with `HTMX_NAV_DEBUG_SWAPS=False` (to eliminate swap animation overhead) and `HTMX_NAV_BENCHMARK_LOCAL_ASSETS=True` (to eliminate external CDN network latency).
 
+### Restricting CPU Allocation (`cpuset`)
+
+To ensure stable and reproducible performance measurements across benchmark runs, the Docker service leverages a configurable CPU set (`cpuset: "${BENCH_CPUSET:-0-3}"`) in `docker-compose.yml`. You can pin the benchmark runner to specific processor cores by defining `BENCH_CPUSET` in a local `.env` file at the repository root:
+
+```env
+# .env
+BENCH_CPUSET=0-1
+```
+
 ## 2. Running Benchmarks Locally (Native Python)
 
 If you prefer running collectors directly on your host machine:
@@ -29,6 +38,7 @@ python example/manage.py vendor_client_assets
 
 # 3. Install Playwright browser engines:
 playwright install chromium
+
 ```
 
 ### B. Run Metric Collectors
@@ -37,6 +47,7 @@ Run the full benchmark suite:
 
 ```bash
 python example/manage.py collect_all_metrics
+
 ```
 
 Or run individual categories independently:
@@ -73,11 +84,16 @@ Open [http://127.0.0.1:8000/benchmarks/](http://127.0.0.1:8000/benchmarks/) in y
 
 ### Updating Reference Summaries
 
-When you update or commit new reference datasets (`reference_*.jsonl`), recompute the headline metrics and panel prose:
+When you update or commit new reference datasets, you can promote your latest collected runs and recompute the global summary metrics:
 
 ```bash
-python example/manage.py update_reference_summary
+# Promote the freshest local runs to the official reference_*.jsonl files and recompute summary.json
+python example/manage.py update_reference_summary --promote-latest
+
 ```
+
+- **`--promote-latest`**: Archives current reference files under `old_reference_<category>_<timestamp>.jsonl` and copies the freshest non-reference `.jsonl` run over as the new `reference_<category>.jsonl`.
+- **`--output PATH`**: Optionally write the compiled summary to a custom target file instead of the default `summary.json`.
 
 This updates `example/benchmarks/data/summary.json`, keeping overview chart captions and frontpage metrics in sync.
 
@@ -96,5 +112,5 @@ To add a new metric category or custom collector:
 
 ## Related Resources
 
-- **[Example Application Overview](../README.md)**: Architecture and local run instructions for the Helpdesk testbed.
-- **[Live Benchmark Dashboard](https://django-htmx-nav.onrender.com/benchmarks/)**: Online interactive dashboard comparing reference results.
+- **[Example Application Overview](../README.md)**: Architecture and local run instructions for the Example Project.
+- **[Live Benchmark Dashboard](https://lucas-rollin.github.io/django-htmx-nav/benchmarks/)**: Online interactive dashboard comparing reference results.

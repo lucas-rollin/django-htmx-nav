@@ -95,7 +95,7 @@ Deploy using the repository's root [`render.yaml`](../render.yaml):
 
 ## 5. Local Docker & Container Workflows
 
-Use the [`docker-compose.yml`](https://www.google.com/search?q=../docker-compose.yml) targets for local verification:
+Use the [`docker-compose.yml`](../docker-compose.yml) targets for local verification:
 
 ```bash
 # Run local development server (hot-reload on port 8000)
