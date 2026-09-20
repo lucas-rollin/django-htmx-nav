@@ -98,16 +98,16 @@ Deploy using the repository's root [`render.yaml`](../render.yaml):
 Use the [`docker-compose.yml`](https://www.google.com/search?q=../docker-compose.yml) targets for local verification:
 
 ```bash
-# 1. Run local development server (hot-reload on port 8000)
+# Run local development server (hot-reload on port 8000)
 docker compose up dev
 
-# 2. Simulate Render production container locally (Gunicorn + WhiteNoise)
+# Simulate Render production container locally (Gunicorn + WhiteNoise)
 docker compose up demo
 
-# 3. Run hermetic pytest test suite
+# Run hermetic pytest test suite
 docker compose run --rm test
 
-# 4. Execute Playwright benchmark measurement suite
+# Execute Playwright benchmark measurement suite
 docker compose run --rm bench
 ```
 
@@ -116,19 +116,19 @@ docker compose run --rm bench
 To simulate the GitHub Actions static export and preview the frozen showcase/benchmark site locally:
 
 ```bash
-# 0. Clean up any previous build artifacts to ensure a fresh start
+# 1. Clean up any previous build artifacts to ensure a fresh start
 rm -rf /tmp/site
 
-# 1. Collect all static assets directly into the output folder
+# 2. Collect all static assets directly into the output folder
 STATIC_ROOT=/tmp/site/static STATIC_URL=/static/ ENVIRONMENT=static_generation python example/manage.py collectstatic --noinput
 
-# 2. Freeze Django frontpage, architectural guide, and benchmark dashboards with root prefix
+# 3. Freeze Django frontpage, architectural guide, and benchmark dashboards with root prefix
 ENVIRONMENT=static_generation python example/manage.py freeze_static_pages --out /tmp/site --prefix /
 
-# 3. Build Sphinx HTML documentation into /tmp/site/docs
+# 4. Build Sphinx HTML documentation into /tmp/site/docs
 sphinx-build -b html docs /tmp/site/docs
 
-# 4. Spin up a local Python HTTP server to preview the site
+# 5. Spin up a local Python HTTP server to preview the site
 python -m http.server 8080 -d /tmp/site
 ```
 
