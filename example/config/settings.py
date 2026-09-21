@@ -68,7 +68,7 @@ SECRET_KEY = env(
 DEBUG = env.bool("DEBUG", default=_defaults["DEBUG"])
 
 ALLOWED_HOSTS = env.list(
-    "ALLOWED_HOSTS", default=["127.0.0.1", "testserver", "localhost"]
+    "ALLOWED_HOSTS", default=["127.0.0.1", "testserver", "localhost", "0.0.0.0"]
 )
 
 CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS", default=[])

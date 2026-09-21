@@ -24,7 +24,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - .:/workspace
+      - .:/workspace:z
 
   # Hermetic Test Runner (Unit & Integration tests)
   test:
@@ -34,7 +34,7 @@ services:
       target: test
     command: pytest example/
     volumes:
-      - .:/workspace
+      - .:/workspace:z
 
   # Benchmark & Metrics Collector (Playwright + Payload + Static + Server metrics)
   bench:
@@ -46,6 +46,6 @@ services:
     working_dir: /workspace/example
     command: python manage.py collect_all_metrics --repeats 30 --timeout-ms 12000
     volumes:
-      - ./example/benchmarks/data:/workspace/example/benchmarks/data
+      - ./example/benchmarks/data:/workspace/example/benchmarks/data:z
     environment:
       - ENVIRONMENT=benchmark
