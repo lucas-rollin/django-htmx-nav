@@ -128,13 +128,6 @@ def project_settings(
         "active_subtab": subtab,
     }
 
-    if htmx_target_is(request, "subtab-content"):
-        partial = f"#settings-{subtab}"
-    elif htmx_target_is(request, "tab-content"):
-        partial = "#settings"
-    else:
-        partial = "#content"
-
     # The subtab bar showcases extra_swaps: it's page-specific nested
     # nav so it's built here and only sent as OOB when navigating
     # strictly within it, same pattern as views_atomic.py.
@@ -147,7 +140,11 @@ def project_settings(
         request,
         "core/pages/project.html",
         context,
-        partial=partial,
+        partial={
+            f"#settings-{subtab}": targeting("subtab-content"),
+            "#settings": targeting("tab-content"),
+            "#content": True,
+        },
         extra_swaps=subtab_swap,
     )
 

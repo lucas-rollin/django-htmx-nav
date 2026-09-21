@@ -56,14 +56,16 @@ class NavEntry:
 
 
 def get_org(request: HttpRequest) -> Organization:
-    org_id = request.resolver_match.kwargs["org_id"]  # type: ignore
+    match = request.resolver_match
+    org_id = match.kwargs["org_id"] if match else None
     return cache_on_request(
         request, "_org", lambda: Organization.objects.get(id=org_id)
     )
 
 
 def get_project(request: HttpRequest) -> Project:
-    project_id = request.resolver_match.kwargs["project_id"]  # type: ignore
+    match = request.resolver_match
+    project_id = match.kwargs["project_id"] if match else None
     return cache_on_request(
         request, "_project", lambda: Project.objects.get(id=project_id)
     )
@@ -89,9 +91,9 @@ def _org_label(r: HttpRequest) -> str:
 
 
 def _org_url(r: HttpRequest) -> str:
-    return reverse_lazy(
-        f"{NAMESPACE}:org_detail", args=[r.resolver_match.kwargs["org_id"]]
-    )
+    match = r.resolver_match
+    org_id = match.kwargs["org_id"] if match else None
+    return str(reverse_lazy(f"{NAMESPACE}:org_detail", args=[org_id]))
 
 
 def _project_label(r: HttpRequest) -> str:
@@ -99,10 +101,9 @@ def _project_label(r: HttpRequest) -> str:
 
 
 def _project_url(r: HttpRequest) -> str:
-    kw = r.resolver_match.kwargs
-    return reverse_lazy(
-        f"{NAMESPACE}:project_overview", args=[kw["org_id"], kw["project_id"]]
-    )
+    match = r.resolver_match
+    kw = match.kwargs if match else {}
+    return str(reverse_lazy(f"{NAMESPACE}:project_overview", args=[kw.get("org_id"), kw.get("project_id")]))
 
 
 def _ticket_short_id(r: HttpRequest) -> str:
@@ -132,8 +133,9 @@ def _ticket_project_url(r: HttpRequest) -> str:
 
 
 def _project_tab_args(r: HttpRequest) -> Sequence:
-    kw = r.resolver_match.kwargs
-    return [kw["org_id"], kw["project_id"]]
+    match = r.resolver_match
+    kw = match.kwargs if match else {}
+    return [kw.get("org_id"), kw.get("project_id")]
 
 
 def _ticket_tab_args(r: HttpRequest) -> Sequence:
@@ -323,7 +325,7 @@ def _resolve_crumb(crumb: Crumb, request: HttpRequest) -> dict:
     return {"label": label, "url": url}
 
 
-def _resolve_tabs(entry: NavEntry, request: HttpRequest) -> list[dict]:
+def _resolve_tabs(entry: NavEntry, request: HttpRequest) -> dict:
     tabs_context = [
         {
             "key": tab.key,

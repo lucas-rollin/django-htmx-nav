@@ -144,7 +144,7 @@ def org_detail(request: HttpRequest, org_id: str) -> HttpResponse:
 # ---------------------------------------------------------------------------
 
 
-def _project_tabs(request, active: str) -> list[dict]:
+def _project_tabs(request, active: str) -> dict:
     org_id = request.resolver_match.kwargs["org_id"]
     project_id = request.resolver_match.kwargs["project_id"]
     specs = [
@@ -393,7 +393,7 @@ class TicketListView(ShellViewMixin, ListView):
                 ("Tickets", None),
             )
         )
-        (context.update(_project_tabs(self.request, active="tickets")),)
+        context.update(_project_tabs(self.request, active="tickets"))
         context["org"] = self.org
         context["project"] = self.project
         context["current_status"] = self.request.GET.get("status", "")
@@ -408,7 +408,7 @@ class TicketListView(ShellViewMixin, ListView):
 # ---------------------------------------------------------------------------
 
 
-def _ticket_tabs(request, ticket, active: str) -> list[dict]:
+def _ticket_tabs(request, ticket, active: str) -> dict:
     ns = request.resolver_match.namespace
     specs = [
         ("details", "Details", "ticket_detail", None),

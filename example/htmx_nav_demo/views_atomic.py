@@ -186,7 +186,7 @@ def org_detail(request: HttpRequest, org_id: str) -> HttpResponse:
 # ===========================================================================
 
 
-def _project_tab_swap(request, active: str) -> list[dict]:
+def _project_tab_swap(request, active: str) -> Swap:
     """Return a Swap fragment to update project tab state during inner page navigation.
 
     When navigating directly between tabs (where `HX-Target` is "tab-content"),
@@ -286,22 +286,6 @@ def project_team(request: HttpRequest, org_id: str, project_id: str) -> HttpResp
     )
 
 
-def _project_settings_content_partial(request: HttpRequest, subtab: str) -> str:
-    """Resolve partial rendering targets for nested multi-level settings tabs.
-
-    Handles target resolution across two tab levels:
-    - Target "subtab-content": returns `#settings-{subtab}` to swap subtab body only.
-    - Target "tab-content": returns `#settings` to swap the entire settings container.
-    - Any other HTMX target: returns `#content` for top-level shell swaps.
-    """
-    if htmx_target_is(request, "subtab-content"):
-        return f"#settings-{subtab}"
-    elif htmx_target_is(request, "tab-content"):
-        return "#settings"
-    else:
-        return "#content"
-
-
 # Conditionally swap the subtab navigation bar OOB when navigating strictly
 # between individual subtabs (targeting "subtab-content").
 _settings_subtab_swap = Swap(
@@ -330,7 +314,11 @@ def project_settings(
         request,
         "core/pages/project.html",
         context,
-        partial=_project_settings_content_partial(request, subtab),
+        partial={
+            f"#settings-{subtab}": targeting("subtab-content"),
+            "#settings": targeting("tab-content"),
+            "#content": True,
+        },
         swaps=[
             _sidebar_swap(active_org_id=org_id, active_project_id=project_id),
             _breadcrumb_swap(
@@ -516,7 +504,7 @@ class TicketListView(ShellViewMixin, ListView):
 # ===========================================================================
 
 
-def _ticket_tab_swap(request, ticket, active: str) -> list[dict]:
+def _ticket_tab_swap(request, ticket, active: str) -> Swap:
     """Return a Swap fragment to update active ticket tab states OOB.
 
     Updates `#ticket-tabs` during intra-tab navigation where `HX-Target` is
