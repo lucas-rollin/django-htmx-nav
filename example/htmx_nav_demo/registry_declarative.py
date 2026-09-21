@@ -103,7 +103,12 @@ def _project_label(r: HttpRequest) -> str:
 def _project_url(r: HttpRequest) -> str:
     match = r.resolver_match
     kw = match.kwargs if match else {}
-    return str(reverse_lazy(f"{NAMESPACE}:project_overview", args=[kw.get("org_id"), kw.get("project_id")]))
+    return str(
+        reverse_lazy(
+            f"{NAMESPACE}:project_overview",
+            args=[kw.get("org_id"), kw.get("project_id")],
+        )
+    )
 
 
 def _ticket_short_id(r: HttpRequest) -> str:

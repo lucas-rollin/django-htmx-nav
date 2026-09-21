@@ -5,18 +5,21 @@
 **Added:**
 
 - **`htmx_nav.partials`**:
-  - `PartialResolver` protocol: A new interface defining a standard way to dynamically derive partial block or template paths from incoming HTTP requests and base templates.
-  - `PathReplace`: A built-in PartialResolver implementation that swaps path segments or directories (e.g., transforming "pages/" to "partials/_" on HTMX requests).
+  - `PartialResolver` protocol: derive a partial block or template path from the request and base template.
+  - `PathReplace`: built-in resolver that swaps a path segment (e.g. `"pages/"` to `"partials/_"`) for codebases that keep partials in separate files.
 
 **Removed:**
 
 - **`htmx_nav.views`**:
-  - `_ShellViewProtocol.get_shell_template_name`: Use built-in `get_template_names`.
+  - `get_shell_template_name()` hook on views using `make_shell_view_mixin`. Override Django's `get_template_names()` instead.
 
-**Fixed**
+**Fixed:**
 
 - **`htmx_nav.views`**:
-  - `make_shell_view_mixin` doesn't ignore `template_engine` and `content_type` anymore.
+  - `make_shell_view_mixin` now honors the view's `template_engine` and `content_type`.
+  - `make_shell_view_mixin` now defers to the shell renderer's own `partial=` default instead of always overriding it with `"#content"`.
+- **`htmx_nav.shell`** / **`htmx_nav.views`**:
+  - `HTMX_NAV_DEFAULT_PARTIAL` is now read per request rather than when the renderer or mixin is created, so `override_settings` works.
 
 ## 0.3.2 — 2026-09-18
 

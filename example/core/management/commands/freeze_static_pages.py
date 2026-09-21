@@ -46,9 +46,15 @@ class Command(BaseCommand):
 
                 if prefix != "/":
                     if demo_url:
-                        content = content.replace(f"{demo_url}{demo_prefix}", f"{demo_url}/demo/")
-                        content = content.replace(f'href="{demo_prefix}', f'href="{demo_url}/demo/')
-                        content = content.replace(f"href='{demo_prefix}", f"href='{demo_url}/demo/")
+                        content = content.replace(
+                            f"{demo_url}{demo_prefix}", f"{demo_url}/demo/"
+                        )
+                        content = content.replace(
+                            f'href="{demo_prefix}', f'href="{demo_url}/demo/'
+                        )
+                        content = content.replace(
+                            f"href='{demo_prefix}", f"href='{demo_url}/demo/"
+                        )
                     else:
                         content = content.replace(demo_prefix, "/demo/")
 
