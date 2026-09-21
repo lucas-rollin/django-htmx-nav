@@ -7,7 +7,7 @@ from django.http import HttpRequest
 from django.template.response import TemplateResponse
 
 from .partials import PartialSpec
-from .settings import _UNSET, _default_partial_spec
+from .settings import _UNSET
 from .shell import ShellRenderer
 from .shortcuts import render_nav
 from .swaps import Swaps, _normalize_swaps
@@ -15,12 +15,13 @@ from .swaps import Swaps, _normalize_swaps
 
 class _ShellViewProtocol(Protocol):
     request: HttpRequest
+    template_engine: str | None
+    content_type: str | None
 
     def get_template_names(self) -> list[str]: ...
     def get_extra_swaps(self) -> Swaps: ...
     def get_partial(self) -> PartialSpec: ...
     def get_title(self) -> str | None: ...
-    def get_shell_template_name(self) -> str: ...
 
 
 def make_shell_view_mixin(
@@ -32,14 +33,16 @@ def make_shell_view_mixin(
     """Create a class mixin that routes CBV rendering through a shell renderer.
 
     Args:
-        render: Optional render function, typically created by
-            ``make_shell_renderer``. When omitted, calls ``render_nav`` directly.
-        default_swaps: Default Swap(s) applied across all views using this mixin.
-        default_partial: Partial spec used unless overridden per view.
-            Defaults to the ``HTMX_NAV_DEFAULT_PARTIAL`` setting (``"#content"``).
+        render: Optional renderer from ``make_shell_renderer``. When omitted,
+            the mixin calls ``render_nav`` directly.
+        default_swaps: Swaps applied to every view using this mixin.
+        default_partial: Partial used unless a view overrides ``get_partial()``.
+            When omitted, the renderer's own default applies, or
+            ``HTMX_NAV_DEFAULT_PARTIAL`` (``"#content"``) without a renderer.
 
     Returns:
-        A mixin class providing ``render_to_response`` and swap customization hooks.
+        A mixin class. Place it before the Django view class in the bases so
+        its ``render_to_response`` wins.
 
     Notes:
         Override points on the resulting view class:
@@ -47,6 +50,8 @@ def make_shell_view_mixin(
             - ``get_title()`` or ``title``: Page title override.
             - ``get_partial()``: Overrides ``default_partial`` for the view.
             - ``get_shell_template_name()``: Defaults to ``get_template_names()[0]``.
+            - ``get_template_names()``: Django's own hook. Only the first entry
+                is rendered, since partial resolution needs one concrete name.
 
     Example:
         .. code-block:: python
@@ -62,9 +67,6 @@ def make_shell_view_mixin(
     defaults = _normalize_swaps(default_swaps)
     render_fn: Callable[..., TemplateResponse] = render or render_nav
     swaps_kwarg = "extra_swaps" if render is not None else "swaps"
-    resolved_default_partial: PartialSpec = (
-        _default_partial_spec() if default_partial is _UNSET else default_partial  # type: ignore[assignment]
-    )
 
     class ShellViewMixin:
         title: str | None = None
@@ -75,11 +77,8 @@ def make_shell_view_mixin(
         def get_title(self) -> str | None:
             return self.title
 
-        def get_partial(self) -> PartialSpec:
-            return resolved_default_partial
-
-        def get_shell_template_name(self: _ShellViewProtocol) -> str:
-            return self.get_template_names()[0]
+        def get_partial(self) -> PartialSpec | object:
+            return default_partial
 
         def render_to_response(
             self: _ShellViewProtocol,
@@ -90,13 +89,16 @@ def make_shell_view_mixin(
 
             response_kwargs.setdefault("partial", self.get_partial())
             response_kwargs.setdefault("title", self.get_title())
+            response_kwargs.setdefault("using", self.template_engine)
+            response_kwargs.setdefault("content_type", self.content_type)
             response_kwargs.setdefault(swaps_kwarg, swaps)
 
             return render_fn(
                 self.request,
-                self.get_shell_template_name(),
+                self.get_template_names()[0],
                 context,
                 **response_kwargs,
             )
 
+    ShellViewMixin.__qualname__ = "ShellViewMixin"
     return ShellViewMixin

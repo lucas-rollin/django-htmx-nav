@@ -13,7 +13,7 @@ from django.http import HttpRequest
 from django.template.response import TemplateResponse
 
 from .partials import PartialSpec
-from .settings import _UNSET, _default_partial_spec
+from .settings import _UNSET
 from .shortcuts import render_nav
 from .swaps import Swaps, _normalize_swaps
 
@@ -57,8 +57,9 @@ def make_shell_renderer(
     Args:
         swaps: Swaps included on each request, or a callable receiving
             request and returning Swaps.
-        partial: Default PartialSpec used unless overridden per-call.
-            Defaults to the ``HTMX_NAV_DEFAULT_PARTIAL`` setting (``"#content"``).
+        partial: Default PartialSpec for views rendered through this shell,
+            overridable per call. When omitted, ``HTMX_NAV_DEFAULT_PARTIAL``
+            (``"#content"``) applies, read on each request.
 
     Returns:
         A ``render_shell`` function matching the ``ShellRenderer`` protocol.
@@ -78,9 +79,7 @@ def make_shell_renderer(
                 project = get_object_or_404(Project, pk=pk)
                 return render_shell(request, "app/project_detail.html", {"project": project})
     """
-    default_partial: PartialSpec = (
-        _default_partial_spec() if partial is _UNSET else partial  # type: ignore[assignment]
-    )
+    shell_partial = partial
 
     def render_shell(
         request: HttpRequest,
@@ -91,7 +90,7 @@ def make_shell_renderer(
         partial: PartialSpec | object = _UNSET,
         **kwargs: Any,
     ) -> TemplateResponse:
-        effective_partial = default_partial if partial is _UNSET else partial
+        effective_partial = shell_partial if partial is _UNSET else partial
         resolved = swaps(request) if callable(swaps) else swaps
         return render_nav(
             request,

@@ -85,17 +85,17 @@ def test_no_title_falls_back_to_context_supplied_title():
     assert response.context_data["title"] == "From context"
 
 
-def test_shell_template_name_defaults_to_first_template_name():
+def test_template_names_defaults_to_first_template_name():
     view = DemoView()
-    assert view.get_shell_template_name() == "tests/_page.html"
+    assert view.get_template_names()[0] == "tests/_page.html"
 
 
-def test_shell_template_name_can_be_overridden():
+def test_template_names_can_be_overridden():
     class AltTemplateView(ShellViewMixin, TemplateView):
         template_name = "tests/_page.html"
 
-        def get_shell_template_name(self):
-            return "tests/_page_nav.html"
+        def get_template_names(self):
+            return ["tests/_page_nav.html"]
 
     request = RequestFactory().get("/demo/", HTTP_HX_REQUEST="true")
     response = AltTemplateView.as_view()(request)
@@ -154,3 +154,13 @@ def test_make_shell_view_mixin_respects_custom_default_partial_setting():
         request = RequestFactory().get("/demo/", HTTP_HX_REQUEST="true")
         response = DemoView4.as_view()(request)
         assert response.template_name == "tests/_page.html#custom_cbv_block"
+
+
+def test_mixin_defers_to_renderer_default_partial(rf):
+    render = make_shell_renderer([], partial="#shell_default")
+
+    class V(make_shell_view_mixin(render), TemplateView):
+        template_name = "x.html"
+
+    request = rf.get("/", HTTP_HX_REQUEST="true")
+    assert V.as_view()(request).template_name == "x.html#shell_default"

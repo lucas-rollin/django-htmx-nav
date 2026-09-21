@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from django.test import RequestFactory
+from django.test import RequestFactory, override_settings
 
 from htmx_nav.shell import make_shell_renderer
 from htmx_nav.swaps import Swap
@@ -299,3 +299,24 @@ def test_make_shell_renderer_respects_custom_default_partial_setting():
         request = htmx_request(RequestFactory())
         response = render_shell(request, "tests/_page.html", {"content": "hi"})
         assert response.template_name == "tests/_page.html#custom_shell_block"
+
+
+# =============================================================================
+# make_shell_renderer — regression tests
+# =============================================================================
+
+
+def test_shell_renderer_reads_default_partial_per_request(rf):
+    render = make_shell_renderer([])  # built at "import time"
+    request = rf.get("/", HTTP_HX_REQUEST="true")
+
+    with override_settings(HTMX_NAV_DEFAULT_PARTIAL="#main"):
+        assert render(request, "x.html").template_name == "x.html#main"
+
+
+def test_explicit_shell_partial_beats_setting(rf):
+    render = make_shell_renderer([], partial="#shell")
+    request = rf.get("/", HTTP_HX_REQUEST="true")
+
+    with override_settings(HTMX_NAV_DEFAULT_PARTIAL="#main"):
+        assert render(request, "x.html").template_name == "x.html#shell"

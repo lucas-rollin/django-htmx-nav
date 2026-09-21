@@ -8,6 +8,16 @@
   - `PartialResolver` protocol: A new interface defining a standard way to dynamically derive partial block or template paths from incoming HTTP requests and base templates.
   - `PathReplace`: A built-in PartialResolver implementation that swaps path segments or directories (e.g., transforming "pages/" to "partials/_" on HTMX requests).
 
+**Removed:**
+
+- **`htmx_nav.views`**:
+  - `_ShellViewProtocol.get_shell_template_name`: Use built-in `get_template_names`.
+
+**Fixed**
+
+- **`htmx_nav.views`**:
+  - `make_shell_view_mixin` doesn't ignore `template_engine` and `content_type` anymore.
+
 ## 0.3.2 — 2026-09-18
 
 **Added:**
