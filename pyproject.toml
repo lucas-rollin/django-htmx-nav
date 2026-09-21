@@ -7,14 +7,18 @@ name = "django-htmx-nav"
 version = "0.3.2"
 description = "Helpers for server-driven HTMX navigation in Django, with the URL as the source of truth."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [{ name = "Lucas Rollin Ferreira" }]
 dependencies = [
     "Django>=6.0"
 ]
 
-[project.optional-dependencies]
+classifiers = [
+    "Framework :: Django :: 6.0",
+]
+
+[dependency-groups]
 test = [
     "pytest>=8.0",
     "pytest-django>=4.8",
