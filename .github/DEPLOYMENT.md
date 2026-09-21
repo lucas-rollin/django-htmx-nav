@@ -51,16 +51,19 @@ Deployed automatically on pushes to `main` via [`.github/workflows/docs.yml`](./
 ### Build Pipeline
 
 ```bash
-# 1. Collect all static assets (Tailwind, DaisyUI, local JS/CSS)
-python example/manage.py collectstatic --noinput
+# 1. Install dependencies for static generation and documentation
+uv sync --group docs --group example
 
-# 2. Freeze Django frontpage, architectural guide, benchmarks, robots.txt, and sitemap.xml
-python example/manage.py freeze_static_pages --out site --prefix /django-htmx-nav/
+# 2. Collect all static assets (Tailwind, DaisyUI, local JS/CSS)
+uv run python example/manage.py collectstatic --noinput
 
-# 3. Build Sphinx HTML documentation directly into site/docs/
-sphinx-build -b html docs site/docs
+# 3. Freeze Django frontpage, architectural guide, benchmarks, robots.txt, and sitemap.xml
+uv run python example/manage.py freeze_static_pages --out site --prefix /django-htmx-nav/
 
-# 4. Disable GitHub Pages Jekyll processing
+# 4. Build Sphinx HTML documentation directly into site/docs/
+uv run sphinx-build -b html docs site/docs
+
+# 5. Disable GitHub Pages Jekyll processing
 touch site/.nojekyll
 ```
 
@@ -120,16 +123,16 @@ To simulate the GitHub Actions static export and preview the frozen showcase/ben
 rm -rf /tmp/site
 
 # 2. Collect all static assets directly into the output folder
-STATIC_ROOT=/tmp/site/static STATIC_URL=/static/ ENVIRONMENT=static_generation python example/manage.py collectstatic --noinput
+STATIC_ROOT=/tmp/site/static STATIC_URL=/static/ ENVIRONMENT=static_generation uv run python example/manage.py collectstatic --noinput
 
 # 3. Freeze Django frontpage, architectural guide, and benchmark dashboards with root prefix
-ENVIRONMENT=static_generation python example/manage.py freeze_static_pages --out /tmp/site --prefix /
+ENVIRONMENT=static_generation uv run python example/manage.py freeze_static_pages --out /tmp/site --prefix /
 
 # 4. Build Sphinx HTML documentation into /tmp/site/docs
-sphinx-build -b html docs /tmp/site/docs
+uv run sphinx-build -b html docs /tmp/site/docs
 
 # 5. Spin up a local Python HTTP server to preview the site
-python -m http.server 8080 -d /tmp/site
+uv run python -m http.server 8080 -d /tmp/site
 ```
 
 Open [http://127.0.0.1:8080/](http://127.0.0.1:8080/) in your browser. (Press Ctrl+C in your terminal when you're done viewing to stop the server).

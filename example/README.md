@@ -10,10 +10,10 @@ You can run the example project directly on your host machine or in an isolated 
 
 ```bash
 # 1. From the repository root, install the package and example dependencies:
-pip install -e ".[example]"
+uv sync --group example
 
 # 2. Start the development server:
-python example/manage.py runserver
+uv run python example/manage.py runserver
 ```
 
 Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) in your browser.
@@ -69,7 +69,7 @@ The test suite covers parity between full reloads and HTMX partials, shell compo
 
 ```bash
 # Run all example tests
-pytest example/
+uv run --group test pytest example/
 ```
 
 - **`test_shell_parity.py`**: Asserts that HTMX partial navigation produces the exact same active items, links, and navigation state as a direct full-page browser reload.

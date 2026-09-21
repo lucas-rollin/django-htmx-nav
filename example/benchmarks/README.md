@@ -30,15 +30,14 @@ If you prefer running collectors directly on your host machine:
 ### A. Prerequisites
 
 ```bash
-# 1. Install benchmark dependencies (radon, playwright, beautifulsoup4):
-pip install -e ".[example,bench]"
+# 1. Install benchmark and example dependencies:
+uv sync --group example --group bench
 
 # 2. Download offline HTMX assets so tests do not depend on CDN availability:
-python example/manage.py vendor_client_assets
+uv run python example/manage.py vendor_client_assets
 
 # 3. Install Playwright browser engines:
-playwright install chromium
-
+uv run playwright install chromium
 ```
 
 ### B. Run Metric Collectors
@@ -46,17 +45,16 @@ playwright install chromium
 Run the full benchmark suite:
 
 ```bash
-python example/manage.py collect_all_metrics
-
+uv run python example/manage.py collect_all_metrics
 ```
 
 Or run individual categories independently:
 
 ```bash
-python example/manage.py collect_static_metrics   # Code complexity (LOC, hx-* attribute counts)
-python example/manage.py collect_server_metrics   # Server render times, query counts, swap counts
-python example/manage.py collect_payload_metrics  # Wire transfer bytes (gzipped on-the-wire)
-python example/manage.py collect_client_metrics   # Interaction-to-paint timing & DOM mutations
+uv run python example/manage.py collect_static_metrics   # Code complexity (LOC, hx-* attribute counts)
+uv run python example/manage.py collect_server_metrics   # Server render times, query counts, swap counts
+uv run python example/manage.py collect_payload_metrics  # Wire transfer bytes (gzipped on-the-wire)
+uv run python example/manage.py collect_client_metrics   # Interaction-to-paint timing & DOM mutations
 ```
 
 ### C. Useful Command Flags
@@ -72,7 +70,7 @@ python example/manage.py collect_client_metrics   # Interaction-to-paint timing 
 Start the web server:
 
 ```bash
-python example/manage.py runserver
+uv run python example/manage.py runserver
 # or with docker:
 docker compose up dev
 ```
@@ -88,8 +86,7 @@ When you update or commit new reference datasets, you can promote your latest co
 
 ```bash
 # Promote the freshest local runs to the official reference_*.jsonl files and recompute summary.json
-python example/manage.py update_reference_summary --promote-latest
-
+uv run python example/manage.py update_reference_summary --promote-latest
 ```
 
 - **`--promote-latest`**: Archives current reference files under `old_reference_<category>_<timestamp>.jsonl` and copies the freshest non-reference `.jsonl` run over as the new `reference_<category>.jsonl`.

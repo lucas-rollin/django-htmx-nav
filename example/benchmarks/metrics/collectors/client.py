@@ -127,7 +127,7 @@ def collect(
         from playwright.sync_api import sync_playwright
     except ImportError:
         stderr(
-            "playwright not installed. Run: pip install -e '.[bench-browser]' && playwright install chromium"
+            "playwright not installed. Run: uv sync --group bench && uv run playwright install chromium"
         )
         return []
 

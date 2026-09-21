@@ -3,10 +3,12 @@
 # ==========================================
 FROM python:3.14-slim AS python-base
 
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=off \
-    PIP_DISABLE_PIP_VERSION_CHECK=on \
+    UV_PROJECT_ENVIRONMENT=/opt/venv \
+    PATH="/opt/venv/bin:$PATH" \
     PORT=8000
 
 WORKDIR /workspace
@@ -18,15 +20,14 @@ FROM python-base AS test
 
 WORKDIR /workspace
 
-# Install Playwright browser & system dependencies first
-RUN pip install playwright \
-    && playwright install --with-deps chromium
-
-COPY pyproject.toml README.md ./
+COPY pyproject.toml README.md uv.lock ./
 COPY src/ ./src/
 
-# Install project with test, benchmark, and lint extras
-RUN pip install -e .[example,test,bench,lint]
+# Install test, benchmark, lint, and example dependencies using locked versions
+RUN uv sync --frozen --group example --group test --group bench --group lint
+
+# Install Playwright browser & system dependencies
+RUN playwright install --with-deps chromium
 
 COPY . /workspace/
 
@@ -39,25 +40,27 @@ CMD ["pytest"]
 # ==========================================
 FROM python-base AS builder
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+WORKDIR /workspace
 
-COPY pyproject.toml README.md ./
+COPY pyproject.toml README.md uv.lock ./
 COPY src/ ./src/
 
-# Install core package + example dependencies
-RUN pip install --prefix=/install .[example]
+RUN uv sync --frozen --no-editable --no-default-groups --group example
 
 # ==========================================
 # Production Stage: Ultra-lean (~150MB)
 # ==========================================
-FROM python-base AS production
+FROM python:3.14-slim AS production
 
 # Security: create non-root user
 RUN groupadd -g 1000 app && useradd -u 1000 -g app -s /bin/sh -m app
 
-COPY --from=builder /install /usr/local
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PATH="/opt/venv/bin:$PATH" \
+    PORT=8000
+
+COPY --from=builder /opt/venv /opt/venv
 COPY --chown=app:app src/ /workspace/src/
 COPY --chown=app:app example/ /workspace/example/
 

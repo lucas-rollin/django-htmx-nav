@@ -26,10 +26,13 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
       - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install .[docs,example]
+        run: uv sync --frozen --group docs --group example
 
       - name: Build Static Site & Sphinx Docs
         env:
@@ -37,12 +40,9 @@ jobs:
           STATIC_ROOT: site/static
           STATIC_URL: /django-htmx-nav/static/
         run: |
-          python example/manage.py collectstatic --noinput
-
-          python example/manage.py freeze_static_pages --out site --prefix /django-htmx-nav/
-
-          sphinx-build -b html docs site/docs
-
+          uv run python example/manage.py collectstatic --noinput
+          uv run python example/manage.py freeze_static_pages --out site --prefix /django-htmx-nav/
+          uv run sphinx-build -b html docs site/docs
           touch site/.nojekyll
 
       - name: Upload Artifact
