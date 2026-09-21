@@ -25,6 +25,20 @@ Both `partial=` (as mapping values) and `include_if=` accept the same `Target` c
 
 `partial` decides what `render_nav` returns as the main response **on HTMX requests**. On non-HTMX requests, `render_nav` renders `template_name` in full. `partial` accepts the forms below.
 
+### Choosing a partial
+
+| Situation | Use |
+| --- | --- |
+| One-off view, no nested regions | The default `"#content"` |
+| Nested regions (page > tab > subtab) | A routing mapping (section 3) |
+| Partial depends on more than `HX-Target` | A callable (section 4) |
+| A fragment too big for the page template | A standalone path as a mapping value; the page `{% include %}`s it |
+| Existing `pages/` + `partials/` layout | `PathReplace` (section 5, legacy) |
+
+Prefer a mapping to a callable whenever every branch is "this target → that
+partial". It uses the same `Target` vocabulary as `Swap(include_if=...)`, so
+routing and swaps read the same way.
+
 ### 1. Default block (`#content`)
 
 When omitted, `partial` falls back to `HTMX_NAV_DEFAULT_PARTIAL` (default `"#content"`):

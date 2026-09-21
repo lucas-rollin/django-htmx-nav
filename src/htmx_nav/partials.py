@@ -31,10 +31,10 @@ class PartialResolver(Protocol):
 
 @dataclass(frozen=True)
 class PathReplace:
-    """Swap a path segment or directory, e.g. ``"pages/"`` -> ``"partials/_"``.
+    """Derive a standalone partial file path by swapping a path segment.
 
-    Particularly useful in pre-Django 6 codebases or multi-file template
-    layouts where full pages and partials live in separate directories.
+    Legacy/compatibility support for codebases that keep every partial in its
+    own file under a directory convention, e.g. ``"pages/"`` -> ``"partials/_"``.
 
     Args:
         old: The path segment to match (e.g. ``"pages/"``).
@@ -65,45 +65,34 @@ PartialSpec: TypeAlias = (
 """Specifies what template or partial block to render for an HTMX request.
 
 Values resolve to:
-    - Block name (``"#name"``): Appended to the base template, giving
-      ``template.html#name`` (Django 6 native ``{% partialdef %}``).
-    - Standalone path (``"path/to/template.html"``): Rendered in place of the
+    - Block name (``"#name"``): appended to the base template, giving
+      ``template.html#name`` (Django 6 ``{% partialdef %}``).
+    - Standalone path (``"path/to/template.html"``): rendered in place of the
       base template.
-    - ``PartialResolver`` (e.g. ``PathReplace``): Derives a block name or path
-      from the request and the base template name. Returns ``template_name``
-      unmodified if it cannot resolve the given template.
-    - Callable ``(request) -> str | None``: Returns a block name, template path,
-      or ``None`` per request.
-    - Mapping: Keys are block names, paths, or resolvers; values are ``Target``
-      conditions. The first key whose condition matches wins, so end with
-      ``True`` for a fallback.
-    - ``None``: Forces a full-page render.
+    - Callable ``(request) -> str | None``: returns a block name, path, or
+      ``None`` per request.
+    - Mapping: keys are block names, paths, or resolvers; values are ``Target``
+      conditions. First match wins, so end with ``True`` for a fallback.
+    - ``PartialResolver``: derives a block name or path from the request and
+      base template name. Advanced extension point; ``PathReplace`` is the
+      built-in.
+    - ``None``: forces a full-page render.
 
 Examples:
     .. code-block:: python
 
-        # Block name (single-file, Django 6 inline partial)
         "#content"
 
-        # Standalone path
-        "partials/_tab_content.html"
-
-        # Block inside another template
-        "partials/navigation_components.html#sidebar"
-
-        # Derived path: base template "pages/board.html"
-        # renders "partials/_board.html" on HTMX requests
-        PathReplace("pages/", "partials/_")
-
-        # Per-request callable
         lambda request: "#tab_content" if htmx_target_is(request, "tabs") else "#content"
 
-        # Mapping, first match wins, mixing every key kind
         {
-            "partials/_tab_content.html": targeting("tab-content"),
-            PathReplace("pages/", "partials/_"): targeting("main-content"),
-            "#content": True,  # fallback
+            "#tab_content": targeting("tab-content"),
+            "partials/_board.html": targeting("board"),
+            "#content": True,
         }
+
+        # Legacy: "pages/board.html" -> "partials/_board.html"
+        PathReplace("pages/", "partials/_")
 """
 
 

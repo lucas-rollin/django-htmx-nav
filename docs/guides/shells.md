@@ -126,11 +126,14 @@ class ProjectDetailView(ProjectShellMixin, DetailView):
 
 ### Mixin Customization Hooks
 
-`make_shell_view_mixin` provides several hook methods that you can override in your CBV:
-
-| Method | Default Behavior | Purpose |
+| Method | Default | Purpose |
 | :--- | :--- | :--- |
-| `get_extra_swaps()` | Returns `[]` | Return a list of `Swap` objects specific to this view. You have full access to `self.object` and `self.request`. |
-| `get_title()` | Returns `None` | Return a string title for the page and browser tab. |
-| `get_partial_spec()` | Uses shell default (`#content`) | Return a custom partial block name, routing dict, or callable for this view. |
-| `get_swaps()` | Combines shell swaps + `extra_swaps` | Override if you need complete programmatic control over all swaps. |
+| `get_extra_swaps()` | `None` | Swaps specific to this view. `self.object` and `self.request` are available. May return one `Swap` or a list. |
+| `get_title()` | `self.title` | Page and browser-tab title. Set the `title` attribute for a static one. |
+| `get_partial()` | The mixin's `default_partial`, else the renderer's default | Any `PartialSpec`, including a routing mapping. |
+| `get_template_names()` | Django's own | Only the **first** entry is rendered, because partial resolution needs one concrete template name. |
+
+`make_shell_view_mixin(render, default_swaps=..., default_partial=...)` also
+accepts `default_swaps` (applied to every view using the mixin) and
+`default_partial`. Place the mixin **before** the Django view class so its
+`render_to_response` takes precedence.

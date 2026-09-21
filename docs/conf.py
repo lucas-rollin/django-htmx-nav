@@ -25,7 +25,7 @@ if not settings.configured:
 project = "django-htmx-nav"
 copyright = "2026, Lucas Rollin Ferreira"
 author = "Lucas Rollin Ferreira"
-release = "0.3.1"
+release = "0.3.2"
 
 extensions = [
     "myst_parser",

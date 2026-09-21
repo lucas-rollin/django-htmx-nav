@@ -37,7 +37,7 @@ Two stylesheets are provided, depending on whether you want a client-side on/off
 
 ```html
 {% load static %}
-<link rel="stylesheet" href="{% static 'htmx_nav/debug-swaps-always-on.css' %}">
+<link rel="stylesheet" href="{% static 'htmx_nav/debug-swaps-always.css' %}">
 ```
 
 ## How it works

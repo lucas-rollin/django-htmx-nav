@@ -20,7 +20,7 @@ All settings are optional and configured in your Django `settings.py`.
 
 Specifies the fallback partial block, template path, or resolver when a view does not explicitly pass `partial=...`.
 
-### Template Block Extraction (Single-File)
+### Inline Partials (Recommended)
 
 When templates define partials internally using `{% block ... %}` (or `{% partialdef %}`):
 
@@ -29,7 +29,11 @@ When templates define partials internally using `{% block ... %}` (or `{% partia
 HTMX_NAV_DEFAULT_PARTIAL = "#main"
 ```
 
-### Path Replacement (Multi-File)
+### Standalone Partial Files (Legacy)
+
+```{note}
+Legacy/compatibility support. Prefer inline partials for new projects; this option is for codebases that already keep pages and partials in separate files and don't want to rewrite them.
+```
 
 When pages and partials are separate files (e.g. `pages/x.html` and `partials/_x.html`), configure `PathReplace`:
 
