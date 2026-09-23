@@ -1,7 +1,7 @@
 # django-htmx-nav
 
 [![PyPI Version](https://img.shields.io/pypi/v/django-htmx-nav.svg?style=flat-square\&color=blue)](https://pypi.org/project/django-htmx-nav/)
-[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue?style=flat-square\&logo=python\&logoColor=white)](https://www.python.org/)
+[![Python Version](https://img.shields.io/badge/python-3.12%2B-blue?style=flat-square\&logo=python\&logoColor=white)](https://www.python.org/)
 [![Django Version](https://img.shields.io/badge/django-6.0%2B-darkgreen?style=flat-square\&logo=django\&logoColor=white)](https://www.djangoproject.com/)
 [![htmx Version](https://img.shields.io/badge/htmx-2.0%2B-purple?style=flat-square\&logo=htmx\&logoColor=white)](https://htmx.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
