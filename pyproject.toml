@@ -76,7 +76,7 @@ ignore = []
 
 [tool.djlint]
 profile = "django"
-exclude = "src,snippets/"
+exclude = "src/,snippets/,tests/"
 max_line_length = 120
 wrap_attributes = true
 ignore = "H021,H025"
