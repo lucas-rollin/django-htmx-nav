@@ -1,0 +1,82 @@
+name: Bug Report
+description: Something in django-htmx-nav isn't behaving as documented.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. A minimal
+        reproduction is by far the most useful thing you can include —
+        a single `Swap(...)` / `render_nav(...)` call plus the request
+        headers involved is usually enough to turn this directly into a
+        regression test.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: >
+        The view/`Swap`/`render_nav` code involved, and, if relevant,
+        the template(s). Trim anything not needed to trigger the bug.
+      render: python
+    validations:
+      required: false
+
+  - type: textarea
+    id: request-details
+    attributes:
+      label: Request details
+      description: >
+        Which request mode triggers this — full page load, HTMX request
+        with `HX-Target`, etc.? Include relevant headers if the bug is
+        targeting-related (`partial=`, `include_if=`, `Target`).
+    validations:
+      required: false
+
+  - type: textarea
+    id: actual-vs-expected
+    attributes:
+      label: Actual vs. expected output
+      description: Rendered HTML (or behavior) you got, vs. what you expected.
+    validations:
+      required: false
+
+  - type: input
+    id: htmx-nav-version
+    attributes:
+      label: django-htmx-nav version
+      placeholder: "0.3.3"
+    validations:
+      required: true
+
+  - type: input
+    id: django-version
+    attributes:
+      label: Django version
+      placeholder: "6.0"
+    validations:
+      required: true
+
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      placeholder: "3.12"
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Settings overrides (`HTMX_NAV_DEFAULT_SWAP_WRAP`, etc.), relevant `HTMX_NAV_*` config, or anything else that might matter.
+    validations:
+      required: false
