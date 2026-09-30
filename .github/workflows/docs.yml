@@ -1,9 +1,13 @@
 name: Deploy Documentation & Static Site
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -14,22 +18,22 @@ concurrency:
   group: "pages"
   cancel-in-progress: true
 
+env:
+  UV_LINK_MODE: copy
+
 jobs:
   build:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
+          python-version: "3.14"
 
       - name: Install Dependencies
         run: uv sync --frozen --group docs --group example

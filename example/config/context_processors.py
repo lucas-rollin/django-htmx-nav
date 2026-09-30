@@ -1,6 +1,7 @@
+from urllib.parse import urlsplit
+
 from core.navigation.registry import VARIANTS
 from django.conf import settings
-from urllib.parse import urlsplit
 
 
 def variants(request):

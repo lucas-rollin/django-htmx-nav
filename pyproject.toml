@@ -20,6 +20,7 @@ classifiers = [
 
 [dependency-groups]
 test = [
+    "beautifulsoup4>=4.15.0",
     "pytest>=8.0",
     "pytest-django>=4.8",
 ]
@@ -83,9 +84,8 @@ ignore = "H021,H025"
 indent = 2
 
 [tool.mypy]
-files = ["src", "example"]
-mypy_path = ["src", "example"]
-plugins = ["mypy_django_plugin.main"]
+files = ["src"]
+mypy_path = ["src"]
 explicit_package_bases = true
 exclude = ["templates"]
 
