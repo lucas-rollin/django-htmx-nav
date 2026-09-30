@@ -12,6 +12,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  UV_LINK_MODE: copy
+
 jobs:
   lint:
     name: Lint & Type Check
@@ -95,7 +98,7 @@ jobs:
         run: uv run pytest -c example/pytest.ini example/
 
   build-check:
-    name: Package & Docs Build Check
+    name: Package & Static Site Build Check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -107,11 +110,21 @@ jobs:
           enable-cache: true
           python-version: "3.14"
 
-      - name: Verify Package Build
-        run: uv build
+      - name: Verify Package Build & Wheel Installation
+        run: |
+          uv build
+          uv run --isolated --no-project --with dist/*.whl python -c "import htmx_nav, importlib.metadata; print(f'Successfully installed and imported {htmx_nav.__name__} {importlib.metadata.version(\"django-htmx-nav\")}')"
 
-      - name: Install Docs Dependencies
-        run: uv sync --frozen --group docs
+      - name: Install Docs & Example Dependencies
+        run: uv sync --frozen --group docs --group example
 
-      - name: Verify Docs Build
-        run: uv run sphinx-build -b html docs site/docs
+      - name: Verify Static Site Freeze & Docs Build
+        env:
+          ENVIRONMENT: static_generation
+          STATIC_ROOT: site/static
+          STATIC_URL: /django-htmx-nav/static/
+        run: |
+          uv run python example/manage.py collectstatic --noinput
+          uv run python example/manage.py freeze_static_pages --out site --prefix /django-htmx-nav/
+          uv run sphinx-build -b html docs site/docs
+          touch site/.nojekyll
