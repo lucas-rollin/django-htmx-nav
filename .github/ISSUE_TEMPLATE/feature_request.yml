@@ -1,0 +1,41 @@
+name: Feature Request
+description: Suggest an addition or change to django-htmx-nav.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: >
+        Describe the navigation/HTMX synchronization problem you're
+        hitting. Concrete examples (sidebar, breadcrumbs, tabs, etc.)
+        are more useful than abstract descriptions.
+    validations:
+      required: true
+
+  - type: textarea
+    id: current-workaround
+    attributes:
+      label: Current workaround, if any
+      description: How are you handling this today without the feature?
+    validations:
+      required: false
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed API
+      description: >
+        A sketch of what this might look like, e.g. a new `Swap`
+        constructor, a new `Target` form, a new setting, etc. Doesn't
+        need to be final.
+      render: python
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
