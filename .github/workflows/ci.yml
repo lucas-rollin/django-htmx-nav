@@ -24,7 +24,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
-          python-version: "3.12"
+          python-version: "3.14"
 
       - name: Install Lint Dependencies
         run: uv sync --frozen --group lint
@@ -38,8 +38,8 @@ jobs:
       - name: Run Mypy Type Checker
         run: uv run mypy
 
-  test:
-    name: Test (Python ${{ matrix.python-version }})
+  test-matrix:
+    name: Package Tests (Python ${{ matrix.python-version }}, Django ${{ matrix.django-version }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -48,6 +48,17 @@ jobs:
           - "3.12"
           - "3.13"
           - "3.14"
+        django-version:
+          - "6.0"
+          - "6.1"
+          - "latest"
+        include:
+          - django-version: "6.0"
+            django-spec: "django~=6.0.0"
+          - django-version: "6.1"
+            django-spec: "django~=6.1.0"
+          - django-version: "latest"
+            django-spec: "django"
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -59,10 +70,26 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install Test Dependencies
-        run: uv sync --frozen --python ${{ matrix.python-version }} --group test --group example
+        run: uv sync --frozen --python ${{ matrix.python-version }} --group test
 
       - name: Run Package Unit Tests
-        run: uv run pytest tests/
+        run: uv run --group test --with "${{ matrix.django-spec }}" --upgrade-package django pytest tests/
+
+  test-example:
+    name: "Example Tests (Render & Static runtime: Python 3.14, Django 6.1)"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          python-version: "3.14"
+
+      - name: Install Locked Example & Test Dependencies
+        run: uv sync --frozen --group test --group example
 
       - name: Run Example Application Tests
         run: uv run pytest -c example/pytest.ini example/
@@ -78,7 +105,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
-          python-version: "3.12"
+          python-version: "3.14"
 
       - name: Verify Package Build
         run: uv build
