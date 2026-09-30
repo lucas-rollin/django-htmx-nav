@@ -7,6 +7,9 @@ on:
 permissions:
   contents: read
 
+env:
+  UV_LINK_MODE: copy
+
 jobs:
   release-build:
     runs-on: ubuntu-latest
@@ -18,7 +21,9 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Build release distributions
-        run: uv build
+        run: |
+          uv build
+          uv run --isolated --no-project --with dist/*.whl python -c "import htmx_nav, importlib.metadata; print(f'Validated build: {htmx_nav.__name__} {importlib.metadata.version(\"django-htmx-nav\")}')"
 
       - name: Upload distributions
         uses: actions/upload-artifact@v4
