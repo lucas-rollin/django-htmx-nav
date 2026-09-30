@@ -351,6 +351,7 @@ lint = [
     { name = "ruff" },
 ]
 test = [
+    { name = "beautifulsoup4" },
     { name = "pytest" },
     { name = "pytest-django" },
 ]
@@ -385,6 +386,7 @@ lint = [
     { name = "ruff", specifier = "==0.16.2" },
 ]
 test = [
+    { name = "beautifulsoup4", specifier = ">=4.15.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-django", specifier = ">=4.8" },
 ]
