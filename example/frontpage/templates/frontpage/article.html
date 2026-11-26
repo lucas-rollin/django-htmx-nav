@@ -21,7 +21,7 @@
         <div x-data="{ copied: false }" class="ml-auto">
           <textarea class="hidden" x-ref="markdownSource" readonly>{{ article.raw_markdown }}</textarea>
           <button type="button"
-                  class="btn btn-outline btn-xs sm:btn-sm gap-2 font-medium"
+                  class="btn btn-outline btn-xs gap-2 font-medium"
                   @click="navigator.clipboard.writeText($refs.markdownSource.value); copied = true; setTimeout(() => copied = false, 2000)">
             <svg x-show="!copied" class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

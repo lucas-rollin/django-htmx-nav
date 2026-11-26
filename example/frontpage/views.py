@@ -125,7 +125,7 @@ def article(request: HttpRequest, slug: str) -> HttpResponse:
     """Render a Markdown-backed article page."""
     return render(
         request,
-        "frontpage/articles/article.html",
+        "frontpage/article.html",
         {"article": render_article(request, slug)},
     )
 
