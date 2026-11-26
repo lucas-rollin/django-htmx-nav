@@ -50,7 +50,7 @@ def test_guide_page(client):
 
     assert response.status_code == 200
     template_names = [t.name for t in response.templates]
-    assert "frontpage/articles/article.html" in template_names
+    assert "frontpage/article.html" in template_names
     assert "frontpage/base.html" in template_names
 
     content = response.content.decode()
