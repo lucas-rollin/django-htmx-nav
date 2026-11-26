@@ -53,7 +53,7 @@ body:
     id: htmx-nav-version
     attributes:
       label: django-htmx-nav version
-      placeholder: "0.3.3"
+      placeholder: "0.4.0"
     validations:
       required: true
 

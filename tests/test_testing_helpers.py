@@ -140,3 +140,30 @@ def test_no_checks_still_makes_all_requests():
         checks={},
     )
     assert len(responses) == 2
+
+
+def test_assert_shell_parity_raises_clear_error_when_context_is_none():
+    from django.http import HttpResponse
+
+    urlpatterns.append(path("plain/", lambda req: HttpResponse("plain")))
+    try:
+        with pytest.raises(AssertionError, match="no template context"):
+            assert_shell_parity(
+                Client(),
+                "/plain/",
+                requests={"a": {}},
+                checks={"value": lambda ctx: ctx["value"]},
+            )
+    finally:
+        urlpatterns.pop()
+
+
+def test_html_document_split_fragments_handles_template_wrapped_oob():
+    from htmx_nav.testing import _HTMLDocument
+
+    doc = _HTMLDocument(
+        '<div>Main</div><template><tr id="row-1" hx-swap-oob="outerHTML"><td>A</td></tr></template>'
+    )
+    primary, fragments = doc.split_fragments()
+    assert primary == "<div>Main</div>"
+    assert fragments == {"row-1": "<td>A</td>"}

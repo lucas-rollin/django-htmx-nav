@@ -3,18 +3,21 @@ Swap: an out-of-band or ``<hx-partial>`` fragment rendered alongside the main
 content of an HTMX response.
 """
 
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any, Literal, TypeAlias
 
 from django.http import HttpRequest
 from django.template.loader import render_to_string
-from django.utils.html import conditional_escape
+from django.utils.html import conditional_escape, escape
 from django.utils.safestring import SafeString
 
-from .debugging import _build_marker_script
+from .debugging import _build_marker_script, _request_csp_nonce
 from .settings import _debug_swaps_enabled, _default_swap_wrap
 from .targeting import Target, _eval_target
+
+_HTML_TAG_RE = re.compile(r"^[A-Za-z][A-Za-z0-9-]*$")
 
 
 @dataclass(frozen=True)
@@ -60,11 +63,16 @@ class Swap:
     swap_style: str = "innerHTML"
     wrap: Literal["oob", "hx-partial"] | None = None
     include_if: Target = True
+    tag: str = "div"
 
     def __post_init__(self) -> None:
         """Apply configured swap-wrap default and validate field combinations."""
         if self.wrap is None:
             object.__setattr__(self, "wrap", _default_swap_wrap())
+        if self.wrap not in ("oob", "hx-partial"):
+            raise ValueError(f"wrap must be 'oob' or 'hx-partial', got {self.wrap!r}")
+        if not _HTML_TAG_RE.match(self.tag):
+            raise ValueError(f"Invalid HTML tag name: {self.tag!r}")
         if self.swap_style == "delete":
             if self.target_id is None:
                 raise ValueError("Swap(swap_style='delete') requires target_id")
@@ -89,7 +97,10 @@ class Swap:
             A ``Swap`` configured for deletion.
         """
         return cls(
-            target_id=target_id, swap_style="delete", wrap="oob", include_if=include_if
+            target_id=target_id,
+            swap_style="delete",
+            wrap="oob",
+            include_if=include_if,
         )
 
     @classmethod
@@ -100,6 +111,8 @@ class Swap:
         swap_style: str = "innerHTML",
         wrap: Literal["oob", "hx-partial"] | None = None,
         include_if: Target = True,
+        *,
+        tag: str = "div",
     ) -> "Swap":
         """Build a swap from a ready-made string, skipping template rendering.
 
@@ -109,6 +122,7 @@ class Swap:
             swap_style: HTMX swap strategy.
             wrap: Auto-wrap mode. Defaults to the ``HTMX_NAV_DEFAULT_SWAP_WRAP`` setting.
             include_if: Predicate determining if the swap applies to the request.
+            tag: Outer HTML wrapper tag name when ``wrap="oob"`` (defaults to ``"div"``).
 
         Returns:
             A ``Swap`` that renders ``content`` directly.
@@ -119,6 +133,7 @@ class Swap:
             swap_style=swap_style,
             wrap=wrap,
             include_if=include_if,
+            tag=tag,
         )
 
     def applies_to(self, request: HttpRequest) -> bool:
@@ -151,7 +166,8 @@ class Swap:
         if self.swap_style == "delete":
             # htmx removes the target outright; no body, no wrapper choice,
             # no debug marker (the element won't exist to animate).
-            return f'<div id="{self.target_id}" hx-swap-oob="delete"></div>'
+            assert self.target_id is not None
+            return f'<div id="{escape(self.target_id)}" hx-swap-oob="delete"></div>'
 
         if self.content is not None:
             html: SafeString | str = conditional_escape(self.content)
@@ -171,16 +187,21 @@ class Swap:
             )
 
         if self.target_id and _debug_swaps_enabled():
-            html += _build_marker_script(self.target_id)
+            html += _build_marker_script(
+                self.target_id, nonce=_request_csp_nonce(request)
+            )
         if not self.target_id:
             return html
+        safe_target = escape(self.target_id)
+        safe_style = escape(self.swap_style)
         if self.wrap == "hx-partial":
             return (
-                f'<hx-partial hx-target="#{self.target_id}" '
-                f'hx-swap="{self.swap_style}">{html}</hx-partial>'
+                f'<hx-partial hx-target="#{safe_target}" '
+                f'hx-swap="{safe_style}">{html}</hx-partial>'
             )
         return (
-            f'<div id="{self.target_id}" hx-swap-oob="{self.swap_style}">{html}</div>'
+            f'<{self.tag} id="{safe_target}" hx-swap-oob="{safe_style}">'
+            f"{html}</{self.tag}>"
         )
 
 

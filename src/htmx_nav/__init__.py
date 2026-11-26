@@ -1,3 +1,5 @@
+from .debugging import debug_swap_marker
+from .helpers import cache_on_request
 from .partials import (
     PartialResolver,
     PartialSpec,
@@ -21,6 +23,8 @@ __all__ = [
     "targeting",
     "not_targeting",
     "has_messages",
+    "cache_on_request",
+    "debug_swap_marker",
     "render_nav",
     "make_shell_renderer",
     "make_shell_view_mixin",

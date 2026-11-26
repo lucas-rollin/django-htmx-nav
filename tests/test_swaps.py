@@ -260,3 +260,35 @@ def test_text_and_template_name_together_raises():
 def test_neither_text_nor_template_name_raises():
     with pytest.raises(ValueError, match="template_name or content is required"):
         Swap(target_id="box")
+
+
+def test_swap_custom_tag():
+    request = RequestFactory().get("/", HTTP_HX_REQUEST="true")
+    row = Swap.text("row-1", "x", swap_style="outerHTML", tag="tr")
+    assert row.render(request) == '<tr id="row-1" hx-swap-oob="outerHTML">x</tr>'
+
+
+def test_swap_validates_wrap_and_tag():
+    with pytest.raises(ValueError, match="wrap must be"):
+        Swap.text("box", "x", wrap="invalid")  # type: ignore[arg-type]
+    with pytest.raises(ValueError, match="Invalid HTML tag name"):
+        Swap.text("box", "x", tag="div onclick=bad")
+
+
+def test_swap_forwards_django_csp_middleware_nonce():
+    from django.http import HttpResponse
+    from django.middleware.csp import ContentSecurityPolicyMiddleware, get_nonce
+    from django.utils.csp import CSP
+
+    def view(req):
+        return HttpResponse(Swap.text("alerts", "ok").render(req))
+
+    with override_settings(
+        HTMX_NAV_DEBUG_SWAPS=True,
+        SECURE_CSP={"default-src": [CSP.SELF], "script-src": [CSP.SELF, CSP.NONCE]},
+    ):
+        request = RequestFactory().get("/", HTTP_HX_REQUEST="true")
+        response = ContentSecurityPolicyMiddleware(view)(request)
+        nonce = str(get_nonce(request))
+        assert f'<script nonce="{nonce}">'.encode() in response.content
+        assert f"'nonce-{nonce}'" in response["Content-Security-Policy"]
