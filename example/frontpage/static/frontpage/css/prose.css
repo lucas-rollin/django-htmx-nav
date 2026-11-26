@@ -1,0 +1,112 @@
+/* Article markdown typography (scoped with :where so utilities and .not-prose win) */
+
+.article-prose :where(h2):not(:where(.not-prose, .not-prose *)) {
+  font-size: 1.5rem;
+  line-height: 1.25;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  border-bottom: 1px solid var(--color-base-200);
+  padding-bottom: 0.75rem;
+  margin-top: 3.5rem;
+  margin-bottom: 1rem;
+  scroll-margin-top: 6rem;
+}
+
+@media (width >= 640px) {
+  .article-prose :where(h2):not(:where(.not-prose, .not-prose *)) {
+    font-size: 1.875rem;
+  }
+}
+
+.article-prose :where(h2:first-child):not(:where(.not-prose, .not-prose *)) {
+  margin-top: 0;
+}
+
+.article-prose :where(h3):not(:where(.not-prose, .not-prose *)) {
+  font-size: 1.25rem;
+  line-height: 1.35;
+  font-weight: 700;
+  margin-top: 2.25rem;
+  margin-bottom: 0.75rem;
+  scroll-margin-top: 6rem;
+}
+
+.article-prose :where(p):not(:where(.not-prose, .not-prose *)) {
+  color: color-mix(in oklab, var(--color-base-content) 85%, transparent);
+  line-height: 1.7;
+  margin-block: 0.875rem;
+}
+
+.article-prose :where(ul, ol):not(:where(.not-prose, .not-prose *)) {
+  padding-left: 1.5rem;
+  margin-block: 0.875rem;
+  color: color-mix(in oklab, var(--color-base-content) 85%, transparent);
+}
+
+.article-prose :where(ul):not(:where(.not-prose, .not-prose *)) {
+  list-style: disc;
+}
+
+.article-prose :where(ol):not(:where(.not-prose, .not-prose *)) {
+  list-style: decimal;
+}
+
+.article-prose :where(li):not(:where(.not-prose, .not-prose *)) {
+  margin-block: 0.35rem;
+  line-height: 1.65;
+}
+
+.article-prose :where(strong):not(:where(.not-prose, .not-prose *)) {
+  font-weight: 700;
+  color: var(--color-base-content);
+}
+
+.article-prose :where(a):not(:where(.not-prose, .not-prose *)) {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.article-prose :where(a):not(:where(.not-prose, .not-prose *)):hover {
+  opacity: 0.85;
+}
+
+.article-prose :where(blockquote):not(:where(.not-prose, .not-prose *)) {
+  border-left: 3px solid var(--color-primary);
+  background-color: color-mix(in oklab, var(--color-base-200) 50%, transparent);
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin-block: 1rem;
+  font-size: 0.875rem;
+}
+
+.article-prose :where(blockquote p):not(:where(.not-prose, .not-prose *)) {
+  margin-block: 0;
+}
+
+.article-prose :where(table):not(:where(.not-prose, .not-prose *)) {
+  width: 100%;
+  border-collapse: collapse;
+  margin-block: 1.25rem;
+  font-size: 0.875rem;
+}
+
+.article-prose :where(th, td):not(:where(.not-prose, .not-prose *)) {
+  border: 1px solid var(--color-base-300);
+  padding: 0.625rem 0.875rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.article-prose :where(th):not(:where(.not-prose, .not-prose *)) {
+  background-color: color-mix(in oklab, var(--color-base-200) 60%, transparent);
+  font-weight: 700;
+}
+
+.article-prose :where(:not(pre) > code):not(:where(.not-prose, .not-prose *)) {
+  background-color: color-mix(in oklab, var(--color-base-200) 80%, transparent);
+  padding: 0.125rem 0.35rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+}

@@ -15,7 +15,7 @@ INSTALLED_APPS = [
 
 ```python
 # settings.py
-HTMX_NAV_DEBUG_SWAPS = DEBUG # active during development
+HTMX_NAV_DEBUG_SWAPS = DEBUG  # active during development
 ```
 
 Two stylesheets are provided, depending on whether you want a client-side on/off toggle:

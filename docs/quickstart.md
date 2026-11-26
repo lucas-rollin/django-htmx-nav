@@ -104,7 +104,9 @@ def project_detail(request, pk):
             # Auto-wraps nav/_sidebar.html in <div id="sidebar" hx-swap-oob="innerHTML">
             Swap("nav/_sidebar.html", {"active_pk": project.pk}, target_id="sidebar"),
             # Synchronizes the breadcrumb trail:
-            Swap("nav/_breadcrumbs.html", {"project": project}, target_id="breadcrumbs"),
+            Swap(
+                "nav/_breadcrumbs.html", {"project": project}, target_id="breadcrumbs"
+            ),
         ],
         title=project.name,
     )

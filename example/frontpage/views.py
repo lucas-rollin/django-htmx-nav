@@ -13,6 +13,8 @@ from django.shortcuts import redirect, render
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 
+from frontpage.articles import render_article
+
 
 def _get_default_demo_ids() -> tuple[str, str, str]:
     """Retrieve default mock organization, project, and ticket IDs."""
@@ -119,9 +121,18 @@ def landing(request: HttpRequest) -> HttpResponse:
     return render(request, "frontpage/landing.html", context)
 
 
+def article(request: HttpRequest, slug: str) -> HttpResponse:
+    """Render a Markdown-backed article page."""
+    return render(
+        request,
+        "frontpage/article.html",
+        {"article": render_article(request, slug)},
+    )
+
+
 def guide(request: HttpRequest) -> HttpResponse:
     """Architectural guide on solving stale navigation in hypermedia apps."""
-    return render(request, "frontpage/articles/architectural_guide/index.html")
+    return article(request, slug="architectural_guide")
 
 
 def robots_txt(request: HttpRequest) -> HttpResponse:

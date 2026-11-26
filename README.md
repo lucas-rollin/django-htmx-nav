@@ -42,6 +42,7 @@ Use `render_nav` as a drop-in replacement for Django's `render()`. Direct visits
 # views.py
 from htmx_nav import render_nav
 
+
 def project_list(request):
     projects = Project.objects.all()
 
@@ -76,6 +77,7 @@ Attach out-of-band swaps to update persistent navigation regions alongside the m
 from django.shortcuts import get_object_or_404
 from htmx_nav import Swap, render_nav
 from .models import Project
+
 
 def project_detail(request, pk):
     project = get_object_or_404(Project, pk=pk)
@@ -115,6 +117,7 @@ render_shell = make_shell_renderer(
         Swap("components/_breadcrumbs.html", target_id="breadcrumbs"),
     ]
 )
+
 
 # views.py
 def ticket_detail(request, pk):

@@ -49,16 +49,29 @@ def test_guide_page(client):
     response = client.get(url)
 
     assert response.status_code == 200
-    assert "frontpage/articles/architectural_guide/index.html" in [
-        t.name for t in response.templates
-    ]
-    assert "frontpage/base.html" in [t.name for t in response.templates]
+    template_names = [t.name for t in response.templates]
+    assert "frontpage/article.html" in template_names
+    assert "frontpage/base.html" in template_names
 
     content = response.content.decode()
-    # Check key architectural sections and keywords
+    # Check key architectural sections, interactive widgets, copy button, and live metrics
     assert "Swap" in content
     assert "make_shell_renderer" in content
-    assert "Visual Debugging" in content or "debug" in content.lower()
+    assert "Visual Swap Debugging" in content
+    assert "Copy Markdown" in content
+    assert "decision-accordion" in content
+    assert "stat-value" in content
+    assert response.context["article"].raw_markdown
+    assert response.context["article"].toc
+
+    # Every auto-generated ToC anchor must resolve to a rendered element id
+    toc_ids = [item.id for item in response.context["article"].toc]
+    assert len(toc_ids) == len(set(toc_ids))
+    for anchor_id in toc_ids:
+        assert f'id="{anchor_id}"' in content
+
+    # Code blocks should stay unrendered by Django templates (verbatim preserved)
+    assert "{% partialdef content inline %}" in content
 
 
 def test_robots_txt(client):
