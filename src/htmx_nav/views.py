@@ -49,7 +49,6 @@ def make_shell_view_mixin(
             - ``get_extra_swaps()``: Returns per-view swaps (runs with ``self.object`` available).
             - ``get_title()`` or ``title``: Page title override.
             - ``get_partial()``: Overrides ``default_partial`` for the view.
-            - ``get_shell_template_name()``: Defaults to ``get_template_names()[0]``.
             - ``get_template_names()``: Django's own hook. Only the first entry
                 is rendered, since partial resolution needs one concrete name.
 

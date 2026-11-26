@@ -373,3 +373,23 @@ def test_render_nav_with_path_replace_in_settings():
         response.render()
         assert response.template_name == "tests/_minimal.html"
         assert response.content.strip() == b"from_setting"
+
+
+def test_render_nav_forwards_headers_and_sets_vary_hx_request():
+    request = htmx_request(RequestFactory(), target="tabs")
+    response = render_nav(
+        request,
+        "tests/_page_nav.html",
+        {},
+        headers={"HX-Trigger": "saved"},
+        partial={"#tab_content": targeting("tabs"), "#content": True},
+    )
+    assert response["HX-Trigger"] == "saved"
+    assert "HX-Request" in response["Vary"]
+
+
+def test_top_level_package_exports():
+    import htmx_nav
+
+    assert hasattr(htmx_nav, "cache_on_request")
+    assert hasattr(htmx_nav, "debug_swap_marker")

@@ -22,6 +22,7 @@ def render_nav(
     status: int | None = None,
     using: str | None = None,
     *,
+    headers: Mapping[str, str] | None = None,
     partial: PartialSpec | object = _UNSET,
     swaps: Swaps = None,
     title: str | None = None,
@@ -35,6 +36,7 @@ def render_nav(
         content_type: Optional response content type.
         status: Optional HTTP status code.
         using: Optional template engine.
+        headers: Optional HTTP response headers forwarded to ``TemplateResponse``.
         partial: Specifies which partial to render for HTMX requests.
             Can be a block name (``"#content"``), standalone path, callable, or
             dict mapping names to targets. When ``None``, renders the full template.
@@ -47,8 +49,10 @@ def render_nav(
         A ``TemplateResponse`` with partial resolution and OOB swaps.
 
     Notes:
-        - Adds ``HX-Request`` to the Vary header for proper caching.
-        - Context from swaps is merged with main context (swap context wins).
+        - Adds ``HX-Request`` to the ``Vary`` header for proper caching.
+        - Main ``context`` overrides ``swap.context`` on the page context, while
+          each ``Swap.render()`` merges ``parent_context`` with its own
+          ``swap.context`` (swap context wins within that fragment).
         - Title injection is HTML-escaped.
 
     Example:
@@ -108,6 +112,7 @@ def render_nav(
         content_type=content_type,
         status=status,
         using=using,
+        headers=dict(headers) if headers is not None else None,
     )
     patch_vary_headers(response, ("HX-Request",))
 

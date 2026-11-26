@@ -164,3 +164,17 @@ def test_mixin_defers_to_renderer_default_partial(rf):
 
     request = rf.get("/", HTTP_HX_REQUEST="true")
     assert V.as_view()(request).template_name == "x.html#shell_default"
+
+
+def test_mixin_forwards_response_headers(rf):
+    class CustomShellView(make_shell_view_mixin(), TemplateView):
+        template_name = "tests/_page_nav.html"
+
+        def render_to_response(self, context, **response_kwargs):
+            response_kwargs["headers"] = {"HX-Trigger": "ok"}
+            return super().render_to_response(context, **response_kwargs)
+
+    request = rf.get("/", HTTP_HX_REQUEST="true")
+    response = CustomShellView.as_view()(request)
+    assert response.template_name == "tests/_page_nav.html#content"
+    assert response["HX-Trigger"] == "ok"
