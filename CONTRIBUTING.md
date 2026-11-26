@@ -26,8 +26,27 @@ Requires **Python 3.12+** and **Django 6.0+** (see `pyproject.toml`).
 - `tests/` — The main test suite, run against `tests/settings.py`.
 - `docs/` — Sphinx + MyST documentation source.
 - `example/` — A reference Helpdesk app demonstrating 8 implementation variants (MPA, vanilla HTMX, etc.). It has its own dependencies and test suite.
+- `scripts/` — Cross-platform developer automation scripts (such as `ci.py`).
 
 If your change affects behavior described in `docs/`, please update the relevant `.md` file in the same PR.
+
+## Running Full CI Checks
+
+Run the cross-platform CI runner ([scripts/ci.py](scripts/ci.py)) to execute linting, type checking, package and example test suites, wheel build verification, static site freeze, and Sphinx docs build:
+
+```bash
+uv run python scripts/ci.py
+```
+
+Useful flags:
+
+```bash
+# Skip wheel build, static freeze, and Sphinx docs build for faster iteration
+uv run python scripts/ci.py --quick
+
+# Run a single stage: lint | test | example | build
+uv run python scripts/ci.py --only lint
+```
 
 ## Running the Test Suite
 
@@ -87,7 +106,7 @@ page using `automodule` rather than duplicating prose.
 2. **Keep PRs focused** on a single change to make review easier.
 3. **Add tests** for any bug fix or behavior change.
 4. **Update docs** and `docs/glossary.md` if you introduce new terminology.
-5. **Verify checks pass** (`pytest`, `ruff check`, `djlint`, and `mypy src/`).
+5. **Verify checks pass** (`uv run python scripts/ci.py`, or individually `pytest`, `ruff check`, `djlint`, and `mypy src/`).
 6. **Do not bump versions** in `pyproject.toml`; versioning is handled at release time.
 
 ## Reporting Bugs / Requesting Features
