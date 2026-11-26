@@ -126,7 +126,7 @@ To make this the project-wide default see [`HTMX_NAV_DEFAULT_PARTIAL`](htmx-nav-
 Resolvers can also be mapping keys, mixed with plain paths and blocks:
 
 ```python
-partial={
+partial = {
     "partials/_tab_content.html": targeting("tab-content"),
     PathReplace("pages/", "partials/_"): True,  # fallback
 }
@@ -149,7 +149,9 @@ def delete_ticket(request, ticket_id):
         partial=None,
         swaps=[
             Swap.delete(f"ticket-row-{ticket_id}"),
-            Swap.text("open-tickets-count", str(Ticket.objects.filter(status="open").count())),
+            Swap.text(
+                "open-tickets-count", str(Ticket.objects.filter(status="open").count())
+            ),
             Swap("nav/_messages.html", target_id="messages", include_if=has_messages),
         ],
     )
@@ -175,7 +177,11 @@ def project_detail(request, pk):
         # 2. Out-of-band updates
         swaps=[
             # Only when just the tab content is swapped: refresh the tab header
-            Swap("projects/_tabs.html", target_id="tabs", include_if=targeting("tab-content")),
+            Swap(
+                "projects/_tabs.html",
+                target_id="tabs",
+                include_if=targeting("tab-content"),
+            ),
             # No include_if: rides along on every HTMX request
             Swap("nav/_breadcrumbs.html", target_id="breadcrumbs"),
         ],
@@ -199,13 +205,21 @@ To skip breadcrumbs on tab clicks, add `include_if=not_targeting("tab-content")`
 from htmx_nav import Swap, has_messages, not_targeting, targeting
 
 swaps = [
-    Swap("nav/_tabs.html", target_id="tabs", include_if=targeting("tab-content", "subtabs")),
+    Swap(
+        "nav/_tabs.html",
+        target_id="tabs",
+        include_if=targeting("tab-content", "subtabs"),
+    ),
     # Skip the sidebar when the request came from inside the sidebar
     Swap("nav/_sidebar.html", target_id="sidebar", include_if=not_targeting("sidebar")),
     # Only when Django messages are queued
     Swap("nav/_messages.html", target_id="messages", include_if=has_messages),
     # Permission check
-    Swap("nav/_admin_toolbar.html", target_id="admin-toolbar", include_if=lambda req: req.user.is_staff),
+    Swap(
+        "nav/_admin_toolbar.html",
+        target_id="admin-toolbar",
+        include_if=lambda req: req.user.is_staff,
+    ),
 ]
 ```
 
