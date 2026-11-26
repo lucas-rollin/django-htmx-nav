@@ -93,3 +93,34 @@ def test_template_tag_accepts_variable_target_id():
     template = Template("{% load htmx_nav %}{% htmx_nav_debug_marker tid %}")
     rendered = template.render(Context({"tid": "sidebar"}))
     assert 'getElementById("sidebar")' in rendered
+
+
+def test_build_marker_script_escapes_closing_script_and_supports_nonce():
+    script = _build_marker_script("x</script><y>", nonce='n"1')
+    assert "</script><y>" not in script
+    assert r"<\/script>" in script
+    assert script.startswith('<script nonce="n&quot;1">')
+
+
+def test_template_tag_forwards_django_csp_middleware_nonce():
+    from django.http import HttpResponse
+    from django.middleware.csp import ContentSecurityPolicyMiddleware, get_nonce
+    from django.template import RequestContext
+    from django.test import RequestFactory
+    from django.utils.csp import CSP
+
+    def view(req):
+        template = Template(
+            "{% load htmx_nav %}{% htmx_nav_debug_marker 'breadcrumbs' %}"
+        )
+        return HttpResponse(template.render(RequestContext(req, {})))
+
+    with override_settings(
+        HTMX_NAV_DEBUG_SWAPS=True,
+        SECURE_CSP={"default-src": [CSP.SELF], "script-src": [CSP.SELF, CSP.NONCE]},
+    ):
+        req = RequestFactory().get("/")
+        response = ContentSecurityPolicyMiddleware(view)(req)
+        nonce = str(get_nonce(req))
+        assert response.content.decode().startswith(f'<script nonce="{nonce}">')
+        assert f"'nonce-{nonce}'" in response["Content-Security-Policy"]
