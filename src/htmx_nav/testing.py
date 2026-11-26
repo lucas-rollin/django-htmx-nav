@@ -78,6 +78,14 @@ def assert_shell_parity(
     """
     responses = {label: client.get(url, **kwargs) for label, kwargs in requests.items()}
 
+    if checks:
+        for label, resp in responses.items():
+            if resp.context is None:
+                raise AssertionError(
+                    f"Request {label!r} to {url!r} returned status {resp.status_code} "
+                    "with no template context."
+                )
+
     for check_label, extract in checks.items():
         values = {label: extract(resp.context) for label, resp in responses.items()}
         baseline_label, baseline_value = next(iter(values.items()))
@@ -192,6 +200,24 @@ class _HTMLDocument:
                 elem_id_str = elem_id if isinstance(elem_id, str) else str(elem_id)
                 fragments[elem_id_str] = str(node.decode_contents())
                 node.extract()
+            elif name == "template":
+                oob_children = [
+                    child
+                    for child in node.contents
+                    if isinstance(child, Tag)
+                    and child.attrs.get("hx-swap-oob")
+                    and child.attrs.get("id")
+                ]
+                if oob_children:
+                    for child in oob_children:
+                        elem_id = child.attrs["id"]
+                        elem_id_str = (
+                            elem_id if isinstance(elem_id, str) else str(elem_id)
+                        )
+                        fragments[elem_id_str] = str(child.decode_contents())
+                    node.extract()
+                else:
+                    primary_parts.append(str(node))
             elif name == "hx-partial" and (hx_target := attrs.get("hx-target")):
                 hx_target_str = (
                     hx_target if isinstance(hx_target, str) else str(hx_target)
